@@ -1,8 +1,9 @@
 ![SPORTLINK](https://image.noelshack.com/fichiers/2024/18/4/1714639100-sportlink.jpg)
-# SportLink
+<div align="center">
+<h1># SportLink</h1>
 
-SportLink: Connect, Engage, Exercise, Book, and Meet Similar Partners!
-
+<p>SportLink: Connect, Engage, Exercise, Book, and Meet Similar Partners!</p>
+</div>
 ## Overview / Présentation
 
 SportLink aims to connect local athletes, promote, and facilitate the organization of sports activities. The app allows finding sports partners with similar statistical profiles and booking sports facilities and equipment.
