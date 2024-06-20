@@ -1,0 +1,99 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #000000;
+    color: white;
+    padding: 1em 0;
+    text-align: center;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+nav ul li {
+    margin: 0 1em;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+h1#logo {
+    cursor: pointer;
+    margin: 0;
+}
+
+section {
+    padding: 2em;
+    margin: 7em 0 2em 0;
+    background: #f4f4f4;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+form label, form input, form button {
+    margin-bottom: 1em;
+}
+
+footer {
+    background-color: #282c34;
+    color: white;
+    text-align: center;
+    padding: 1em 0;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}
+
+/* Styles pour sections déroulantes */
+section > h2 {
+    cursor: pointer;
+    background-color: #007BFF;
+    color: white;
+    padding: 0.5em;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+section > h2:hover {
+    background-color: #0056b3;
+}
+
+section > div {
+    display: none;
+    padding: 1em 0;
+}
+
+section > h2.active + div {
+    display: block;
+    background: white;
+    padding: 1em;
+    border-radius: 5px;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
