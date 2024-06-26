@@ -2,28 +2,47 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
+    background: url('SportLink.png') no-repeat center center fixed;
+    background-size: cover;
+    color: #fff;
 }
 
 header {
-    background-color: #000000;
-    color: white;
-    padding: 1em 0;
     text-align: center;
-    position: fixed;
-    width: 100%;
-    top: 0;
-    z-index: 1000;
+    padding: 2em 0;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+header h1#logo {
+    font-size: 3em;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 0;
+    background: linear-gradient(45deg, #ffdd57, #ff5733, #007BFF, #23a6d5, #23d5ab);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: background 0.3s ease;
+}
+
+header h1#logo:hover {
+    color: #ffdd57;
+}
+
+nav {
+    display: none;
+    text-align: center;
+    margin-top: 1em;
 }
 
 nav ul {
     list-style: none;
     padding: 0;
     margin: 0;
-    display: flex;
-    justify-content: center;
+    display: inline-block;
 }
 
 nav ul li {
+    display: inline;
     margin: 0 1em;
 }
 
@@ -33,67 +52,113 @@ nav ul li a {
     font-weight: bold;
 }
 
-h1#logo {
-    cursor: pointer;
-    margin: 0;
+nav ul li a:hover {
+    text-decoration: underline;
 }
 
-section {
-    padding: 2em;
-    margin: 7em 0 2em 0;
-    background: #f4f4f4;
+/* Display navigation on hover */
+header:hover nav {
+    display: block;
 }
 
-form {
+section, footer {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 1em;
+    border-radius: 10px;
+    margin: 1em;
+}
+
+.container {
+    position: relative;
+    z-index: 1;
+    text-align: center; /* Center align the content */
+}
+
+.signup-bubble {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 1em;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 300px;
+    margin: 2em auto;
+    color: #343a40;
+}
+
+.signup-bubble form {
     display: flex;
     flex-direction: column;
-    max-width: 300px;
-    margin: 0 auto;
 }
 
-form label, form input, form button {
+.signup-bubble label {
+    margin: 0.5em 0 0.2em;
+}
+
+.signup-bubble input {
+    padding: 0.5em;
     margin-bottom: 1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
 }
 
-footer {
-    background-color: #282c34;
-    color: white;
-    text-align: center;
-    padding: 1em 0;
-    position: fixed;
-    width: 100%;
-    bottom: 0;
-}
-
-/* Styles pour sections déroulantes */
-section > h2 {
-    cursor: pointer;
+.signup-bubble button {
+    padding: 0.5em;
     background-color: #007BFF;
     color: white;
-    padding: 0.5em;
+    border: none;
     border-radius: 5px;
-    transition: background-color 0.3s ease;
+    cursor: pointer;
+    margin-top: 1em;
 }
 
-section > h2:hover {
+.signup-bubble button:hover {
     background-color: #0056b3;
 }
 
-section > div {
-    display: none;
-    padding: 1em 0;
-}
-
-section > h2.active + div {
-    display: block;
-    background: white;
-    padding: 1em;
+/* Gradient effect on hover */
+h2#home-title {
+    transition: background 0.3s ease;
+    display: inline-block;
+    padding: 0.5em 1em;
     border-radius: 5px;
 }
 
-img {
-    max-width: 100%;
-    height: auto;
+h2#home-title:hover {
+    background: linear-gradient(45deg, #ffdd57, #007BFF);
+    color: #fff;
+}
+
+/* Replace bullets with yellow stars */
+#home ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#home ul li {
+    margin-bottom: 0.5em;
+    position: relative;
+    padding-left: 2.5em; /* Adjusted to make room for the star */
+}
+
+#home ul li::before {
+    content: '★';
+    color: #ffdd57;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2em;
+}
+
+/* Styles for expandable content */
+.expandable .content {
+    display: none;
+}
+
+.expandable:hover .content {
     display: block;
-    margin: 0 auto;
+    text-align: left;
+    padding: 1em;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
 }
