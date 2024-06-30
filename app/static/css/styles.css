@@ -1,0 +1,238 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: url('../images/SportLink.png') no-repeat center center fixed;
+    background-size: cover;
+    color: #fff;
+}
+
+header {
+    text-align: center;
+    padding: 1em 0;
+    background: rgba(0, 0, 0, 0.7);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+header h1#logo {
+    font-size: 2.5em;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 0;
+    background: linear-gradient(45deg, #ffdd57, #ff5733, #007BFF, #23a6d5, #23d5ab);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: background 0.3s ease;
+}
+
+header h1#logo:hover {
+    color: #00ff00;
+}
+
+nav {
+    display: none;
+    text-align: center;
+    margin-top: 1em;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: inline-block;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 1em;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+nav ul li a:hover {
+    text-decoration: underline;
+}
+
+header:hover nav {
+    display: block;
+}
+
+main {
+    padding-top: 100px;
+}
+
+section, footer {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 1em;
+    border-radius: 10px;
+    margin: 1em;
+}
+
+.container {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+.signup-bubble {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 1em;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 300px;
+    margin: 2em auto;
+    color: #fff;
+}
+
+.signup-bubble h3 {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 1em;
+    background: linear-gradient(45deg, #ffdd57, #ff5733, #007BFF, #23a6d5, #23d5ab);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.signup-bubble form {
+    display: flex;
+    flex-direction: column;
+}
+
+.signup-bubble label {
+    margin: 0.5em 0 0.2em;
+    color: #575dff;
+}
+
+.signup-bubble input {
+    padding: 0.5em;
+    margin-bottom: 1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.signup-bubble button {
+    padding: 0.5em;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 1em;
+}
+
+.signup-bubble button:hover {
+    background-color: #0056b3;
+}
+
+h2#home-title {
+    transition: background 0.3s ease;
+    display: inline-block;
+    padding: 0.5em 1em;
+    border-radius: 5px;
+}
+
+h2#home-title:hover {
+    background: linear-gradient(45deg, #ffdd57, #007BFF);
+    color: #fff;
+}
+
+.horizontal-tabs {
+    display: flex;
+    justify-content: space-around;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.horizontal-tabs li {
+    cursor: pointer;
+    position: relative;
+    padding: 1em;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    margin: 0 0.5em;
+}
+
+.horizontal-tabs li strong {
+    color: #00ff3c;
+}
+
+/* Amélioration des styles des bulles d'information */
+.info-bubble {
+    display: none;
+    margin-top: 1em;
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    padding: 1em;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 2;
+    text-align: left;
+}
+
+.info-bubble h3 {
+    color: #444fc4;
+    font-size: 1.5em;
+}
+
+.info-bubble p {
+    font-size: 1.2em;
+    line-height: 1.5;
+}
+
+.info-bubble img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 1em;
+}
+
+/* Styles pour les boutons d'utilisateur */
+#user-buttons {
+    position: absolute;
+    right: 1em;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 0.5em;
+}
+
+#user-buttons button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 0.5em 1em;
+    cursor: pointer;
+}
+
+#user-buttons button:hover {
+    background-color: #0056b3;
+}
+
+/* Logos des réseaux sociaux */
+#social-logos {
+    position: relative;  /* Assure que les logos sont à la fin du contenu */
+    bottom: 0;  /* Aligné en bas du conteneur parent */
+    display: flex;  /* Flexbox pour aligner les logos */
+    justify-content: center;  /* Centre les logos horizontalement */
+    gap: 10px;  /* Espace entre les logos */
+    z-index: 1000;  /* Assure que les logos restent au-dessus des autres éléments */
+}
+
+#social-logos img {
+    width: 40px;
+    height: 40px;
+    transition: transform 0.3s;
+}
+
+#social-logos img:hover {
+    transform: scale(1.1);
+}
