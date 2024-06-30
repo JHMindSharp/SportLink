@@ -13,11 +13,11 @@
         <h1 id="logo">SportLink</h1>
         <nav>
             <ul>
-                <li><a href="#home">Accueil</a></li>
-                <li><a href="#profile">Profil</a></li>
-                <li><a href="#activities">Activités</a></li>
-                <li><a href="#find-partner">Trouver un Partenaire</a></li>
-                <li><a href="#reserve">Réserver Matériel/Terrain</a></li>
+                <li><a href="#home" class="nav-link">Accueil</a></li>
+                <li><a href="#profile" class="nav-link">Profil</a></li>
+                <li><a href="#activities" class="nav-link">Activités</a></li>
+                <li><a href="#find-partner" class="nav-link">Trouver un Partenaire</a></li>
+                <li><a href="#reserve" class="nav-link">Réserver Matériel/Terrain</a></li>
             </ul>
         </nav>
         <div id="user-buttons">
@@ -28,10 +28,10 @@
     </header>
     
     <main class="container">
-        <section id="home">
+        <!-- Page d'accueil -->
+        <section id="home" class="page-section">
             <h2 id="home-title">Bienvenue sur SportLink</h2>
-            <p>SportLink est votre plateforme ultime pour suivre vos performances sportives,
-                trouver des partenaires et réserver du matériel ou des terrains de sport.</p>
+            <p>SportLink est votre plateforme ultime pour suivre vos performances sportives, trouver des partenaires et réserver du matériel ou des terrains de sport.</p>
             <ul class="horizontal-tabs">
                 <li class="expandable" data-section="performance-tracking">
                     <strong>Suivi des performances</strong>
@@ -45,6 +45,7 @@
                     <strong>Communauté et Partenaires</strong>
                     <div class="info-bubble" id="community-partners">
                         <h3>Communauté et Partenaires</h3>
+                        <img src="{{ url_for('static', filename='images/reseaupartenaire.png') }}" alt="Réseau de partenaires">
                         <p>Trouvez des partenaires sportifs avec des intérêts similaires et créez des connexions significatives.</p>
                         <img src="{{ url_for('static', filename='images/communaute.png') }}" alt="Communauté active">
                         <p>Rejoignez une communauté de sportifs passionnés et participez à des événements et des activités en groupe.</p>
@@ -91,6 +92,36 @@
                     <button type="submit">Se connecter</button>
                 </form>
             </div>
+        </section>
+        
+        <!-- Page de profil -->
+        <section id="profile" class="page-section" style="display: none;">
+            <div class="profile-header">
+                <img id="profile-pic" src="{{ url_for('static', filename='images/default-profile.png') }}" alt="Photo de profil">
+                <div class="profile-info">
+                    <h2 id="username">Nom d'utilisateur</h2>
+                    <p id="user-age-region">Âge, Région</p>
+                </div>
+            </div>
+            <div class="user-posts">
+                <h3>Publications</h3>
+                <div id="posts-container">
+                    <!-- Les publications de l'utilisateur seront insérées ici -->
+                </div>
+            </div>
+        </section>
+        
+        <section id="activities" class="page-section" style="display: none;">
+            <h2>Activités</h2>
+            <!-- Contenu de la section Activités -->
+        </section>
+        <section id="find-partner" class="page-section" style="display: none;">
+            <h2>Trouver un Partenaire</h2>
+            <!-- Contenu de la section Trouver un Partenaire -->
+        </section>
+        <section id="reserve" class="page-section" style="display: none;">
+            <h2>Réserver Matériel/Terrain</h2>
+            <!-- Contenu de la section Réserver Matériel/Terrain -->
         </section>
     </main>
     

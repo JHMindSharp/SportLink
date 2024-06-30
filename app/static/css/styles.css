@@ -30,7 +30,7 @@ header h1#logo {
 }
 
 header h1#logo:hover {
-    color: #00ff00;
+    color: #ffdd57;
 }
 
 nav {
@@ -108,7 +108,7 @@ section, footer {
 
 .signup-bubble label {
     margin: 0.5em 0 0.2em;
-    color: #575dff;
+    color: #ffdd57;
 }
 
 .signup-bubble input {
@@ -162,7 +162,7 @@ h2#home-title:hover {
 }
 
 .horizontal-tabs li strong {
-    color: #00ff3c;
+    color: #ffdd57;
 }
 
 /* Amélioration des styles des bulles d'information */
@@ -179,7 +179,7 @@ h2#home-title:hover {
 }
 
 .info-bubble h3 {
-    color: #444fc4;
+    color: #ffdd57;
     font-size: 1.5em;
 }
 
@@ -235,4 +235,53 @@ h2#home-title:hover {
 
 #social-logos img:hover {
     transform: scale(1.1);
+}
+
+/* Styles pour la section profil */
+.profile-header {
+    display: flex;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 1em;
+    border-radius: 10px;
+    margin-bottom: 1em;
+}
+
+#profile-pic {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-right: 1em;
+    border: 2px solid #ffdd57;
+}
+
+.profile-info {
+    color: #fff;
+}
+
+.profile-info #username {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.profile-info #user-age-region {
+    font-size: 1.2em;
+}
+
+.user-posts {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 1em;
+    border-radius: 10px;
+}
+
+.user-posts h3 {
+    color: #ffdd57;
+}
+
+.post {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #000;
+    padding: 1em;
+    border-radius: 10px;
+    margin-bottom: 1em;
 }

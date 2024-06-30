@@ -16,9 +16,11 @@ $(document).ready(function() {
     // Initialiser les boutons
     updateUserButtons();
 
-    // Retourner en haut de page lors du clic sur le logo
+    // Retourner en haut de page lors du clic sur le logo et afficher la page d'accueil
     $("#logo").click(function() {
         $("html, body").animate({ scrollTop: 0 }, "slow");
+        $(".page-section").hide();
+        $("#home").show();
     });
 
     // Afficher la bulle d'information lors du survol
@@ -60,5 +62,49 @@ $(document).ready(function() {
     $("#logout-button").click(function() {
         isConnected = false; // Simuler la déconnexion
         updateUserButtons();
+    });
+
+    // Gestion de la navigation pour afficher et masquer les sections
+    $(".nav-link").click(function(e) {
+        e.preventDefault();
+        var targetSection = $(this).attr('href').substring(1);
+        $(".page-section").hide();  // Masquer toutes les sections
+        $("#" + targetSection).show();  // Afficher la section cible
+    });
+
+    // Afficher la page d'accueil par défaut
+    $("#home").show();
+
+    // Charger les informations de l'utilisateur
+    function loadUserProfile() {
+        // Exemple de données utilisateur
+        var user = {
+            username: "John Doe",
+            age: 25,
+            region: "Île-de-France",
+            profilePic: "{{ url_for('static', filename='images/profile-pic.jpg') }}",  // Remplacez par le chemin réel de l'image
+            posts: [
+                "Publication 1: Lorem ipsum dolor sit amet.",
+                "Publication 2: Consectetur adipiscing elit.",
+                "Publication 3: Integer nec odio. Praesent libero."
+            ]
+        };
+
+        // Mettre à jour les informations de profil
+        $("#username").text(user.username);
+        $("#user-age-region").text(user.age + ", " + user.region);
+        $("#profile-pic").attr("src", user.profilePic);
+
+        // Charger les publications
+        var postsContainer = $("#posts-container");
+        user.posts.forEach(function(post) {
+            var postElement = $("<div class='post'></div>").text(post);
+            postsContainer.append(postElement);
+        });
+    }
+
+    // Appeler la fonction pour charger le profil utilisateur lors de l'affichage de la page de profil
+    $(".nav-link[href='#profile']").click(function() {
+        loadUserProfile();
     });
 });
