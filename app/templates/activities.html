@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activités - SportLink</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1 id="logo">SportLink</h1>
+        <nav>
+            <ul>
+                <li><a href="#home" class="nav-link">Accueil</a></li>
+                <li><a href="#profile" class="nav-link">Profil</a></li>
+                <li><a href="#activities" class="nav-link">Activités</a></li>
+                <li><a href="#find-partner" class="nav-link">Trouver un Partenaire</a></li>
+                <li><a href="#reserve" class="nav-link">Réserver Matériel/Terrain</a></li>
+            </ul>
+        </nav>
+        <div id="user-buttons">
+            <button id="signup-button">S'inscrire</button>
+            <button id="login-button">Connexion</button>
+            <button id="logout-button" style="display: none;">Déconnexion</button>
+        </div>
+    </header>
+    
+    <main class="container">
+        <section id="activities" class="page-section">
+            <h2>Activités</h2>
+            <p>Contenu de la section Activités.</p>
+        </section>
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 SportLink. Tous droits réservés.</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

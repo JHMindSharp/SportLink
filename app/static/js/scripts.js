@@ -1,40 +1,18 @@
 $(document).ready(function() {
-    // Simuler l'état de connexion (à remplacer par une vérification réelle)
-    var isConnected = false; // Remplacer par la vérification réelle de connexion
+    var isConnected = {{ current_user.is_authenticated|tojson }};
 
-    // Gérer l'affichage des boutons en fonction de l'état de connexion
     function updateUserButtons() {
         if (isConnected) {
             $("#signup-button, #login-button").hide();
-            $("#logout-button").show();
+            $("#logout-button, #profile-info").show();
         } else {
             $("#signup-button, #login-button").show();
-            $("#logout-button").hide();
+            $("#logout-button, #profile-info").hide();
         }
     }
 
-    // Initialiser les boutons
     updateUserButtons();
 
-    // Retourner en haut de page lors du clic sur le logo et afficher la page d'accueil
-    $("#logo").click(function() {
-        $("html, body").animate({ scrollTop: 0 }, "slow");
-        $(".page-section").hide();
-        $("#home").show();
-    });
-
-    // Afficher la bulle d'information lors du survol
-    $(".expandable").mouseenter(function() {
-        var sectionId = $(this).data("section");
-        var $infoBubble = $("#" + sectionId);
-        $infoBubble.stop(true, true).fadeIn(500);
-    }).mouseleave(function() {
-        var sectionId = $(this).data("section");
-        var $infoBubble = $("#" + sectionId);
-        $infoBubble.stop(true, true).fadeOut(500);
-    });
-
-    // Gestion du clic sur les boutons
     $("#signup-button").click(function() {
         $('html, body').animate({
             scrollTop: $("#signup-section").offset().top
@@ -60,29 +38,84 @@ $(document).ready(function() {
     });
 
     $("#logout-button").click(function() {
-        isConnected = false; // Simuler la déconnexion
-        updateUserButtons();
+        window.location.href = '{{ url_for("logout") }}';
     });
 
-    // Gestion de la navigation pour afficher et masquer les sections
+    $("#signup-form").submit(function(event) {
+        event.preventDefault();
+        $.ajax({
+            type: "POST",
+            url: "{{ url_for('register') }}",
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.success) {
+                    isConnected = true;
+                    updateUserButtons();
+                    alert("Registration successful! You are now logged in.");
+                    window.location.href = "{{ url_for('profile') }}";
+                } else {
+                    alert("Registration failed: " + response.message);
+                }
+            },
+            error: function() {
+                alert("An error occurred while registering. Please try again.");
+            }
+        });
+    });
+
+    $("#login-form").submit(function(event) {
+        event.preventDefault();
+        $.ajax({
+            type: "POST",
+            url: "{{ url_for('login') }}",
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.success) {
+                    isConnected = true;
+                    updateUserButtons();
+                    alert("Login successful!");
+                    window.location.href = "{{ url_for('profile') }}";
+                } else {
+                    alert("Login failed: " + response.message);
+                }
+            },
+            error: function() {
+                alert("An error occurred while logging in. Please try again.");
+            }
+        });
+    });
+
+    $("#logo").click(function() {
+        $("html, body").animate({ scrollTop: 0 }, "slow");
+        $(".page-section").hide();
+        $("#home").show();
+    });
+
+    $(".expandable").mouseenter(function() {
+        var sectionId = $(this).data("section");
+        var $infoBubble = $("#" + sectionId);
+        $infoBubble.stop(true, true).fadeIn(500);
+    }).mouseleave(function() {
+        var sectionId = $(this).data("section");
+        var $infoBubble = $("#" + sectionId);
+        $infoBubble.stop(true, true).fadeOut(500);
+    });
+
     $(".nav-link").click(function(e) {
         e.preventDefault();
         var targetSection = $(this).attr('href').substring(1);
-        $(".page-section").hide();  // Masquer toutes les sections
-        $("#" + targetSection).show();  // Afficher la section cible
+        $(".page-section").hide();
+        $("#" + targetSection).show();
     });
 
-    // Afficher la page d'accueil par défaut
     $("#home").show();
 
-    // Charger les informations de l'utilisateur
     function loadUserProfile() {
-        // Exemple de données utilisateur
         var user = {
-            username: "John Doe",
+            username: "{{ current_user.username }}",
             age: 25,
             region: "Île-de-France",
-            profilePic: "{{ url_for('static', filename='images/profile-pic.jpg') }}",  // Remplacez par le chemin réel de l'image
+            profilePic: "{{ url_for('static', filename='images/default-profile.png') }}",
             posts: [
                 "Publication 1: Lorem ipsum dolor sit amet.",
                 "Publication 2: Consectetur adipiscing elit.",
@@ -90,20 +123,18 @@ $(document).ready(function() {
             ]
         };
 
-        // Mettre à jour les informations de profil
         $("#username").text(user.username);
         $("#user-age-region").text(user.age + ", " + user.region);
         $("#profile-pic").attr("src", user.profilePic);
 
-        // Charger les publications
         var postsContainer = $("#posts-container");
+        postsContainer.empty();
         user.posts.forEach(function(post) {
             var postElement = $("<div class='post'></div>").text(post);
             postsContainer.append(postElement);
         });
     }
 
-    // Appeler la fonction pour charger le profil utilisateur lors de l'affichage de la page de profil
     $(".nav-link[href='#profile']").click(function() {
         loadUserProfile();
     });

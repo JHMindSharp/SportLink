@@ -1,3 +1,4 @@
+/* General styles for the entire page */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -7,6 +8,7 @@ body {
     color: #fff;
 }
 
+/* Styles for the header */
 header {
     text-align: center;
     padding: 1em 0;
@@ -33,6 +35,7 @@ header h1#logo:hover {
     color: #ffdd57;
 }
 
+/* Styles for the navigation menu */
 nav {
     display: none;
     text-align: center;
@@ -65,10 +68,12 @@ header:hover nav {
     display: block;
 }
 
+/* Styles for the main content area */
 main {
     padding-top: 100px;
 }
 
+/* Styles for sections and footer */
 section, footer {
     background: rgba(0, 0, 0, 0.5);
     padding: 1em;
@@ -82,6 +87,7 @@ section, footer {
     text-align: center;
 }
 
+/* Styles for the signup bubble */
 .signup-bubble {
     background: rgba(0, 0, 0, 0.8);
     padding: 1em;
@@ -132,6 +138,7 @@ section, footer {
     background-color: #0056b3;
 }
 
+/* Styles for the home title */
 h2#home-title {
     transition: background 0.3s ease;
     display: inline-block;
@@ -144,6 +151,7 @@ h2#home-title:hover {
     color: #fff;
 }
 
+/* Styles for the horizontal tabs */
 .horizontal-tabs {
     display: flex;
     justify-content: space-around;
@@ -165,7 +173,7 @@ h2#home-title:hover {
     color: #ffdd57;
 }
 
-/* Amélioration des styles des bulles d'information */
+/* Styles for the info bubbles */
 .info-bubble {
     display: none;
     margin-top: 1em;
@@ -194,7 +202,7 @@ h2#home-title:hover {
     margin-bottom: 1em;
 }
 
-/* Styles pour les boutons d'utilisateur */
+/* Styles for the user buttons */
 #user-buttons {
     position: absolute;
     right: 1em;
@@ -217,14 +225,14 @@ h2#home-title:hover {
     background-color: #0056b3;
 }
 
-/* Logos des réseaux sociaux */
+/* Styles for the social logos */
 #social-logos {
-    position: relative;  /* Assure que les logos sont à la fin du contenu */
-    bottom: 0;  /* Aligné en bas du conteneur parent */
-    display: flex;  /* Flexbox pour aligner les logos */
-    justify-content: center;  /* Centre les logos horizontalement */
-    gap: 10px;  /* Espace entre les logos */
-    z-index: 1000;  /* Assure que les logos restent au-dessus des autres éléments */
+    position: relative;  /* Ensure that the logos are at the end of the content */
+    bottom: 0;  /* Align at the bottom of the parent container */
+    display: flex;  /* Flexbox to align logos */
+    justify-content: center;  /* Center the logos horizontally */
+    gap: 10px;  /* Space between logos */
+    z-index: 1000;  /* Ensure that the logos remain above other elements */
 }
 
 #social-logos img {
@@ -237,7 +245,7 @@ h2#home-title:hover {
     transform: scale(1.1);
 }
 
-/* Styles pour la section profil */
+/* Styles for the profile section */
 .profile-header {
     display: flex;
     align-items: center;

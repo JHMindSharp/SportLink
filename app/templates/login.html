@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SportLink</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container signup-bubble">
+        <h3>Login</h3>
+        <form method="POST" action="{{ url_for('login') }}">
+            {{ form.hidden_tag() }}
+            <label for="username">{{ form.username.label.text }}</label>
+            {{ form.username(size=32) }}<br>
+            <label for="password">{{ form.password.label.text }}</label>
+            {{ form.password(size=32) }}<br>
+            {{ form.remember_me() }} Remember Me<br>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>

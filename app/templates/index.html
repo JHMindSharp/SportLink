@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SportLink</title>
-    <link rel="stylesheet" href="../../css/styles.css">
-    <link rel="icon" href="../../images/SportLink.png" type="image/png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/SportLink.png') }}" type="image/png">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <!-- Contenu du site -->
     <header>
         <h1 id="logo">SportLink</h1>
         <nav>
@@ -22,24 +21,29 @@
             </ul>
         </nav>
         <div id="user-buttons">
-            <button id="signup-button">S'inscrire</button>
-            <button id="login-button">Connexion</button>
-            <button id="logout-button" style="display: none;">Déconnexion</button>
-        </div>
+            {% if current_user.is_authenticated %}
+                <div id="profile-info">
+                    <img src="{{ url_for('static', filename='images/default-profile.png') }}" alt="Profile Picture" id="profile-pic-header">
+                    <span>{{ current_user.username }}</span>
+                </div>
+                <button id="logout-button">Déconnexion</button>
+            {% else %}
+                <button id="signup-button">S'inscrire</button>
+                <button id="login-button">Connexion</button>
+            {% endif %}
+        </div>        
     </header>
     
     <main class="container">
-        <!-- Page d'accueil -->
         <section id="home" class="page-section">
             <h2 id="home-title">Bienvenue sur SportLink</h2>
             <p>SportLink est votre plateforme ultime pour suivre vos performances sportives, trouver des partenaires et réserver du matériel ou des terrains de sport.</p>
-            <p>Pourquoi s'inscrire ?</p>
             <ul class="horizontal-tabs">
                 <li class="expandable" data-section="performance-tracking">
                     <strong>Suivi des performances</strong>
                     <div class="info-bubble" id="performance-tracking">
                         <h3>Suivi des performances</h3>
-                        <img src="../../images/Suiviperformances.png" alt="Suivi des performances">
+                        <img src="{{ url_for('static', filename='images/Suiviperformances.png') }}" alt="Suivi des performances">
                         <p>Gardez une trace de vos activités sportives et améliorez vos performances avec des outils de suivi avancés.</p>
                     </div>
                 </li>
@@ -47,9 +51,9 @@
                     <strong>Communauté et Partenaires</strong>
                     <div class="info-bubble" id="community-partners">
                         <h3>Communauté et Partenaires</h3>
-                        <img src="../../images/reseaupartenaire.png" alt="Réseau de partenaires">
+                        <img src="{{ url_for('static', filename='images/reseaupartenaire.png') }}" alt="Réseau de partenaires">
                         <p>Trouvez des partenaires sportifs avec des intérêts similaires et créez des connexions significatives.</p>
-                        <img src="../../images/communaute.png" alt="Communauté active">
+                        <img src="{{ url_for('static', filename='images/communaute.png') }}" alt="Communauté active">
                         <p>Rejoignez une communauté de sportifs passionnés et participez à des événements et des activités en groupe.</p>
                     </div>
                 </li>
@@ -57,7 +61,7 @@
                     <strong>Réservations faciles</strong>
                     <div class="info-bubble" id="easy-reservations">
                         <h3>Réservations faciles</h3>
-                        <img src="../../images/Reservation.png" alt="Réservations faciles">
+                        <img src="{{ url_for('static', filename='images/Reservation.png') }}" alt="Réservations faciles">
                         <p>Réservez du matériel et des terrains de sport en quelques clics grâce à notre interface conviviale.</p>
                     </div>
                 </li>
@@ -65,65 +69,34 @@
                     <strong>Messagerie intégrée</strong>
                     <div class="info-bubble" id="integrated-messaging">
                         <h3>Messagerie intégrée</h3>
-                        <img src="../../images/messagerie.png" alt="Messagerie intégrée">
+                        <img src="{{ url_for('static', filename='images/messagerie.png') }}" alt="Messagerie intégrée">
                         <p>Communiquez en temps réel avec vos partenaires et restez connecté grâce à notre messagerie intégrée.</p>
                     </div>
                 </li>
             </ul>
             <div class="signup-bubble" id="signup-section">
                 <h3 id="signup-title">Inscrivez-vous maintenant !</h3>
-                <form id="signup-form" action="/register" method="post">
+                <form id="signup-form" action="{{ url_for('register') }}" method="post">
+                    {{ form.hidden_tag() }}
                     <label for="username">Nom d'utilisateur:</label>
-                    <input type="text" id="username" name="username" required>
-                    
+                    {{ form.username(size=32) }}<br>
                     <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" required>
-                    
+                    {{ form.email(size=32) }}<br>
                     <label for="password">Mot de passe:</label>
-                    <input type="password" id="password" name="password" required>
-                    
+                    {{ form.password(size=32) }}<br>
                     <button type="submit">S'inscrire</button>
                 </form>
-                <form id="login-form" action="/login" method="post" style="display: none;">
+                <form id="login-form" action="{{ url_for('login') }}" method="post" style="display: none;">
+                    {{ form.hidden_tag() }}
                     <label for="login-username">Nom d'utilisateur:</label>
-                    <input type="text" id="login-username" name="username" required>
-                    
+                    {{ form.username(size=32) }}<br>
                     <label for="login-password">Mot de passe:</label>
-                    <input type="password" id="login-password" name="password" required>
-                    
+                    {{ form.password(size=32) }}<br>
+                    {{ form.remember_me() }} Remember Me<br>
                     <button type="submit">Se connecter</button>
+                    <a href="{{ url_for('reset_password_request') }}">Mot de passe oublié?</a>
                 </form>
             </div>
-        </section>
-        
-        <!-- Page de profil -->
-        <section id="profile" class="page-section" style="display: none;">
-            <div class="profile-header">
-                <img id="profile-pic" src="../../images/default-profile.png" alt="Photo de profil">
-                <div class="profile-info">
-                    <h2 id="username">Nom d'utilisateur</h2>
-                    <p id="user-age-region">Âge, Région</p>
-                </div>
-            </div>
-            <div class="user-posts">
-                <h3>Publications</h3>
-                <div id="posts-container">
-                    <!-- Les publications de l'utilisateur seront insérées ici -->
-                </div>
-            </div>
-        </section>
-        
-        <section id="activities" class="page-section" style="display: none;">
-            <h2>Activités</h2>
-            <!-- Contenu de la section Activités -->
-        </section>
-        <section id="find-partner" class="page-section" style="display: none;">
-            <h2>Trouver un Partenaire</h2>
-            <!-- Contenu de la section Trouver un Partenaire -->
-        </section>
-        <section id="reserve" class="page-section" style="display: none;">
-            <h2>Réserver Matériel/Terrain</h2>
-            <!-- Contenu de la section Réserver Matériel/Terrain -->
         </section>
     </main>
     
@@ -133,22 +106,22 @@
     
     <div id="social-logos">
         <a href="https://www.facebook.com" target="_blank">
-            <img src="../../images/facebook-logo.png" alt="Facebook">
+            <img src="{{ url_for('static', filename='images/facebook-logo.png') }}" alt="Facebook">
         </a>
         <a href="https://www.apple.com" target="_blank">
-            <img src="../../images/apple-logo.png" alt="Apple">
+            <img src="{{ url_for('static', filename='images/apple-logo.png') }}" alt="Apple">
         </a>
         <a href="https://www.strava.com" target="_blank">
-            <img src="../../images/strava-logo.png" alt="Strava">
+            <img src="{{ url_for('static', filename='images/strava-logo.png') }}" alt="Strava">
         </a>
         <a href="https://www.garmin.com" target="_blank">
-            <img src="../../images/garmin-logo.png" alt="Garmin">
+            <img src="{{ url_for('static', filename='images/garmin-logo.png') }}" alt="Garmin">
         </a>
         <a href="https://www.twitter.com" target="_blank">
-            <img src="../../images/twitter-logo.png" alt="Twitter">
+            <img src="{{ url_for('static', filename='images/twitter-logo.png') }}" alt="Twitter">
         </a>
     </div>
 
-    <script src="../../js/scripts.js"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 </body>
 </html>
