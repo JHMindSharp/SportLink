@@ -112,3 +112,18 @@ def search_users():
     result = [{"id": user.id, "username": user.username, "profile_image": user.profile_image} for user in users]
 
     return jsonify(result), 200
+
+@bp.route('/delete_user', methods=['DELETE'])
+def delete_user():
+    """Delete an existing user."""
+    username = request.form.get('username')
+
+    user = User.query.filter_by(username=username).first()
+
+    if user is None:
+        return jsonify({"error": "User not found."}), 404
+
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({"message": "User deleted successfully!"}), 200

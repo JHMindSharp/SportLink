@@ -68,5 +68,20 @@ class BasicTestCase(TestCase):
         self.assertEqual(data[0]['username'], 'testuser1')
         self.assertEqual(data[1]['username'], 'testuser2')
 
+    def test_delete_user(self):
+        user = User(username='testuser')
+        user.set_password('testpassword')
+        db.session.add(user)
+        db.session.commit()
+
+        response = self.client.delete('/delete_user', data={
+            'username': 'testuser'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'User deleted successfully!', response.data)
+
+        user = User.query.filter_by(username='testuser').first()
+        self.assertIsNone(user)
+
 if __name__ == '__main__':
     unittest.main()
