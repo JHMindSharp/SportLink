@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -98,7 +98,6 @@
         }
     </style>
     <script>
-        // Définition des URLs en utilisant Jinja2
         const loginUrl = "{{ url_for('main.login') }}";
         const registerUrl = "{{ url_for('main.register') }}";
         const profileUrl = "{{ url_for('main.profile') }}";
@@ -117,28 +116,25 @@
                 submitButton.textContent = 'Se connecter';
                 switchLink.textContent = "Pas encore inscrit ? Inscrivez-vous ici";
                 switchLink.onclick = () => toggleForm('signup');
-                emailField.style.display = 'none'; // Masquer le champ de l'email pour la connexion
-                emailInput.removeAttribute('required'); // Supprimer l'attribut 'required'
-                emailInput.disabled = true; // Désactiver le champ email
+                emailField.style.display = 'none';
+                emailInput.removeAttribute('required');
+                emailInput.disabled = true;
             } else {
                 form.action = registerUrl;
                 formTitle.textContent = "Inscrivez-vous maintenant !";
                 submitButton.textContent = "S'inscrire";
                 switchLink.textContent = "Déjà inscrit ? Connectez-vous ici";
                 switchLink.onclick = () => toggleForm('login');
-                emailField.style.display = 'block'; // Afficher le champ de l'email pour l'inscription
-                emailInput.setAttribute('required', 'required'); // Ajouter l'attribut 'required'
-                emailInput.disabled = false; // Activer le champ email
+                emailField.style.display = 'block';
+                emailInput.setAttribute('required', 'required');
+                emailInput.disabled = false;
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('signup-form');
-
-            // Initialisation du formulaire en mode inscription
             toggleForm('signup');
 
-            // Écoute de la soumission du formulaire pour la connexion et l'inscription
             form.addEventListener('submit', function(event) {
                 event.preventDefault();
 
@@ -160,7 +156,6 @@
                 .then(data => {
                     if (data.message) {
                         alert(data.message);
-                        // Redirection vers la page de profil après une connexion réussie
                         window.location.href = profileUrl;
                     }
                 })
@@ -201,6 +196,9 @@
                 <input type="password" name="password" placeholder="Mot de passe" required>
                 <button id="submit-button" type="submit">S'inscrire</button>
             </form>
+            <p>Ou connectez-vous avec :</p>
+            <a href="{{ url_for('facebook.login') }}">Facebook</a>
+            <a href="{{ url_for('strava.login') }}">Strava</a>
             <p><a id="switch-link" onclick="toggleForm('login')">Déjà inscrit ? Connectez-vous ici</a></p>
         </section>
     </main>

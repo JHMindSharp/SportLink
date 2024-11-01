@@ -1,0 +1,12 @@
+<h2>Boîte de réception</h2>
+<ul>
+    {% for message in messages %}
+    <li>
+        <strong>De :</strong> {{ message.sender.username }}<br>
+        <strong>Date :</strong> {{ message.timestamp.strftime('%d/%m/%Y %H:%M') }}<br>
+        <strong>Message :</strong> {{ message.body }}<br>
+    </li>
+    {% else %}
+    <p>Vous n'avez pas de messages.</p>
+    {% endfor %}
+</ul>

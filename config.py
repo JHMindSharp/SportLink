@@ -22,6 +22,12 @@ class Config:
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
-    MAIL_USERNAME = 'jonathanhuybrechts@gmail.com'  # Remplacez par votre adresse email
-    MAIL_PASSWORD = 'gjwn qbey rjla uwic'  # Remplacez par le mot de passe d'application
+    MAIL_USERNAME = 'jonathanhuybrechts@gmail.com'
+    MAIL_PASSWORD = 'gjwn qbey rjla uwic'
     MAIL_DEFAULT_SENDER = 'jonathanhuybrechts@gmail.com'
+
+    # Facebook OAuth Configuration
+    FACEBOOK_OAUTH_CLIENT_ID = '1286943945646152'  # Remplacez par votre ID client Facebook
+    FACEBOOK_OAUTH_CLIENT_SECRET = '8ca793277b7f8e073009091327755e3c'  # Remplacez par votre secret client Facebook
+    STRAVA_OAUTH_CLIENT_ID = '139086'
+    STRAVA_OAUTH_CLIENT_SECRET = '37a89dffff059526e9c4d62ab49b47a88372972c'

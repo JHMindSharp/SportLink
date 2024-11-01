@@ -1,16 +1,17 @@
 import os
-from flask import request, jsonify, Blueprint, render_template, url_for, current_app, redirect, flash
+from flask import request, jsonify, Blueprint, render_template, url_for, current_app, redirect, flash, send_from_directory
 from datetime import datetime
 from flask_mail import Message
 from app import mail, db, bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
 from itsdangerous import URLSafeTimedSerializer
-from app.models import User, Post, Sport, Rating
+from app.models import User, Post, Sport, Rating, Message
 from flask_login import login_user, current_user, logout_user, login_required
 from sqlalchemy.exc import SQLAlchemyError
+from app.extensions import db, mail, bcrypt
+from . import bcrypt
 
-# Create a Blueprint for the main routes
 bp = Blueprint('main', __name__)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mp3'}
@@ -83,9 +84,7 @@ def register():
             profile_image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'profiles', filename)
             os.makedirs(os.path.dirname(profile_image_path), exist_ok=True)
             file.save(profile_image_path)
-            profile_image = os.path.join('uploads', 'profiles', filename)
-        else:
-            return jsonify({"error": "Invalid profile image file."}), 400
+            profile_image = os.path.join('profiles', filename)
 
     user = User(username=username, email=email)
     user.set_password(password)
@@ -221,7 +220,7 @@ def create_profile():
                 profile_image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'profiles', filename)
                 os.makedirs(os.path.dirname(profile_image_path), exist_ok=True)
                 file.save(profile_image_path)
-                user.profile_image = os.path.join('uploads', 'profiles', filename)
+                user.profile_image = os.path.join('profiles', filename)
 
         user.profile_completed = True
         db.session.commit()
@@ -274,7 +273,7 @@ def update_profile():
     user.display_phone = request.form.get('display_phone') == 'on'
     user.display_email = request.form.get('display_email') == 'on'
 
-    # Handle profile image upload
+    # Gérer l'upload de l'image de profil
     if 'profile_image' in request.files:
         file = request.files['profile_image']
         if file and allowed_file(file.filename):
@@ -282,9 +281,10 @@ def update_profile():
             profile_image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'profiles', filename)
             os.makedirs(os.path.dirname(profile_image_path), exist_ok=True)
             file.save(profile_image_path)
-            user.profile_image = os.path.join('uploads', 'profiles', filename)
+            # Enregistrer uniquement le chemin relatif dans la base de données
+            user.profile_image = os.path.join('profiles', filename)
 
-    # Handle cover image upload
+    # Gérer l'upload de l'image de couverture
     if 'cover_image' in request.files:
         file = request.files['cover_image']
         if file and allowed_file(file.filename):
@@ -292,7 +292,9 @@ def update_profile():
             cover_image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'covers', filename)
             os.makedirs(os.path.dirname(cover_image_path), exist_ok=True)
             file.save(cover_image_path)
-            user.cover_image = os.path.join('uploads', 'covers', filename)
+            # Enregistrer uniquement le chemin relatif dans la base de données
+            user.cover_image = os.path.join('covers', filename)
+
 
     # Handle sports selection
     selected_sport_ids = request.form.getlist('sports')
@@ -370,7 +372,7 @@ def edit_profile():
                 profile_image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'profiles', filename)
                 os.makedirs(os.path.dirname(profile_image_path), exist_ok=True)
                 file.save(profile_image_path)
-                user.profile_image = os.path.join('uploads', 'profiles', filename)
+                user.profile_image = os.path.join('profiles', filename)
 
         # Handle cover image upload
         if 'cover_image' in request.files:
@@ -380,7 +382,7 @@ def edit_profile():
                 cover_image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'covers', filename)
                 os.makedirs(os.path.dirname(cover_image_path), exist_ok=True)
                 file.save(cover_image_path)
-                user.cover_image = os.path.join('uploads', 'covers', filename)
+                user.cover_image = os.path.join('covers', filename)
 
         # Handle sports selection
         selected_sport_ids = request.form.getlist('sports')
@@ -445,21 +447,21 @@ def create_post():
             image_save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', 'images', filename)
             os.makedirs(os.path.dirname(image_save_path), exist_ok=True)
             image_file.save(image_save_path)
-            image_path = os.path.join('uploads', 'posts', 'images', filename)
+            image_path = os.path.join('posts', 'images', filename)
 
         if video_file and allowed_file(video_file.filename):
             filename = secure_filename(video_file.filename)
             video_save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', 'videos', filename)
             os.makedirs(os.path.dirname(video_save_path), exist_ok=True)
             video_file.save(video_save_path)
-            video_path = os.path.join('uploads', 'posts', 'videos', filename)
+            video_path = os.path.join('posts', 'videos', filename)
 
         if music_file and allowed_file(music_file.filename):
             filename = secure_filename(music_file.filename)
             music_save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', 'music', filename)
             os.makedirs(os.path.dirname(music_save_path), exist_ok=True)
             music_file.save(music_save_path)
-            music_path = os.path.join('uploads', 'posts', 'music', filename)
+            music_path = os.path.join('posts', 'music', filename)
 
         new_post = Post(
             user_id=current_user.id,
@@ -498,3 +500,35 @@ def delete_post(post_id):
         flash("An error occurred while deleting the post.", "danger")
 
     return redirect(url_for('main.profile'))
+
+@bp.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+
+@bp.route('/news_feed')
+@login_required
+def news_feed():
+    # Obtenir les posts de l'utilisateur et de ses amis
+    friends_ids = [friend.id for friend in current_user.friends()]
+    posts = Post.query.filter(Post.user_id.in_(friends_ids + [current_user.id])).order_by(Post.created_at.desc()).all()
+    return render_template('news_feed.html', posts=posts)
+
+def inbox():
+    messages = current_user.received_messages.order_by(Message.timestamp.desc()).all()
+    return render_template('messages/inbox.html', messages=messages)
+
+@bp.route('/messages/send/<int:recipient_id>', methods=['GET', 'POST'])
+@login_required
+def send_message(recipient_id):
+    recipient = User.query.get_or_404(recipient_id)
+    if request.method == 'POST':
+        body = request.form['body']
+        if body:
+            msg = Message(sender=current_user, recipient=recipient, body=body)
+            db.session.add(msg)
+            db.session.commit()
+            flash('Message envoyé.', 'success')
+            return redirect(url_for('messages.inbox'))
+        else:
+            flash('Le message ne peut pas être vide.', 'danger')
+    return render_template('messages/send_message.html', recipient=recipient)

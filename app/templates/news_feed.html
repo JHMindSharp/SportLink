@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Fil d'actualité</h2>
+{% for post in posts %}
+<div class="post">
+    <div class="post-header">
+        <img src="{{ url_for('main.uploaded_file', filename=post.author.profile_image) }}" alt="Photo de profil">
+        <div>
+            <div class="post-author">{{ post.author.username }}</div>
+            <div class="post-timestamp">Publié le {{ post.created_at.strftime('%d %B %Y à %H:%M') }}</div>
+        </div>
+    </div>
+    <div class="post-content">
+        {% if post.title %}
+        <h3>{{ post.title }}</h3>
+        {% endif %}
+        <p>{{ post.content }}</p>
+        <!-- Ajoutez le code pour afficher les images, vidéos, etc. -->
+    </div>
+</div>
+{% else %}
+<p>Aucune publication à afficher.</p>
+{% endfor %}
+{% endblock %}

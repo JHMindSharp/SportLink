@@ -1,27 +1,11 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_bcrypt import Bcrypt
-from flask_jwt_extended import JWTManager
-from flask_mail import Mail
-from flask_login import LoginManager
-
-# Initialisation des extensions
-db = SQLAlchemy()
-migrate = Migrate()
-bcrypt = Bcrypt()
-jwt = JWTManager()
-mail = Mail()
-login_manager = LoginManager()
-
-login_manager.login_view = 'main.login'
-login_manager.login_message_category = 'info'
+from flask_dance.contrib.facebook import make_facebook_blueprint
+from flask_dance.contrib.strava import make_strava_blueprint
+from app.extensions import db, migrate, bcrypt, jwt, mail, login_manager
 
 def create_app():
-    """Créer et configurer l'application Flask."""
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object('config.Config')
-    app.config.from_pyfile('config.py', silent=True)
 
     # Initialiser les extensions
     db.init_app(app)
@@ -31,19 +15,37 @@ def create_app():
     mail.init_app(app)
     login_manager.init_app(app)
 
-    # Importer les modèles après avoir initialisé l'application pour éviter les importations circulaires
-    from .models import User, Post, Sport, Rating
+    # Configurer le login manager
+    login_manager.login_view = 'main.login'
+    login_manager.login_message_category = 'info'
 
-    # Définir la fonction de rappel pour charger l'utilisateur
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
+    # Importer et enregistrer les blueprints
+    from .routes import bp as main_bp
+    from .messages import bp as messages_bp
+    app.register_blueprint(main_bp)
+    app.register_blueprint(messages_bp, url_prefix='/messages')
+
+    # Création du blueprint pour Facebook OAuth
+    facebook_bp = make_facebook_blueprint(
+        client_id=app.config['FACEBOOK_OAUTH_CLIENT_ID'],
+        client_secret=app.config['FACEBOOK_OAUTH_CLIENT_SECRET'],
+        redirect_to='main.profile'
+    )
+    app.register_blueprint(facebook_bp, url_prefix="/facebook_login")
+
+    # Création du blueprint pour Strava OAuth
+    strava_bp = make_strava_blueprint(
+        client_id=app.config['STRAVA_OAUTH_CLIENT_ID'],
+        client_secret=app.config['STRAVA_OAUTH_CLIENT_SECRET'],
+        redirect_to='main.profile'
+    )
+    app.register_blueprint(strava_bp, url_prefix="/strava_login")
 
     with app.app_context():
-        # Importer et enregistrer le blueprint
-        from .routes import bp as main_bp
-        app.register_blueprint(main_bp)
-        # Créer les tables si elles n'existent pas déjà (utilisez les migrations pour la production)
-        # db.create_all()
+        from .models import User, Post, Sport, Rating
+
+        @login_manager.user_loader
+        def load_user(user_id):
+            return User.query.get(int(user_id))
 
     return app

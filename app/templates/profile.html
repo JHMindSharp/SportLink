@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <title>SportLink - Mon Profil</title>
@@ -56,7 +56,7 @@
             position: relative;
             width: 100%;
             height: 350px;
-            background-image: url('{{ url_for('static', filename=user.cover_image or 'images/default_cover.jpg') }}');
+            background-image: url('{{ url_for('main.uploaded_file', filename=user.cover_image) }}');
             background-size: cover;
             background-position: center;
             margin-top: 60px; /* Pour compenser le header fixe */
@@ -71,7 +71,7 @@
             border-radius: 50%;
             width: 150px;
             height: 150px;
-            background-image: url('{{ url_for('static', filename=user.profile_image or 'images/default_profile.png') }}');
+            background-image: url('{{ url_for('main.uploaded_file', filename=user.profile_image) }}');
             background-size: cover;
             background-position: center;
         }
@@ -243,7 +243,6 @@
     </style>
     <script>
         function openCreatePostModal() {
-            // Logic to open the modal or redirect to create post page
             window.location.href = "{{ url_for('main.create_post') }}";
         }
     </script>
@@ -254,7 +253,7 @@
         <div class="nav">
             <div class="logo">SportLink</div>
             <ul class="menu">
-                <li><a href="#">Accueil</a></li>
+                <li><a href="{{ url_for('main.news_feed') }}">Fil d'actualité</a></li>
                 <li><a href="#">Amis</a></li>
                 <li><a href="#">Messages</a></li>
                 <li><a href="#">Notifications</a></li>
@@ -263,9 +262,10 @@
     </div>
 
     <!-- Couverture et photo de profil -->
-    <div class="profile-cover">
-        <div class="profile-picture"></div>
-    </div>
+    <div class="profile-cover" style="background-image: url('{{ url_for('main.uploaded_file', filename=user.cover_image) }}');"></div>
+    <div class="profile-picture" style="background-image: url('{{ url_for('main.uploaded_file', filename=user.profile_image) }}');"></div>
+
+
 
     <!-- Informations du profil -->
     <div class="profile-info">
@@ -365,7 +365,7 @@
             {% for post in posts %}
             <div class="post">
                 <div class="post-header">
-                    <img src="{{ url_for('static', filename=user.profile_image or 'images/default_profile.png') }}" alt="Profile Picture">
+                    <img src="{{ url_for('main.uploaded_file', filename=user.profile_image) }}" alt="Photo de profil">
                     <div>
                         <div class="post-author">{{ user.username }}</div>
                         <div class="post-timestamp">Publié le {{ post.created_at.strftime('%d %B %Y à %H:%M') }}</div>
@@ -380,22 +380,21 @@
                     {% endif %}
                     <p>{{ post.content }}</p>
                     {% if post.image %}
-                    <img src="{{ url_for('static', filename=post.image) }}" alt="Post Image" style="max-width: 100%; height: auto;">
+                    <img src="{{ url_for('main.uploaded_file', filename=post.image) }}" alt="Image de la publication" style="max-width: 100%; height: auto;">
                     {% endif %}
                     {% if post.video %}
                     <video controls style="max-width: 100%; height: auto;">
-                        <source src="{{ url_for('static', filename=post.video) }}" type="video/mp4">
+                        <source src="{{ url_for('main.uploaded_file', filename=post.video) }}" type="video/mp4">
                         Votre navigateur ne supporte pas la lecture vidéo.
                     </video>
                     {% endif %}
                     {% if post.music %}
                     <audio controls style="width: 100%;">
-                        <source src="{{ url_for('static', filename=post.music) }}" type="audio/mpeg">
+                        <source src="{{ url_for('main.uploaded_file', filename=post.music) }}" type="audio/mpeg">
                         Votre navigateur ne supporte pas la lecture audio.
                     </audio>
                     {% endif %}
                 </div>
-                <!-- Bouton de suppression de publication -->
                 <form action="{{ url_for('main.delete_post', post_id=post.id) }}" method="POST" style="margin-top: 10px;">
                     <button type="submit" class="btn">Supprimer la publication</button>
                 </form>
@@ -406,7 +405,6 @@
         </div>
     </div>
 
-    <!-- Pied de page -->
     <footer>
         <p>&copy; 2024 SportLink. Tous droits réservés.</p>
     </footer>

@@ -1,50 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Create Post - SportLink</title>
+    <title>Créer une Publication - SportLink</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script>
         function togglePostType() {
             const contentType = document.getElementById('content_type').value;
-            if (contentType === 'sport') {
-                document.getElementById('sport_fields').style.display = 'block';
-            } else {
-                document.getElementById('sport_fields').style.display = 'none';
-            }
+            document.getElementById('sport_fields').style.display = contentType === 'sport' ? 'block' : 'none';
         }
     </script>
 </head>
 <body>
-    <h1>Create a New Post</h1>
+    <h1>Créer une Nouvelle Publication</h1>
     <form method="POST" action="{{ url_for('main.create_post') }}" enctype="multipart/form-data">
-        <label for="content_type">Post Type:</label>
+        <label for="content_type">Type de Publication :</label>
         <select name="content_type" id="content_type" onchange="togglePostType()">
-            <option value="free">Free Post</option>
-            <option value="sport">Sport Post</option>
+            <option value="free">Publication Libre</option>
+            <option value="sport">Publication Sportive</option>
         </select>
 
         <div id="sport_fields" style="display: none;">
-            <label for="title">Title:</label>
+            <label for="title">Titre :</label>
             <input type="text" name="title">
 
-            <label for="subtitle">Subtitle:</label>
+            <label for="subtitle">Sous-titre :</label>
             <input type="text" name="subtitle">
         </div>
 
-        <label for="content">Content:</label>
+        <label for="content">Contenu :</label>
         <textarea name="content" required></textarea>
 
-        <label for="image">Upload Image:</label>
+        <label for="image">Image :</label>
         <input type="file" name="image" accept="image/*">
 
-        <label for="video">Upload Video:</label>
+        <label for="video">Vidéo :</label>
         <input type="file" name="video" accept="video/*">
 
-        <label for="music">Upload Music:</label>
+        <label for="music">Musique :</label>
         <input type="file" name="music" accept="audio/*">
 
-        <button type="submit">Post</button>
+        <button type="submit">Publier</button>
     </form>
 </body>
 </html>
