@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Profile - SportLink</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Edit Your Profile</h1>
+    <form method="POST" action="{{ url_for('main.edit_profile') }}" enctype="multipart/form-data">
+        <label for="username">Username:</label>
+        <input type="text" name="username" value="{{ user.username }}" required>
+
+        <label for="email">Email:</label>
+        <input type="email" name="email" value="{{ user.email }}" required>
+
+        <label for="country">Country:</label>
+        <input type="text" name="country" value="{{ user.country }}">
+
+        <label for="city">City:</label>
+        <input type="text" name="city" value="{{ user.city }}">
+
+        <label for="sex">Sex:</label>
+        <select name="sex">
+            <option value="">Select</option>
+            <option value="Male" {% if user.sex == 'Male' %}selected{% endif %}>Male</option>
+            <option value="Female" {% if user.sex == 'Female' %}selected{% endif %}>Female</option>
+            <option value="Other" {% if user.sex == 'Other' %}selected{% endif %}>Other</option>
+        </select>
+
+        <label for="birth_date">Date of Birth:</label>
+        <input type="date" name="birth_date" value="{{ user.birth_date }}">
+
+        <label for="profile_image">Profile Image:</label>
+        <input type="file" name="profile_image" accept="image/*">
+
+        <label for="cover_image">Cover Image:</label>
+        <input type="file" name="cover_image" accept="image/*">
+
+        <label for="sports">Sports (select up to 5):</label>
+        <select name="sports" multiple>
+            {% for sport in sports %}
+            <option value="{{ sport.id }}" {% if sport in user.sports %}selected{% endif %}>{{ sport.name }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Update Profile</button>
+    </form>
+</body>
+</html>

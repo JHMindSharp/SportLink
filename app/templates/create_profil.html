@@ -1,45 +1,55 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SportLink - Créer Votre Profil</title>
+    <title>SportLink - Create Profile</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <header>
-        <h1>Créer Votre Profil</h1>
-        <p>Merci de compléter votre profil pour une expérience optimale sur SportLink.</p>
-    </header>
+    <h1>Create your Profile</h1>
+    <form method="POST" action="{{ url_for('main.register') }}">
+        <label for="username">Username:</label>
+        <input type="text" name="username" placeholder="Username" required>
 
-    <main>
-        <form action="{{ url_for('main.create_profile') }}" method="POST" enctype="multipart/form-data" class="profile-form">
-            <label for="age">Âge :</label>
-            <input type="number" id="age" name="age" required>
+        <label for="email">Email:</label>
+        <input type="email" name="email" placeholder="Email" required>
 
-            <label for="city">Ville :</label>
-            <input type="text" id="city" name="city" required>
+        <label for="password">Password:</label>
+        <input type="password" name="password" placeholder="Password" required>
 
-            <label for="country">Pays :</label>
-            <input type="text" id="country" name="country" required>
+        <!-- Additional profile fields -->
+        <label for="country">Country:</label>
+        <input type="text" name="country" placeholder="Country" required>
 
-            <label for="sex">Sexe :</label>
-            <select id="sex" name="sex" required>
-                <option value="">Choisir...</option>
-                <option value="Homme">Homme</option>
-                <option value="Femme">Femme</option>
-                <option value="Autre">Autre</option>
-            </select>
+        <label for="city">City:</label>
+        <input type="text" name="city" placeholder="City" required>
 
-            <label for="profile_image">Photo de profil :</label>
-            <input type="file" id="profile_image" name="profile_image" accept="image/*">
+        <label for="address">Address:</label>
+        <input type="text" name="address" placeholder="Address">
 
-            <button type="submit" class="btn">Enregistrer le Profil</button>
-        </form>
-    </main>
+        <label for="postal_code">Postal Code:</label>
+        <input type="text" name="postal_code" placeholder="Postal Code">
 
-    <footer>
-        <p>&copy; 2024 SportLink. Tous droits réservés.</p>
-    </footer>
+        <label for="sex">Sex:</label>
+        <select name="sex" required>
+            <option value="">Select</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+        </select>
+
+        <label for="birth_date">Date of Birth:</label>
+        <input type="date" name="birth_date" required>
+
+        <label for="phone">Phone Number:</label>
+        <input type="tel" name="phone" placeholder="Phone Number">
+
+        <label><input type="checkbox" name="display_phone"> Display Phone Number</label>
+        <label><input type="checkbox" name="display_email"> Display Email</label>
+
+        <button type="submit">Register</button>
+    </form>
 </body>
 </html>

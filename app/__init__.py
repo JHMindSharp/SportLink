@@ -7,7 +7,6 @@ from flask_mail import Mail
 from flask_login import LoginManager
 
 # Initialisation des extensions
-
 db = SQLAlchemy()
 migrate = Migrate()
 bcrypt = Bcrypt()
@@ -19,7 +18,7 @@ login_manager.login_view = 'main.login'
 login_manager.login_message_category = 'info'
 
 def create_app():
-    """Create and configure the Flask application."""
+    """Créer et configurer l'application Flask."""
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object('config.Config')
     app.config.from_pyfile('config.py', silent=True)
@@ -33,7 +32,7 @@ def create_app():
     login_manager.init_app(app)
 
     # Importer les modèles après avoir initialisé l'application pour éviter les importations circulaires
-    from .models import User
+    from .models import User, Post, Sport, Rating
 
     # Définir la fonction de rappel pour charger l'utilisateur
     @login_manager.user_loader
@@ -44,6 +43,7 @@ def create_app():
         # Importer et enregistrer le blueprint
         from .routes import bp as main_bp
         app.register_blueprint(main_bp)
-        db.create_all()
+        # Créer les tables si elles n'existent pas déjà (utilisez les migrations pour la production)
+        # db.create_all()
 
     return app

@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>SportLink - Mon Profil</title>
-    <!-- Lien vers une feuille de style CSS (vous pouvez créer un fichier style.css ou inclure un framework CSS comme Bootstrap) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         /* Styles généraux */
@@ -57,7 +56,7 @@
             position: relative;
             width: 100%;
             height: 350px;
-            background-image: url('{{ url_for('static', filename='images/cover.jpg') }}');
+            background-image: url('{{ url_for('static', filename=user.cover_image or 'images/default_cover.jpg') }}');
             background-size: cover;
             background-position: center;
             margin-top: 60px; /* Pour compenser le header fixe */
@@ -72,7 +71,7 @@
             border-radius: 50%;
             width: 150px;
             height: 150px;
-            background-image: url('{{ user.profile_image or url_for('static', filename='images/default_profile.png') }}');
+            background-image: url('{{ url_for('static', filename=user.profile_image or 'images/default_profile.png') }}');
             background-size: cover;
             background-position: center;
         }
@@ -92,6 +91,40 @@
         .profile-info p {
             color: #65676b;
             margin: 5px 0;
+        }
+
+        /* Système de notation */
+        .rating {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .star {
+            font-size: 24px;
+            color: #ccc;
+            margin: 0 2px;
+        }
+
+        .star.filled {
+            color: #ffc107;
+        }
+
+        /* Boutons d'action */
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #1877f2;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px 5px 0 5px;
+        }
+
+        .btn:hover {
+            background-color: #165fbb;
         }
 
         /* Navigation du profil */
@@ -175,7 +208,7 @@
             margin-right: 10px;
         }
 
-        .center-column .post .post-header .post-author {
+        .center-column .post .post-author {
             font-weight: bold;
             color: #050505;
         }
@@ -189,22 +222,31 @@
             font-size: 12px;
         }
 
-        /* Boutons d'action */
-        .btn {
-            display: inline-block;
-            padding: 10px 15px;
-            background-color: #1877f2;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            margin-top: 10px;
+        /* Bouton de création de publication */
+        .create-post {
+            background-color: #fff;
+            border: 1px solid #ccd0d5;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            cursor: pointer;
         }
 
-        .btn:hover {
-            background-color: #165fbb;
+        .create-post:hover {
+            background-color: #f0f2f5;
+        }
+
+        .create-post p {
+            margin: 0;
+            color: #65676b;
         }
     </style>
+    <script>
+        function openCreatePostModal() {
+            // Logic to open the modal or redirect to create post page
+            window.location.href = "{{ url_for('main.create_post') }}";
+        }
+    </script>
 </head>
 <body>
     <!-- Header flottant -->
@@ -229,7 +271,39 @@
     <div class="profile-info">
         <h1>{{ user.username }}</h1>
         <p>{{ user.city }}, {{ user.country }}</p>
-        <a href="{{ url_for('main.create_profile') }}" class="btn">Modifier le profil</a>
+
+        <!-- Affichage de l'âge -->
+        {% if user.age %}
+        <p>Âge : {{ user.age }} ans</p>
+        {% endif %}
+
+        <!-- Affichage des sports pratiqués -->
+        {% if user.sports %}
+        <p>Sports pratiqués :
+            {% for sport in user.sports %}
+                {{ sport.name }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+        {% endif %}
+
+        <!-- Système de notation -->
+        <div class="rating">
+            {% for i in range(1, 6) %}
+                {% if average_rating and i <= average_rating %}
+                    <span class="star filled">&#9733;</span>
+                {% else %}
+                    <span class="star">&#9734;</span>
+                {% endif %}
+            {% endfor %}
+            {% if total_ratings %}
+                <span>({{ total_ratings }} avis)</span>
+            {% else %}
+                <span>(Aucun avis pour le moment)</span>
+            {% endif %}
+        </div>
+
+        <!-- Boutons d'action -->
+        <a href="{{ url_for('main.edit_profile') }}" class="btn">Modifier le profil</a>
         <a href="{{ url_for('main.logout') }}" class="btn">Se déconnecter</a>
     </div>
 
@@ -251,9 +325,14 @@
             <div class="card">
                 <h3>Informations Personnelles</h3>
                 <ul>
-                    <li><strong>Âge :</strong> {{ user.age }}</li>
+                    {% if user.age %}
+                    <li><strong>Âge :</strong> {{ user.age }} ans</li>
+                    {% endif %}
                     <li><strong>Sexe :</strong> {{ user.sex }}</li>
                     <li><strong>Email :</strong> {{ user.email }}</li>
+                    {% if user.phone and user.display_phone %}
+                    <li><strong>Téléphone :</strong> {{ user.phone }}</li>
+                    {% endif %}
                 </ul>
             </div>
             <div class="card">
@@ -261,36 +340,68 @@
                 <!-- Liste d'amis (à implémenter) -->
                 <p>Vous n'avez pas encore d'amis.</p>
             </div>
+            <div class="card">
+                <h3>Sports Pratiqués</h3>
+                {% if user.sports %}
+                <ul>
+                    {% for sport in user.sports %}
+                    <li>{{ sport.name }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>Vous n'avez pas encore ajouté de sports.</p>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Section centrale -->
         <div class="center-column">
-            <!-- Formulaire de création de publication (à implémenter) -->
-            <div class="post">
-                <div class="post-header">
-                    <img src="{{ user.profile_image or url_for('static', filename='images/default_profile.png') }}" alt="Profile Picture">
-                    <div class="post-author">{{ user.username }}</div>
-                </div>
-                <div class="post-content">
-                    <p>Quoi de neuf ?</p>
-                </div>
-                <a href="#" class="btn">Publier</a>
+            <!-- Formulaire de création de publication -->
+            <div class="create-post" onclick="openCreatePostModal()">
+                <p>Quoi de neuf, {{ user.username }} ?</p>
             </div>
 
             <!-- Boucle des publications -->
-            {% for post in user.posts %}
+            {% for post in posts %}
             <div class="post">
                 <div class="post-header">
-                    <img src="{{ user.profile_image or url_for('static', filename='images/default_profile.png') }}" alt="Profile Picture">
+                    <img src="{{ url_for('static', filename=user.profile_image or 'images/default_profile.png') }}" alt="Profile Picture">
                     <div>
                         <div class="post-author">{{ user.username }}</div>
                         <div class="post-timestamp">Publié le {{ post.created_at.strftime('%d %B %Y à %H:%M') }}</div>
                     </div>
                 </div>
                 <div class="post-content">
+                    {% if post.title %}
+                    <h3>{{ post.title }}</h3>
+                    {% endif %}
+                    {% if post.subtitle %}
+                    <h4>{{ post.subtitle }}</h4>
+                    {% endif %}
                     <p>{{ post.content }}</p>
+                    {% if post.image %}
+                    <img src="{{ url_for('static', filename=post.image) }}" alt="Post Image" style="max-width: 100%; height: auto;">
+                    {% endif %}
+                    {% if post.video %}
+                    <video controls style="max-width: 100%; height: auto;">
+                        <source src="{{ url_for('static', filename=post.video) }}" type="video/mp4">
+                        Votre navigateur ne supporte pas la lecture vidéo.
+                    </video>
+                    {% endif %}
+                    {% if post.music %}
+                    <audio controls style="width: 100%;">
+                        <source src="{{ url_for('static', filename=post.music) }}" type="audio/mpeg">
+                        Votre navigateur ne supporte pas la lecture audio.
+                    </audio>
+                    {% endif %}
                 </div>
+                <!-- Bouton de suppression de publication -->
+                <form action="{{ url_for('main.delete_post', post_id=post.id) }}" method="POST" style="margin-top: 10px;">
+                    <button type="submit" class="btn">Supprimer la publication</button>
+                </form>
             </div>
+            {% else %}
+            <p>Aucune publication à afficher.</p>
             {% endfor %}
         </div>
     </div>
