@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SportLink - Mon Profil</title>
+    <!-- Lien vers une feuille de style CSS (vous pouvez créer un fichier style.css ou inclure un framework CSS comme Bootstrap) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Styles généraux */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+        }
+
+        /* Header flottant */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #fff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .header .nav {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+        .header .nav .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1877f2;
+            margin-right: auto;
+        }
+
+        .header .nav .menu {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+
+        .header .nav .menu li {
+            display: inline;
+        }
+
+        .header .nav .menu a {
+            text-decoration: none;
+            color: #050505;
+            font-weight: 500;
+        }
+
+        /* Couverture du profil */
+        .profile-cover {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            background-image: url('{{ url_for('static', filename='images/cover.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            margin-top: 60px; /* Pour compenser le header fixe */
+        }
+
+        .profile-picture {
+            position: absolute;
+            bottom: -75px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid #fff;
+            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            background-image: url('{{ user.profile_image or url_for('static', filename='images/default_profile.png') }}');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Informations du profil */
+        .profile-info {
+            text-align: center;
+            margin-top: 90px;
+        }
+
+        .profile-info h1 {
+            margin: 0;
+            font-size: 28px;
+            color: #050505;
+        }
+
+        .profile-info p {
+            color: #65676b;
+            margin: 5px 0;
+        }
+
+        /* Navigation du profil */
+        .profile-nav {
+            display: flex;
+            justify-content: center;
+            border-top: 1px solid #ccd0d5;
+            border-bottom: 1px solid #ccd0d5;
+            background-color: #fff;
+            margin-top: 20px;
+        }
+
+        .profile-nav ul {
+            list-style: none;
+            display: flex;
+            gap: 30px;
+            padding: 0;
+            margin: 0;
+        }
+
+        .profile-nav ul li {
+            padding: 15px 0;
+        }
+
+        .profile-nav ul li a {
+            text-decoration: none;
+            color: #050505;
+            font-weight: 600;
+        }
+
+        /* Contenu principal */
+        .main-content {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Section gauche */
+        .left-column {
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .left-column .card {
+            background-color: #fff;
+            border: 1px solid #ccd0d5;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .left-column .card h3 {
+            margin-top: 0;
+        }
+
+        /* Section centrale */
+        .center-column {
+            flex: 2;
+            max-width: 600px;
+        }
+
+        .center-column .post {
+            background-color: #fff;
+            border: 1px solid #ccd0d5;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .center-column .post .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .center-column .post .post-header img {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .center-column .post .post-header .post-author {
+            font-weight: bold;
+            color: #050505;
+        }
+
+        .center-column .post .post-content {
+            color: #050505;
+        }
+
+        .center-column .post .post-timestamp {
+            color: #65676b;
+            font-size: 12px;
+        }
+
+        /* Boutons d'action */
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #1877f2;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: #165fbb;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header flottant -->
+    <div class="header">
+        <div class="nav">
+            <div class="logo">SportLink</div>
+            <ul class="menu">
+                <li><a href="#">Accueil</a></li>
+                <li><a href="#">Amis</a></li>
+                <li><a href="#">Messages</a></li>
+                <li><a href="#">Notifications</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Couverture et photo de profil -->
+    <div class="profile-cover">
+        <div class="profile-picture"></div>
+    </div>
+
+    <!-- Informations du profil -->
+    <div class="profile-info">
+        <h1>{{ user.username }}</h1>
+        <p>{{ user.city }}, {{ user.country }}</p>
+        <a href="{{ url_for('main.create_profile') }}" class="btn">Modifier le profil</a>
+        <a href="{{ url_for('main.logout') }}" class="btn">Se déconnecter</a>
+    </div>
+
+    <!-- Navigation du profil -->
+    <div class="profile-nav">
+        <ul>
+            <li><a href="#">Publications</a></li>
+            <li><a href="#">À propos</a></li>
+            <li><a href="#">Amis</a></li>
+            <li><a href="#">Photos</a></li>
+            <li><a href="#">Plus</a></li>
+        </ul>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="main-content">
+        <!-- Section gauche -->
+        <div class="left-column">
+            <div class="card">
+                <h3>Informations Personnelles</h3>
+                <ul>
+                    <li><strong>Âge :</strong> {{ user.age }}</li>
+                    <li><strong>Sexe :</strong> {{ user.sex }}</li>
+                    <li><strong>Email :</strong> {{ user.email }}</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>Amis</h3>
+                <!-- Liste d'amis (à implémenter) -->
+                <p>Vous n'avez pas encore d'amis.</p>
+            </div>
+        </div>
+
+        <!-- Section centrale -->
+        <div class="center-column">
+            <!-- Formulaire de création de publication (à implémenter) -->
+            <div class="post">
+                <div class="post-header">
+                    <img src="{{ user.profile_image or url_for('static', filename='images/default_profile.png') }}" alt="Profile Picture">
+                    <div class="post-author">{{ user.username }}</div>
+                </div>
+                <div class="post-content">
+                    <p>Quoi de neuf ?</p>
+                </div>
+                <a href="#" class="btn">Publier</a>
+            </div>
+
+            <!-- Boucle des publications -->
+            {% for post in user.posts %}
+            <div class="post">
+                <div class="post-header">
+                    <img src="{{ user.profile_image or url_for('static', filename='images/default_profile.png') }}" alt="Profile Picture">
+                    <div>
+                        <div class="post-author">{{ user.username }}</div>
+                        <div class="post-timestamp">Publié le {{ post.created_at.strftime('%d %B %Y à %H:%M') }}</div>
+                    </div>
+                </div>
+                <div class="post-content">
+                    <p>{{ post.content }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Pied de page -->
+    <footer>
+        <p>&copy; 2024 SportLink. Tous droits réservés.</p>
+    </footer>
+</body>
+</html>

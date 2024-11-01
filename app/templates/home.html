@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="home-content">
+    <h2>Welcome to SportLink</h2>
+    <p>Connect with athletes, track your sports activities, and much more!</p>
+
+    <form id="post-form">
+        <textarea id="post-content" placeholder="What's on your mind?" required></textarea>
+        <button type="button" onclick="createPost()">Post</button>
+    </form>
+
+    <div id="posts">
+        <!-- Les publications seront affichées ici -->
+    </div>
+</div>
+{% endblock %}

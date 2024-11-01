@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SportLink - Créer Votre Profil</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Créer Votre Profil</h1>
+        <p>Merci de compléter votre profil pour une expérience optimale sur SportLink.</p>
+    </header>
+
+    <main>
+        <form action="{{ url_for('main.create_profile') }}" method="POST" enctype="multipart/form-data" class="profile-form">
+            <label for="age">Âge :</label>
+            <input type="number" id="age" name="age" required>
+
+            <label for="city">Ville :</label>
+            <input type="text" id="city" name="city" required>
+
+            <label for="country">Pays :</label>
+            <input type="text" id="country" name="country" required>
+
+            <label for="sex">Sexe :</label>
+            <select id="sex" name="sex" required>
+                <option value="">Choisir...</option>
+                <option value="Homme">Homme</option>
+                <option value="Femme">Femme</option>
+                <option value="Autre">Autre</option>
+            </select>
+
+            <label for="profile_image">Photo de profil :</label>
+            <input type="file" id="profile_image" name="profile_image" accept="image/*">
+
+            <button type="submit" class="btn">Enregistrer le Profil</button>
+        </form>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 SportLink. Tous droits réservés.</p>
+    </footer>
+</body>
+</html>
