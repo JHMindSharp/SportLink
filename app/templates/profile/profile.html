@@ -263,12 +263,13 @@
 
     <!-- Couverture et photo de profil -->
     <div class="profile-cover" style="background-image: url('{{ url_for('main.uploaded_file', filename='covers/' ~ user.cover_image) if user.cover_image else url_for('static', filename='images/default_cover.jpg') }}');"></div>
-    <div class="profile-picture" style="background-image: url('{{ url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) if user.profile_image else url_for('static', filename='images/default_profile.jpg') }}');"></div>
-
 
     <!-- Informations du profil -->
     <div class="profile-info">
-        <h1>{{ user.username }}</h1>
+        <div class="profile-header">
+            <div class="profile-picture-large" style="background-image: url('{{ url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) if user.profile_image else url_for('static', filename='images/default_profile.jpg') }}');"></div>
+            <h1>{{ user.username }}</h1>
+        </div>
         <p>{{ user.city }}, {{ user.country }}</p>
 
         <!-- Affichage de l'âge -->
@@ -371,7 +372,6 @@
             {% for post in posts %}
             <div class="post">
                 <div class="post-header">
-                    <img src="{{ url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) }}" alt="Photo de profil">
                     <div>
                         <div class="post-author">{{ user.username }}</div>
                         <div class="post-timestamp">Publié le {{ post.created_at.strftime('%d %B %Y à %H:%M') }}</div>

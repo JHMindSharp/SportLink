@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User
 from app.extensions import db, bcrypt, mail
 from itsdangerous import URLSafeTimedSerializer
@@ -8,21 +8,19 @@ from datetime import datetime
 from flask_dance.contrib.facebook import facebook
 from flask_dance.contrib.strava import strava
 from app.auth.utils import register_user_if_new
+from app.auth.forms import RegistrationForm, LoginForm
 
 auth_bp = Blueprint('auth', __name__)
-bp = Blueprint('main', __name__)
 
-@auth_bp.route('/register', methods=['POST'])
+@auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    try:
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        profile_image = None
-
-        if not username or not email or not password:
-            flash("Nom d'utilisateur, email et mot de passe sont obligatoires.", "danger")
-            return redirect(url_for('auth.register'))
+    if current_user.is_authenticated:
+        return redirect(url_for('profile.profile'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        email = form.email.data
+        password = form.password.data
 
         # Vérification de l'existence de l'utilisateur
         if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
@@ -36,29 +34,29 @@ def register():
         send_confirmation_email(user.email)
         
         flash("Inscription réussie ! Vérifiez votre email pour confirmer votre inscription.", "success")
-        return redirect(url_for('auth.login'))
-
-    except Exception as e:
-        return jsonify({"error": "Erreur interne"}), 500
-
+        login_user(user)
+        return redirect(url_for('profile.profile'))
+    return render_template('auth/register.html', form=form)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+    if current_user.is_authenticated:
+        return redirect(url_for('profile.profile'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        password = form.password.data
 
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(email=email).first()
         if user is None or not user.check_password(password):
-            flash("Nom d'utilisateur ou mot de passe invalide.", "danger")
+            flash("Email ou mot de passe invalide.", "danger")
             return redirect(url_for('auth.login'))
 
         login_user(user)
         flash("Connexion réussie.", "success")
         next_page = request.args.get('next')
-        return redirect(next_page or url_for('profile.edit_profile'))
-    
-    return render_template('auth/login.html')
+        return redirect(next_page or url_for('profile.profile'))
+    return render_template('auth/login.html', form=form)
 
 @auth_bp.route('/facebook_login')
 def facebook_login():
@@ -76,7 +74,7 @@ def facebook_login():
         )
         login_user(user)
         flash("Connexion réussie avec Facebook.", "success")
-        return redirect(url_for("profile.edit_profile"))
+        return redirect(url_for("profile.profile"))
     flash("Échec de connexion via Facebook.", "danger")
     return redirect(url_for("auth.login"))
 
@@ -113,8 +111,8 @@ def strava_login():
         login_user(user)
         flash("Connexion réussie avec Strava.", "success")
         
-        # Rediriger vers la page de création de profil
-        return redirect(url_for("profile.edit_profile"))
+        # Rediriger vers le profil
+        return redirect(url_for("profile.profile"))
 
     flash("Échec de connexion via Strava.", "danger")
     return redirect(url_for("auth.login"))
@@ -131,7 +129,7 @@ def send_confirmation_email(user_email):
     token = s.dumps(user_email, salt='email-confirm-salt')
     confirm_url = url_for('auth.confirm_email', token=token, _external=True)
     html = render_template('confirm_email.html', confirm_url=confirm_url)
-    send_email('Please confirm your email', [user_email], html)
+    send_email('Veuillez confirmer votre email', [user_email], html)
 
 @auth_bp.route('/confirm/<token>')
 def confirm_email(token):
@@ -145,8 +143,8 @@ def confirm_email(token):
     user = User.query.filter_by(email=email).first_or_404()
     user.email_confirmed = True
     db.session.commit()
-    flash("Votre email a été confirmé ! Vous pouvez maintenant vous connecter.", "success")
-    return redirect(url_for('main.index'))
+    flash("Votre email a été confirmé !", "success")
+    return redirect(url_for('profile.profile'))
 
 def send_email(subject, recipients, html_body):
     msg = Message(subject, recipients=recipients)

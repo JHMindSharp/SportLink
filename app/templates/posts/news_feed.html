@@ -8,6 +8,9 @@
     {% for post in posts %}
     <div class="post">
         <div class="post-header">
+            {% if post.author.profile_image %}
+                <img src="{{ url_for('main.uploaded_file', filename='profiles/' ~ post.author.profile_image) }}" alt="Photo de profil" class="post-profile-picture">
+            {% endif %}
             <div>
                 <div class="post-author">{{ post.author.username }}</div>
                 <div class="post-timestamp">Publié le {{ post.created_at.strftime('%d %B %Y à %H:%M') }}</div>

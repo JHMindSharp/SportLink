@@ -1,17 +1,104 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Accueil - SportLink{% endblock %}
 
 {% block content %}
-<div class="home-content">
-    <h2>Welcome to SportLink</h2>
-    <p>Connect with athletes, track your sports activities, and much more!</p>
+<div class="home-container">
+    <header class="home-header">
+        <h1>SportLink</h1>
+        <p>Connectez, Engagez, Exercez-vous, Réservez et Rencontrez des partenaires similaires !</p>
+    </header>
 
-    <form id="post-form">
-        <textarea id="post-content" placeholder="What's on your mind?" required></textarea>
-        <button type="button" onclick="createPost()">Post</button>
-    </form>
+    <nav class="home-nav">
+        <ul>
+            <li><a href="#features">Avantages</a></li>
+            <li><a href="#team">Équipe</a></li>
+            <li><a href="#technologies">Technologies</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
 
-    <div id="posts">
-        <!-- Les publications seront affichées ici -->
-    </div>
+    <!-- Section d'inscription/connexion -->
+    <section class="auth-section">
+        <button id="toggle-auth-form" class="btn">S'inscrire / Se connecter</button>
+        <div id="auth-form-container" style="display: none;">
+            <!-- Formulaire d'inscription/connexion -->
+            {% include 'auth/auth_form.html' %}
+        </div>
+    </section>
+
+    <!-- Sections d'informations -->
+    <section id="features" class="section">
+        <h2>Pourquoi utiliser SportLink ?</h2>
+        <div class="features-grid">
+            <div class="feature-item">
+                <img src="{{ url_for('static', filename='images/feature1.png') }}" alt="Suivi des performances">
+                <h3>Suivi des performances</h3>
+                <p>Gardez une trace de vos activités sportives et améliorez vos performances.</p>
+            </div>
+            <div class="feature-item">
+                <img src="{{ url_for('static', filename='images/feature2.png') }}" alt="Réseau de partenaires">
+                <h3>Réseau de partenaires</h3>
+                <p>Trouvez des partenaires sportifs avec des intérêts similaires.</p>
+            </div>
+            <div class="feature-item">
+                <img src="{{ url_for('static', filename='images/feature3.png') }}" alt="Réservations faciles">
+                <h3>Réservations faciles</h3>
+                <p>Réservez du matériel et des terrains de sport en quelques clics.</p>
+            </div>
+            <div class="feature-item">
+                <img src="{{ url_for('static', filename='images/feature4.png') }}" alt="Communauté active">
+                <h3>Communauté active</h3>
+                <p>Rejoignez une communauté de sportifs passionnés.</p>
+            </div>
+            <div class="feature-item">
+                <img src="{{ url_for('static', filename='images/feature5.png') }}" alt="Messagerie intégrée">
+                <h3>Messagerie intégrée</h3>
+                <p>Communiquez en temps réel avec vos partenaires.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="team" class="section">
+        <h2>L'équipe</h2>
+        <div class="team-member">
+            <img src="{{ url_for('static', filename='images/team_member.jpg') }}" alt="Jonathan Huybrechts">
+            <h3>Jonathan Huybrechts</h3>
+            <p>Développeur Full Stack, Chef de projet, Designer</p>
+            <p>En tant que seul développeur, je suis responsable de tous les aspects du développement de l'application, y compris le backend, le frontend, le design et l'interaction utilisateur. Ce rôle exploite mon ensemble de compétences pour gérer et exécuter l'ensemble du cycle de vie du projet.</p>
+        </div>
+    </section>
+
+    <section id="technologies" class="section">
+        <h2>Technologies utilisées</h2>
+        <ul>
+            <li>Langages : Python, JavaScript</li>
+            <li>Frameworks : Flask pour le backend, React Native pour le frontend</li>
+            <li>Bases de données : MongoDB pour stocker les profils utilisateurs, les réservations et les statistiques de santé</li>
+            <li>APIs : Développement d'une API interne pour le suivi des statistiques de santé et la gestion des profils</li>
+            <li>Paiements : Intégration de PayPal et Apple Pay pour des transactions sécurisées</li>
+            <li>Communication en temps réel : WebSocket pour la messagerie instantanée entre utilisateurs</li>
+            <li>Autres outils : Git, GitHub, AWS</li>
+        </ul>
+    </section>
+
+    <section id="contact" class="section">
+        <h2>Contactez-nous</h2>
+        <p>Pour toute question ou suggestion, n'hésitez pas à nous contacter à l'adresse suivante : <a href="mailto:contact@sportlink.com">contact@sportlink.com</a></p>
+    </section>
 </div>
+
+<script>
+    // Script pour afficher/masquer le formulaire d'authentification
+    document.getElementById('toggle-auth-form').addEventListener('click', function() {
+        var formContainer = document.getElementById('auth-form-container');
+        if (formContainer.style.display === 'none' || formContainer.style.display === '') {
+            formContainer.style.display = 'block';
+            this.textContent = 'Fermer';
+        } else {
+            formContainer.style.display = 'none';
+            this.textContent = "S'inscrire / Se connecter";
+        }
+    });
+</script>
 {% endblock %}

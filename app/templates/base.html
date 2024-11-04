@@ -4,87 +4,16 @@
     <meta charset="UTF-8">
     <title>{% block title %}SportLink{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
-        /* Styles globaux */
-        body {
-            background-image: url('{{ url_for('static', filename='images/background.jpg') }}');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        /* Styles pour le header */
-        .header {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background: rgba(24, 119, 242, 0.8); /* Couleur avec transparence */
-            color: #fff;
-            z-index: 1000;
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: background 0.3s;
-        }
-
-        /* Logo et titre SportLink */
-        .header .logo-container {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-        }
-        .header .logo-container img {
-            height: 30px;
-            margin-right: 10px;
-            opacity: 0.8;
-        }
-        .header .logo-container span {
-            font-size: 24px;
-            font-weight: bold;
-            opacity: 0.8;
-        }
-
-        /* Menu de navigation */
-        .header .nav .menu {
-            list-style: none;
-            display: flex;
-            gap: 20px;
-        }
-        .header .nav .menu li {
-            display: inline;
-        }
-        .header .nav .menu a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 20px;
-            background: rgba(24, 119, 242, 0.8);
-            color: #fff;
-            position: fixed;
-            width: 100%;
-            bottom: 0;
-            font-size: 14px;
-        }
-    </style>
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
     <!-- Header flottant avec logo et lien vers accueil/profil -->
-    <div class="header">
-        <a href="{{ url_for('main.index') }}" class="logo-container">
+    <header class="header">
+        <a href="{% if current_user.is_authenticated %}{{ url_for('profile.profile') }}{% else %}{{ url_for('main.index') }}{% endif %}" class="logo-container">
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
             <span>SportLink</span>
         </a>
-        <div class="nav">
+        <nav class="nav">
             <ul class="menu">
                 <li><a href="{{ url_for('posts.news_feed') }}">Fil d'actualité</a></li>
                 <li><a href="#">Amis</a></li>
@@ -97,29 +26,38 @@
                     <li><a href="{{ url_for('auth.login') }}">Connexion</a></li>
                 {% endif %}
             </ul>
-        </div>
-    </div>
+        </nav>
+    </header>
 
     <!-- Contenu principal -->
-    <div class="content" style="padding-top: 60px;">
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
     <!-- Pied de page -->
     <footer>
         <p>&copy; 2024 SportLink. Tous droits réservés.</p>
     </footer>
 
-    <!-- Script pour le changement de couleur du header au scroll -->
+    <!-- Scripts -->
     <script>
+        // Changement de couleur du header au scroll
         window.addEventListener('scroll', function() {
             var header = document.querySelector('.header');
             if (window.pageYOffset > 50) {
-                header.style.background = '#1877f2';
+                header.classList.add('scrolled');
             } else {
-                header.style.background = 'rgba(24, 119, 242, 0.8)';
+                header.classList.remove('scrolled');
             }
         });
     </script>
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>
