@@ -128,7 +128,7 @@ def send_confirmation_email(user_email):
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     token = s.dumps(user_email, salt='email-confirm-salt')
     confirm_url = url_for('auth.confirm_email', token=token, _external=True)
-    html = render_template('confirm_email.html', confirm_url=confirm_url)
+    html = render_template('auth/confirm_email.html', confirm_url=confirm_url)
     send_email('Veuillez confirmer votre email', [user_email], html)
 
 @auth_bp.route('/confirm/<token>')
