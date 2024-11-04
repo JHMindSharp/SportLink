@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Inscription - SportLink{% endblock %}
+{% block content %}
+<div class="registration-form">
+    <h1>Inscription</h1>
+    <form method="POST" action="{{ url_for('auth.register') }}">
+        <label for='username'>Nom d'utilisateur :</label>
+        <input type='text' name='username' id='username' required>
+    
+        <label for='email'>Email :</label>
+        <input type='email' name='email' id='email' required>
+    
+        <label for='password'>Mot de passe :</label>
+        <input type='password' name='password' id='password' required>
+    
+        <label for='country'>Pays :</label>
+        <input type='text' name='country' id='country'>
+    
+        <label for='city'>Ville :</label>
+        <input type='text' name='city' id='city'>
+    
+        <label for='phone'>Numéro de téléphone :</label>
+        <input type='tel' name='phone' id='phone'>
+    
+        <label for='birth_date'>Date de naissance :</label>
+        <input type='date' name='birth_date' id='birth_date'>
+    
+        <button type='submit'>S'inscrire</button>
+    </form>
+</div>
+{% endblock %}

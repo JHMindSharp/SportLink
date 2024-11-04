@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SportLink - Bienvenue</title>
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         body {
-            background: url('{{ url_for('static', filename='images/logo.png') }}') no-repeat center center fixed;
+            background: url('{{ url_for('static', filename='images/background.jpg') }}') no-repeat center center fixed;
             background-size: cover;
             color: #fff;
             font-family: Arial, sans-serif;
@@ -19,13 +19,11 @@
             height: 100vh;
             margin: 0;
         }
-
         header {
             text-align: center;
             margin-bottom: 20px;
             opacity: 0.9;
         }
-
         main {
             background: rgba(0, 0, 0, 0.7);
             padding: 20px;
@@ -34,31 +32,25 @@
             max-width: 600px;
             width: 90%;
         }
-
         .features {
             margin-bottom: 20px;
         }
-
         .features ul {
             list-style: none;
             padding: 0;
         }
-
         .features li {
             margin-bottom: 10px;
             font-size: 1.1em;
         }
-
         .signup {
             text-align: center;
         }
-
         .signup form {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-
         .signup input {
             margin-bottom: 10px;
             padding: 10px;
@@ -66,7 +58,6 @@
             border: none;
             width: 80%;
         }
-
         .signup button {
             padding: 10px 20px;
             border-radius: 5px;
@@ -76,31 +67,27 @@
             font-weight: bold;
             cursor: pointer;
         }
-
         footer {
             margin-top: 20px;
             text-align: center;
         }
-
         footer p {
             margin: 0;
             font-size: 0.9em;
         }
-
         a {
             color: #ffc107;
             text-decoration: none;
             cursor: pointer;
         }
-
         a:hover {
             text-decoration: underline;
         }
     </style>
     <script>
-        const loginUrl = "{{ url_for('main.login') }}";
-        const registerUrl = "{{ url_for('main.register') }}";
-        const profileUrl = "{{ url_for('main.profile') }}";
+        const loginUrl = "{{ url_for('auth.login') }}";
+        const registerUrl = "{{ url_for('auth.register') }}";
+        const profileUrl = "{{ url_for('profile.edit_profile') }}";
 
         function toggleForm(mode) {
             const form = document.getElementById('signup-form');
@@ -188,7 +175,7 @@
 
         <section class="signup">
             <h3 id="form-title">Inscrivez-vous maintenant !</h3>
-            <form id="signup-form" action="{{ url_for('main.register') }}" method="POST">
+            <form id="signup-form" action="{{ url_for('auth.register') }}" method="POST">
                 <input type="text" name="username" placeholder="Nom d'utilisateur" required>
                 <div id="email-field">
                     <input type="email" name="email" placeholder="Email" required>

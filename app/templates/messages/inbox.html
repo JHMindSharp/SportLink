@@ -1,12 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Boîte de réception{% endblock %}
+{% block content %}
 <h2>Boîte de réception</h2>
-<ul>
+{% if messages %}
+    <ul>
     {% for message in messages %}
-    <li>
-        <strong>De :</strong> {{ message.sender.username }}<br>
-        <strong>Date :</strong> {{ message.timestamp.strftime('%d/%m/%Y %H:%M') }}<br>
-        <strong>Message :</strong> {{ message.body }}<br>
-    </li>
-    {% else %}
-    <p>Vous n'avez pas de messages.</p>
+        <li>
+            <strong>De :</strong> {{ message.sender.username }}
+            <p>{{ message.content }}</p>
+            <em>{{ message.timestamp.strftime('%d/%m/%Y %H:%M') }}</em>
+        </li>
     {% endfor %}
-</ul>
+    </ul>
+{% else %}
+    <p>Vous n'avez aucun message.</p>
+{% endif %}
+{% endblock %}

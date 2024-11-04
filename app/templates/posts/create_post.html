@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Créer une publication - SportLink{% endblock %}
+
+{% block content %}
+<h2>Créer une Nouvelle Publication</h2>
+<form method="POST" action="{{ url_for('posts.create_post') }}" enctype="multipart/form-data">
+    <label for="content_type">Type de Publication :</label>
+    <select name="content_type" id="content_type" required>
+        <option value="free">Publication Libre</option>
+        <option value="sport">Publication Sportive</option>
+    </select>
+
+    <div id="sport_fields" style="display: none;">
+        <label for="title">Titre :</label>
+        <input type="text" name="title">
+
+        <label for="subtitle">Sous-titre :</label>
+        <input type="text" name="subtitle">
+    </div>
+
+    <label for="content">Contenu :</label>
+    <textarea name="content" rows="5" required></textarea>
+
+    <label for="image">Ajouter une image :</label>
+    <input type="file" name="image" accept="image/*">
+
+    <label for="video">Ajouter une vidéo :</label>
+    <input type="file" name="video" accept="video/*">
+
+    <label for="music">Ajouter de la musique :</label>
+    <input type="file" name="music" accept="audio/*">
+
+    <label for="visibility">Visibilité :</label>
+    <select name="visibility" required>
+        <option value="public">Public</option>
+        <option value="private">Privé</option>
+    </select>
+
+    <button type="submit">Publier</button>
+</form>
+
+<script>
+    function togglePostType() {
+        const contentType = document.getElementById('content_type').value;
+        document.getElementById('sport_fields').style.display = contentType === 'sport' ? 'block' : 'none';
+    }
+</script>
+{% endblock %}

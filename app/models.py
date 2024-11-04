@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from flask_login import UserMixin
-from app import db, bcrypt
+from app.extensions import db, bcrypt
 
 # Association table for user sports (many-to-many relationship)
 user_sports = db.Table('user_sports',
@@ -8,7 +8,14 @@ user_sports = db.Table('user_sports',
     db.Column('sport_id', db.Integer, db.ForeignKey('sport.id'), primary_key=True)
 )
 
+# Table d'association pour les amis
+friends = db.Table('friends',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('friend_id', db.Integer, db.ForeignKey('user.id'))
+)
+
 class Sport(db.Model):
+    """Model representing a sport."""
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
 
@@ -16,19 +23,21 @@ class Sport(db.Model):
         return f'<Sport {self.name}>'
 
 class Rating(db.Model):
+    """Model representing a rating between users."""
     id = db.Column(db.Integer, primary_key=True)
     rater_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     rated_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    rating = db.Column(db.Integer, nullable=False)  # Rating from 1 to 5
+    rating = db.Column(db.Integer, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
         return f'<Rating {self.rating} from User {self.rater_id} to User {self.rated_id}>'
 
 class Post(db.Model):
+    """Model representing a post."""
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    content_type = db.Column(db.String(20), nullable=False)  # 'free' or 'sport'
+    content_type = db.Column(db.String(20), nullable=False, default='free')
     title = db.Column(db.String(255), nullable=True)
     subtitle = db.Column(db.String(255), nullable=True)
     content = db.Column(db.Text, nullable=False)
@@ -36,17 +45,19 @@ class Post(db.Model):
     video = db.Column(db.String(255), nullable=True)
     music = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    visibility = db.Column(db.String(10), nullable=False, default='public')
+
+    author = db.relationship('User')
 
     def __repr__(self):
         return f'<Post {self.id} - User {self.user_id}>'
 
 class User(db.Model, UserMixin):
+    """Model representing a user."""
+    __tablename__ = 'user'
+
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(
-        db.String(64),
-        index=True,
-        unique=True,
-        nullable=False)
+    username = db.Column(db.String(64), index=True, unique=True, nullable=False)
     email = db.Column(db.String(120), index=True, unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     profile_image = db.Column(db.String(255), nullable=True)
@@ -64,17 +75,27 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     profile_completed = db.Column(db.Boolean, default=False)
     email_confirmed = db.Column(db.Boolean, default=False)
-    
+    provider = db.Column(db.String(50), nullable=True)
+    provider_id = db.Column(db.String(100), nullable=True, unique=True)
+
     # Relationships
     sports = db.relationship('Sport', secondary=user_sports, backref='users')
-    posts = db.relationship('Post', backref='author', lazy='dynamic')
+    posts = db.relationship('Post', backref='poster', lazy='dynamic')
     ratings_received = db.relationship('Rating', foreign_keys='Rating.rated_id', backref='rated_user', lazy='dynamic')
     ratings_given = db.relationship('Rating', foreign_keys='Rating.rater_id', backref='rater_user', lazy='dynamic')
+    friends = db.relationship('User',
+                              secondary=friends,
+                              primaryjoin=(friends.c.user_id == id),
+                              secondaryjoin=(friends.c.friend_id == id),
+                              backref=db.backref('friend_of', lazy='dynamic'),
+                              lazy='dynamic')
+
+    def is_friend(self, user):
+        return self.friends.filter(friends.c.friend_id == user.id).count() > 0
 
     def set_password(self, password):
         """Generate a password hash using bcrypt."""
-        self.password_hash = bcrypt.generate_password_hash(
-            password).decode('utf-8')
+        self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
 
     def check_password(self, password):
         """Check the password hash against the provided password."""
@@ -105,6 +126,7 @@ class User(db.Model, UserMixin):
         return f'<User {self.username}>'
 
 class Message(db.Model):
+    """Model representing a message between users."""
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

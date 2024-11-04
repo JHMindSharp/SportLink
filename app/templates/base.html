@@ -1,40 +1,125 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SportLink</title>
-    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <header>
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SportLink Logo" class="logo">
-        <h1>SportLink</h1>
-    </header>
-
+    <title>{% block title %}SportLink{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
+        /* Styles globaux */
         body {
-            background-image: url("{{ url_for('static', filename='images/background.jpg') }}");
+            background-image: url('{{ url_for('static', filename='images/background.jpg') }}');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+            margin: 0;
+            font-family: Arial, sans-serif;
         }
-        .logo {
-            width: 150px; /* ajustez la taille selon vos besoins */
-            display: block;
-            margin: 0 auto;
+
+        /* Styles pour le header */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(24, 119, 242, 0.8); /* Couleur avec transparence */
+            color: #fff;
+            z-index: 1000;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.3s;
+        }
+
+        /* Logo et titre SportLink */
+        .header .logo-container {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+        }
+        .header .logo-container img {
+            height: 30px;
+            margin-right: 10px;
+            opacity: 0.8;
+        }
+        .header .logo-container span {
+            font-size: 24px;
+            font-weight: bold;
+            opacity: 0.8;
+        }
+
+        /* Menu de navigation */
+        .header .nav .menu {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+        .header .nav .menu li {
+            display: inline;
+        }
+        .header .nav .menu a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: rgba(24, 119, 242, 0.8);
+            color: #fff;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            font-size: 14px;
         }
     </style>
+</head>
+<body>
+    <!-- Header flottant avec logo et lien vers accueil/profil -->
+    <div class="header">
+        <a href="{{ url_for('main.index') }}" class="logo-container">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+            <span>SportLink</span>
+        </a>
+        <div class="nav">
+            <ul class="menu">
+                <li><a href="{{ url_for('posts.news_feed') }}">Fil d'actualité</a></li>
+                <li><a href="#">Amis</a></li>
+                <li><a href="{{ url_for('messages.inbox') }}">Messages</a></li>
+                <li><a href="#">Notifications</a></li>
+                {% if current_user.is_authenticated %}
+                    <li><a href="{{ url_for('profile.profile') }}">Profil</a></li>
+                    <li><a href="{{ url_for('auth.logout') }}">Déconnexion</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('auth.login') }}">Connexion</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
 
-    <main>
+    <!-- Contenu principal -->
+    <div class="content" style="padding-top: 60px;">
         {% block content %}{% endblock %}
-    </main>
-    
+    </div>
+
+    <!-- Pied de page -->
     <footer>
-        <p>&copy; 2024 SportLink. All rights reserved.</p>
+        <p>&copy; 2024 SportLink. Tous droits réservés.</p>
     </footer>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <!-- Script pour le changement de couleur du header au scroll -->
+    <script>
+        window.addEventListener('scroll', function() {
+            var header = document.querySelector('.header');
+            if (window.pageYOffset > 50) {
+                header.style.background = '#1877f2';
+            } else {
+                header.style.background = 'rgba(24, 119, 242, 0.8)';
+            }
+        });
+    </script>
 </body>
 </html>
