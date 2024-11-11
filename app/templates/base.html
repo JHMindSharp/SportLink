@@ -1,41 +1,52 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="UTF-8">
     <title>{% block title %}SportLink{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Inclusion des scripts JavaScript -->
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <!-- Header flottant avec logo et lien vers accueil/profil -->
+    <!-- Header flottant avec logo et navigation -->
     <header class="header">
-        <a href="{% if current_user.is_authenticated %}{{ url_for('profile.profile') }}{% else %}{{ url_for('main.index') }}{% endif %}" class="logo-container">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
-            <span>SportLink</span>
-        </a>
-        <nav class="nav">
-            <ul class="menu">
-                <li><a href="{{ url_for('posts.news_feed') }}">Fil d'actualité</a></li>
-                <li><a href="#">Amis</a></li>
-                <li><a href="{{ url_for('messages.inbox') }}">Messages</a></li>
-                <li><a href="#">Notifications</a></li>
-                {% if current_user.is_authenticated %}
-                    <li><a href="{{ url_for('profile.profile') }}">Profil</a></li>
-                    <li><a href="{{ url_for('auth.logout') }}">Déconnexion</a></li>
-                {% else %}
-                    <li><a href="{{ url_for('auth.login') }}">Connexion</a></li>
-                {% endif %}
-            </ul>
-        </nav>
+        <div class="header-container">
+            <a href="{{ url_for('profile.profile') if current_user.is_authenticated else url_for('main.index') }}" class="logo-container">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo SportLink">
+            </a>
+            <!-- Navigation -->
+            <nav class="nav">
+                <ul class="menu">
+                    {% if current_user.is_authenticated %}
+                        <li><a href="{{ url_for('news_feed.news_feed') }}">Fil d'actualité</a></li>
+                        <li><a href="{{ url_for('profile.profile') }}">Profil</a></li>
+                        <li><a href="{{ url_for('profile.list_friends') }}">Amis</a></li>
+                        <li><a href="{{ url_for('messages.inbox') }}">Messages</a></li>
+                        <li><a href="{{ url_for('notifications.list_notifications') }}">Notifications</a></li>
+                        <li><a href="{{ url_for('events.organize') }}">Organiser</a></li>
+                        <li><a href="{{ url_for('auth.logout') }}">Déconnexion</a></li>
+                        <li>Bienvenue sur SportLink, {{ current_user.username }}</li>
+                    {% else %}
+                        <li><a href="#" onclick="openAuthModal()">Connexion / Inscription</a></li>
+                        <li>Bienvenue sur SportLink</li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
     </header>
 
     <!-- Contenu principal -->
     <main class="main-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
             {% endif %}
         {% endwith %}
         {% block content %}{% endblock %}
@@ -46,18 +57,10 @@
         <p>&copy; 2024 SportLink. Tous droits réservés.</p>
     </footer>
 
-    <!-- Scripts -->
-    <script>
-        // Changement de couleur du header au scroll
-        window.addEventListener('scroll', function() {
-            var header = document.querySelector('.header');
-            if (window.pageYOffset > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-        });
-    </script>
+    <!-- Modale d'authentification -->
+    {% include 'auth/auth_modal.html' %}
+
     {% block extra_scripts %}{% endblock %}
+    {% include 'auth/auth_modal.html' %}
 </body>
 </html>

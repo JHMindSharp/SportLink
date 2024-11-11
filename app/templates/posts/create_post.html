@@ -5,39 +5,43 @@
 {% block content %}
 <h2>Créer une Nouvelle Publication</h2>
 <form method="POST" action="{{ url_for('posts.create_post') }}" enctype="multipart/form-data">
-    <label for="content_type">Type de Publication :</label>
-    <select name="content_type" id="content_type" required>
-        <option value="free">Publication Libre</option>
-        <option value="sport">Publication Sportive</option>
-    </select>
+    {{ form.hidden_tag() }}
 
-    <div id="sport_fields" style="display: none;">
-        <label for="title">Titre :</label>
-        <input type="text" name="title">
-
-        <label for="subtitle">Sous-titre :</label>
-        <input type="text" name="subtitle">
+    <div class="form-group">
+        {{ form.content_type.label }} {{ form.content_type }}
     </div>
 
-    <label for="content">Contenu :</label>
-    <textarea name="content" rows="5" required></textarea>
+    <div id="sport_fields" style="display: none;">
+        <div class="form-group">
+            {{ form.title.label }} {{ form.title }}
+        </div>
+        <div class="form-group">
+            {{ form.subtitle.label }} {{ form.subtitle }}
+        </div>
+    </div>
 
-    <label for="image">Ajouter une image :</label>
-    <input type="file" name="image" accept="image/*">
+    <div class="form-group">
+        {{ form.content.label }} {{ form.content }}
+    </div>
 
-    <label for="video">Ajouter une vidéo :</label>
-    <input type="file" name="video" accept="video/*">
+    <div class="form-group">
+        {{ form.image.label }} {{ form.image }}
+    </div>
 
-    <label for="music">Ajouter de la musique :</label>
-    <input type="file" name="music" accept="audio/*">
+    <div class="form-group">
+        {{ form.video.label }} {{ form.video }}
+    </div>
 
-    <label for="visibility">Visibilité :</label>
-    <select name="visibility" required>
-        <option value="public">Public</option>
-        <option value="private">Privé</option>
-    </select>
+    <div class="form-group">
+        {{ form.music.label }} {{ form.music }}
+    </div>
 
-    <button type="submit">Publier</button>
+    <div class="form-group">
+        {{ form.visibility.label }} {{ form.visibility }}
+    </div>
+
+    {{ form.submit }}
+
 </form>
 
 <script>
@@ -45,5 +49,13 @@
         const contentType = document.getElementById('content_type').value;
         document.getElementById('sport_fields').style.display = contentType === 'sport' ? 'block' : 'none';
     }
+
+    // Ajouter un écouteur d'événement pour détecter le changement de type de contenu
+    document.getElementById('content_type').addEventListener('change', togglePostType);
+
+    // Appeler la fonction au chargement de la page pour définir l'état initial
+    window.onload = function() {
+        togglePostType();
+    };
 </script>
 {% endblock %}

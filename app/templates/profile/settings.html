@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Paramètres du Compte - SportLink{% endblock %}
+
+{% block content %}
+<h1>Paramètres du Compte</h1>
+
+<!-- Formulaire pour changer l'email -->
+<h2>Changer l'adresse email</h2>
+<form method="POST" action="{{ url_for('profile.change_email') }}">
+    {{ change_email_form.hidden_tag() }}
+    {{ change_email_form.email.label }} {{ change_email_form.email }}
+    {{ change_email_form.submit }}
+</form>
+
+<!-- Formulaire pour changer le mot de passe -->
+<h2>Changer le mot de passe</h2>
+<form method="POST" action="{{ url_for('profile.change_password') }}">
+    {{ change_password_form.hidden_tag() }}
+    {{ change_password_form.current_password.label }} {{ change_password_form.current_password }}
+    {{ change_password_form.new_password.label }} {{ change_password_form.new_password }}
+    {{ change_password_form.confirm_new_password.label }} {{ change_password_form.confirm_new_password }}
+    {{ change_password_form.submit }}
+</form>
+
+<!-- Formulaire pour supprimer le compte -->
+<h2>Supprimer le compte</h2>
+<form method="POST" action="{{ url_for('profile.delete_account') }}">
+    {{ delete_account_form.hidden_tag() }}
+    {{ delete_account_form.confirm }} {{ delete_account_form.confirm.label }}
+    {{ delete_account_form.submit }}
+</form>
+{% endblock %}

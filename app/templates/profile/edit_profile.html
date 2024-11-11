@@ -1,70 +1,77 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Modifier le Profil - SportLink</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <h1>Modifier Votre Profil</h1>
-    <form method="POST" action="{{ url_for('profile.edit_profile') }}" enctype="multipart/form-data">
-        <label for="username">Nom d'utilisateur :</label>
-        <input type="text" name="username" value="{{ user.username }}" required>
+{% extends 'base.html' %}
 
-        <label for="email">Email :</label>
-        <input type="email" name="email" value="{{ user.email }}" required>
+{% block title %}Modifier le Profil - SportLink{% endblock %}
 
-        <label for="country">Pays :</label>
-        <input type="text" name="country" value="{{ user.country }}">
+{% block content %}
+<h1>Modifier Votre Profil</h1>
+<form method="POST" action="{{ url_for('profile.edit_profile') }}" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
 
-        <label for="city">Ville :</label>
-        <input type="text" name="city" value="{{ user.city }}">
+    <div class="form-group">
+        {{ form.username.label }} {{ form.username }}
+    </div>
+    <div class="form-group">
+        {{ form.email.label }} {{ form.email }}
+    </div>
+    <div class="form-group">
+        {{ form.first_name.label }} {{ form.first_name }}
+    </div>
+    <div class="form-group">
+        {{ form.last_name.label }} {{ form.last_name }}
+    </div>
+    <div class="form-group">
+        {{ form.country.label }} {{ form.country }}
+    </div>
+    <div class="form-group">
+        {{ form.city.label }} {{ form.city }}
+    </div>
+    <div class="form-group">
+        {{ form.address.label }} {{ form.address }}
+    </div>
+    <div class="form-group">
+        {{ form.postal_code.label }} {{ form.postal_code }}
+    </div>
+    <div class="form-group">
+        {{ form.sex.label }} {{ form.sex }}
+    </div>
+    <div class="form-group">
+        {{ form.birth_date.label }} {{ form.birth_date }}
+    </div>
+    <div class="form-group">
+        {{ form.phone.label }} {{ form.phone }}
+    </div>
+    <div class="form-group">
+        {{ form.display_phone }} {{ form.display_phone.label }}
+    </div>
+    <div class="form-group">
+        {{ form.display_email }} {{ form.display_email.label }}
+    </div>
+    <div class="form-group">
+        {{ form.profile_image.label }} {{ form.profile_image }}
+    </div>
+    <div class="form-group">
+        {{ form.cover_image.label }} {{ form.cover_image }}
+    </div>
 
-        <label for="address">Adresse :</label>
-        <input type="text" name="address" value="{{ user.address }}">
+    <h3>Niveaux dans les sports</h3>
+    {% for sport in sports %}
+        <div class="form-group">
+            <label>{{ sport.name }} :</label>
+            <select name="sport_{{ sport.id }}">
+                <option value="">Sélectionnez</option>
+                {% for i in range(1,6) %}
+                <option value="{{ i }}" {% if user.get_sport_level(sport.id) == i %}selected{% endif %}>{{ i }} étoile(s)</option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endfor %}
 
-        <label for="postal_code">Code Postal :</label>
-        <input type="text" name="postal_code" value="{{ user.postal_code }}">
+    <!-- Champs cachés pour la géolocalisation (retirés pour ne pas mettre à jour ici) -->
+    <!-- {{ form.latitude }} -->
+    <!-- {{ form.longitude }} -->
 
-        <label for="sex">Sexe :</label>
-        <select name="sex">
-            <option value="">Sélectionnez</option>
-            <option value="Male" {% if user.sex == 'Male' %}selected{% endif %}>Homme</option>
-            <option value="Female" {% if user.sex == 'Female' %}selected{% endif %}>Femme</option>
-            <option value="Other" {% if user.sex == 'Other' %}selected{% endif %}>Autre</option>
-        </select>
-
-        <label for="birth_date">Date de Naissance :</label>
-        <input type="date" name="birth_date" value="{{ user.birth_date }}">
-
-        <label for="phone">Numéro de Téléphone :</label>
-        <input type="tel" name="phone" value="{{ user.phone }}">
-
-        <label><input type="checkbox" name="display_phone" {% if user.display_phone %}checked{% endif %}> Afficher le numéro de téléphone</label>
-        <label><input type="checkbox" name="display_email" {% if user.display_email %}checked{% endif %}> Afficher l'email</label>
-
-        <label for="profile_image">Photo de Profil :</label>
-        <input type="file" name="profile_image" accept="image/*">
-
-        <label for="cover_image">Image de Couverture :</label>
-        <input type="file" name="cover_image" accept="image/*">
-
-        <label for="sports">Sports (sélectionnez jusqu'à 5) :</label>
-        <select name="sports" multiple>
-            {% for sport in sports %}
-            <option value="{{ sport.id }}" {% if sport in user.sports %}selected{% endif %}>{{ sport.name }}</option>
-            {% endfor %}
-        </select>
-
-        <button type="submit">Mettre à Jour</button>
-    </form>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-</body>
-</html>
+    <div class="form-group">
+        {{ form.submit }}
+    </div>
+</form>
+{% endblock %}

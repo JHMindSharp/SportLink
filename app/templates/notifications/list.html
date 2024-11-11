@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications - SportLink{% endblock %}
+
+{% block content %}
+<h2>Vos Notifications</h2>
+{% if notifications %}
+    <ul>
+        {% for notification in notifications %}
+            <li>{{ notification.message }} - {{ notification.timestamp.strftime('%d/%m/%Y %H:%M') }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Vous n'avez pas de notifications pour le moment.</p>
+{% endif %}
+{% endblock %}

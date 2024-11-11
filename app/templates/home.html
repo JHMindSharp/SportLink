@@ -4,101 +4,66 @@
 
 {% block content %}
 <div class="home-container">
-    <header class="home-header">
-        <h1>SportLink</h1>
-        <p>Connectez, Engagez, Exercez-vous, Réservez et Rencontrez des partenaires similaires !</p>
-    </header>
-
-    <nav class="home-nav">
-        <ul>
-            <li><a href="#features">Avantages</a></li>
-            <li><a href="#team">Équipe</a></li>
-            <li><a href="#technologies">Technologies</a></li>
-            <li><a href="#contact">Contact</a></li>
-        </ul>
-    </nav>
-
-    <!-- Section d'inscription/connexion -->
-    <section class="auth-section">
-        <button id="toggle-auth-form" class="btn">S'inscrire / Se connecter</button>
-        <div id="auth-form-container" style="display: none;">
-            <!-- Formulaire d'inscription/connexion -->
-            {% include 'auth/auth_form.html' %}
+    <section class="home-banner">
+        <div class="banner-content">
+            <h1>Bienvenue sur SportLink</h1>
+            <p>Connectez-vous, engagez-vous, exercez-vous, réservez et rencontrez des partenaires sportifs similaires !</p>
+            <button id="get-started-btn" class="btn-primary" onclick="openAuthModal()">Commencer</button>
         </div>
     </section>
 
-    <!-- Sections d'informations -->
-    <section id="features" class="section">
-        <h2>Pourquoi utiliser SportLink ?</h2>
+    <!-- Sections d'informations avec descriptions détaillées -->
+    <section id="features" class="section features-section">
+        <h2>Pourquoi choisir SportLink ?</h2>
         <div class="features-grid">
+            <!-- Exemple de fonctionnalité -->
             <div class="feature-item">
                 <img src="{{ url_for('static', filename='images/feature1.png') }}" alt="Suivi des performances">
                 <h3>Suivi des performances</h3>
-                <p>Gardez une trace de vos activités sportives et améliorez vos performances.</p>
+                <p>Gardez une trace détaillée de vos activités sportives, analysez vos progrès et atteignez vos objectifs plus rapidement.</p>
             </div>
+            <!-- Autres fonctionnalités similaires -->
             <div class="feature-item">
                 <img src="{{ url_for('static', filename='images/feature2.png') }}" alt="Réseau de partenaires">
                 <h3>Réseau de partenaires</h3>
-                <p>Trouvez des partenaires sportifs avec des intérêts similaires.</p>
-            </div>
-            <div class="feature-item">
-                <img src="{{ url_for('static', filename='images/feature3.png') }}" alt="Réservations faciles">
-                <h3>Réservations faciles</h3>
-                <p>Réservez du matériel et des terrains de sport en quelques clics.</p>
-            </div>
-            <div class="feature-item">
-                <img src="{{ url_for('static', filename='images/feature4.png') }}" alt="Communauté active">
-                <h3>Communauté active</h3>
-                <p>Rejoignez une communauté de sportifs passionnés.</p>
-            </div>
-            <div class="feature-item">
-                <img src="{{ url_for('static', filename='images/feature5.png') }}" alt="Messagerie intégrée">
-                <h3>Messagerie intégrée</h3>
-                <p>Communiquez en temps réel avec vos partenaires.</p>
+                <p>Trouvez des partenaires sportifs partageant vos intérêts et niveaux de compétence.</p>
             </div>
         </div>
     </section>
 
-    <section id="team" class="section">
-        <h2>L'équipe</h2>
+    <!-- Section Équipe avec descriptions -->
+    <section id="team" class="section team-section">
+        <h2>Notre Équipe</h2>
         <div class="team-member">
-            <img src="{{ url_for('static', filename='images/team_member.jpg') }}" alt="Jonathan Huybrechts">
+            <img src="{{ url_for('static', filename='images/team_member1.png') }}" alt="Jonathan Huybrechts">
             <h3>Jonathan Huybrechts</h3>
             <p>Développeur Full Stack, Chef de projet, Designer</p>
-            <p>En tant que seul développeur, je suis responsable de tous les aspects du développement de l'application, y compris le backend, le frontend, le design et l'interaction utilisateur. Ce rôle exploite mon ensemble de compétences pour gérer et exécuter l'ensemble du cycle de vie du projet.</p>
+            <p>Passionné par le sport et la technologie, je mets mon expertise au service de la communauté sportive pour créer une plateforme innovante et conviviale.</p>
         </div>
     </section>
 
-    <section id="technologies" class="section">
-        <h2>Technologies utilisées</h2>
-        <ul>
-            <li>Langages : Python, JavaScript</li>
-            <li>Frameworks : Flask pour le backend, React Native pour le frontend</li>
-            <li>Bases de données : MongoDB pour stocker les profils utilisateurs, les réservations et les statistiques de santé</li>
-            <li>APIs : Développement d'une API interne pour le suivi des statistiques de santé et la gestion des profils</li>
-            <li>Paiements : Intégration de PayPal et Apple Pay pour des transactions sécurisées</li>
-            <li>Communication en temps réel : WebSocket pour la messagerie instantanée entre utilisateurs</li>
-            <li>Autres outils : Git, GitHub, AWS</li>
+
+    <!-- Section Technologies -->
+    <section id="technologies" class="section technologies-section">
+        <h2>Technologies Utilisées</h2>
+        <ul class="technologies-list">
+            <li><strong>Langages :</strong> Python, JavaScript</li>
+            <!-- Autres technologies -->
         </ul>
     </section>
 
-    <section id="contact" class="section">
+    <!-- Section Contact -->
+    <section id="contact" class="section contact-section">
         <h2>Contactez-nous</h2>
-        <p>Pour toute question ou suggestion, n'hésitez pas à nous contacter à l'adresse suivante : <a href="mailto:contact@sportlink.com">contact@sportlink.com</a></p>
+        <p>Pour toute question ou suggestion, n'hésitez pas à nous contacter à l'adresse suivante :</p>
+        <p><a href="mailto:contact@sportlink.com" class="contact-email">contact@sportlink.com</a></p>
     </section>
 </div>
 
+<!-- Script pour le bouton "Commencer" -->
 <script>
-    // Script pour afficher/masquer le formulaire d'authentification
-    document.getElementById('toggle-auth-form').addEventListener('click', function() {
-        var formContainer = document.getElementById('auth-form-container');
-        if (formContainer.style.display === 'none' || formContainer.style.display === '') {
-            formContainer.style.display = 'block';
-            this.textContent = 'Fermer';
-        } else {
-            formContainer.style.display = 'none';
-            this.textContent = "S'inscrire / Se connecter";
-        }
+    document.getElementById('get-started-btn').addEventListener('click', function() {
+        document.getElementById('open-auth-modal').click();
     });
 </script>
 {% endblock %}

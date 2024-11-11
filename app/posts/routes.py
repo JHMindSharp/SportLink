@@ -1,44 +1,47 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_login import login_required, current_user
 from app.models import Post, User
 from app.extensions import db
 from werkzeug.utils import secure_filename
 import os
+from datetime import datetime
+from app.posts.forms import CreatePostForm  # Import du formulaire
 
 posts_bp = Blueprint('posts', __name__, template_folder='templates/posts')
 
 @posts_bp.route('/create_post', methods=['GET', 'POST'])
 @login_required
 def create_post():
-    if request.method == 'POST':
-        content_type = request.form.get('content_type')
-        title = request.form.get('title')
-        content = request.form.get('content')
-        visibility = request.form.get('visibility', 'public')
+    form = CreatePostForm()
+    if form.validate_on_submit():
+        content_type = form.content_type.data
+        title = form.title.data
+        subtitle = form.subtitle.data
+        content = form.content.data
+        visibility = form.visibility.data
 
         # Gestion des fichiers uploadés
-        image_file = request.files.get('image')
-        video_file = request.files.get('video')
-        music_file = request.files.get('music')
+        image_file = form.image.data
+        video_file = form.video.data
+        music_file = form.music.data
 
         image_filename = None
         video_filename = None
         music_filename = None
 
-        if image_file and image_file.filename:
+        if image_file:
             image_filename = secure_filename(image_file.filename)
             image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', 'images', image_filename)
             image_file.save(image_path)
             image_filename = 'posts/images/' + image_filename
 
-        if video_file and video_file.filename:
+        if video_file:
             video_filename = secure_filename(video_file.filename)
             video_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', 'videos', video_filename)
             video_file.save(video_path)
             video_filename = 'posts/videos/' + video_filename
 
-        if music_file and music_file.filename:
+        if music_file:
             music_filename = secure_filename(music_file.filename)
             music_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', 'music', music_filename)
             music_file.save(music_path)
@@ -49,19 +52,20 @@ def create_post():
             user_id=current_user.id,
             content_type=content_type,
             title=title,
+            subtitle=subtitle,
             content=content,
             image=image_filename,
             video=video_filename,
             music=music_filename,
-            visibility=visibility
+            visibility=visibility,
+            created_at=datetime.utcnow()
         )
         db.session.add(new_post)
         db.session.commit()
         flash("Publication créée avec succès.", "success")
         return redirect(url_for('profile.profile'))
 
-    return render_template('posts/create_post.html')
-
+    return render_template('posts/create_post.html', form=form)
 
 @posts_bp.route('/delete_post/<int:post_id>', methods=['POST'])
 @login_required
@@ -75,7 +79,7 @@ def delete_post(post_id):
         db.session.delete(post)
         db.session.commit()
         flash("Publication supprimée avec succès.", "success")
-    except SQLAlchemyError:
+    except:
         db.session.rollback()
         flash("Une erreur est survenue lors de la suppression de la publication.", "danger")
 

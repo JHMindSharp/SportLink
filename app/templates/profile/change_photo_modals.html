@@ -1,0 +1,36 @@
+<!-- Modal pour changer la photo de couverture -->
+<div id="cover-photo-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeCoverPhotoModal()">&times;</span>
+      <h2>Changer la photo de couverture</h2>
+      <form action="{{ url_for('profile.change_cover_photo') }}" method="post" enctype="multipart/form-data">
+        {{ change_cover_form.hidden_tag() }}
+        {{ change_cover_form.cover_image.label }} {{ change_cover_form.cover_image }}
+        {{ change_cover_form.submit }}
+      </form>
+    </div>
+  </div>
+  
+  <!-- Modal pour changer la photo de profil -->
+  <div id="profile-photo-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeProfilePhotoModal()">&times;</span>
+      <h2>Changer la photo de profil</h2>
+      <form action="{{ url_for('profile.change_profile_photo') }}" method="post" enctype="multipart/form-data">
+        {{ change_profile_form.hidden_tag() }}
+        {{ change_profile_form.profile_image.label }} {{ change_profile_form.profile_image }}
+        {{ change_profile_form.submit }}
+      </form>
+    </div>
+  </div>
+  
+  <script>
+  function closeCoverPhotoModal() {
+    document.getElementById('cover-photo-modal').style.display = 'none';
+  }
+  
+  function closeProfilePhotoModal() {
+    document.getElementById('profile-photo-modal').style.display = 'none';
+  }
+  </script>
+  

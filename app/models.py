@@ -1,18 +1,14 @@
 from datetime import datetime, date
 from flask_login import UserMixin
 from app.extensions import db, bcrypt
+from sqlalchemy import UniqueConstraint
 
-# Association table for user sports (many-to-many relationship)
-user_sports = db.Table('user_sports',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('sport_id', db.Integer, db.ForeignKey('sport.id'), primary_key=True)
-)
-
-# Table d'association pour les amis
-friends = db.Table('friends',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-    db.Column('friend_id', db.Integer, db.ForeignKey('user.id'))
-)
+# Association table for user sports (many-to-many relationship) with level
+class UserSport(db.Model):
+    __tablename__ = 'user_sport'
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    sport_id = db.Column(db.Integer, db.ForeignKey('sport.id'), primary_key=True)
+    level = db.Column(db.Integer, nullable=False)  # Level from 1 to 5
 
 class Sport(db.Model):
     """Model representing a sport."""
@@ -21,6 +17,12 @@ class Sport(db.Model):
 
     def __repr__(self):
         return f'<Sport {self.name}>'
+
+# Table d'association pour les amis
+friends = db.Table('friends',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('friend_id', db.Integer, db.ForeignKey('user.id'))
+)
 
 class Rating(db.Model):
     """Model representing a rating between users."""
@@ -47,10 +49,37 @@ class Post(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     visibility = db.Column(db.String(10), nullable=False, default='public')
 
-    author = db.relationship('User')
+    author = db.relationship('User', back_populates='posts')
 
     def __repr__(self):
         return f'<Post {self.id} - User {self.user_id}>'
+
+class Notification(db.Model):
+    """Model representing a notification."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.String(255), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    is_read = db.Column(db.Boolean, default=False)
+
+    user = db.relationship('User', back_populates='notifications')
+
+    def __repr__(self):
+        return f'<Notification {self.id} for User {self.user_id}>'
+
+class Message(db.Model):
+    """Model representing a message between users."""
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+
+    sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_messages')
+    recipient = db.relationship('User', foreign_keys=[recipient_id], backref='received_messages')
+
+    def __repr__(self):
+        return f'<Message {self.id}>'
 
 class User(db.Model, UserMixin):
     """Model representing a user."""
@@ -77,18 +106,27 @@ class User(db.Model, UserMixin):
     email_confirmed = db.Column(db.Boolean, default=False)
     provider = db.Column(db.String(50), nullable=True)
     provider_id = db.Column(db.String(100), nullable=True, unique=True)
-
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
+    strava_id = db.Column(db.String(64), nullable=True)
+    facebook_id = db.Column(db.String(64), nullable=True)
+    __table_args__ = (
+        db.UniqueConstraint('strava_id', name='uq_user_strava_id'),
+        db.UniqueConstraint('facebook_id', name='uq_user_facebook_id'),
+    )
     # Relationships
-    sports = db.relationship('Sport', secondary=user_sports, backref='users')
-    posts = db.relationship('Post', backref='poster', lazy='dynamic')
+    notifications = db.relationship('Notification', back_populates='user', lazy='dynamic')
+    sports = db.relationship('UserSport', backref='user', lazy='dynamic')
+    posts = db.relationship('Post', back_populates='author', lazy='dynamic')
     ratings_received = db.relationship('Rating', foreign_keys='Rating.rated_id', backref='rated_user', lazy='dynamic')
     ratings_given = db.relationship('Rating', foreign_keys='Rating.rater_id', backref='rater_user', lazy='dynamic')
-    friends = db.relationship('User',
-                              secondary=friends,
-                              primaryjoin=(friends.c.user_id == id),
-                              secondaryjoin=(friends.c.friend_id == id),
-                              backref=db.backref('friend_of', lazy='dynamic'),
-                              lazy='dynamic')
+    friends = db.relationship(
+        'User', secondary=friends,
+        primaryjoin=(friends.c.user_id == id),
+        secondaryjoin=(friends.c.friend_id == id),
+        backref=db.backref('friend_of', lazy='dynamic'),
+        lazy='dynamic'
+    )
 
     def is_friend(self, user):
         return self.friends.filter(friends.c.friend_id == user.id).count() > 0
@@ -122,19 +160,13 @@ class User(db.Model, UserMixin):
         else:
             return None
 
+    def get_sport_level(self, sport_id):
+        """Get the level of the user for a specific sport."""
+        user_sport = self.sports.filter_by(sport_id=sport_id).first()
+        if user_sport:
+            return user_sport.level
+        else:
+            return None
+
     def __repr__(self):
         return f'<User {self.username}>'
-
-class Message(db.Model):
-    """Model representing a message between users."""
-    id = db.Column(db.Integer, primary_key=True)
-    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    body = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-
-    sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_messages')
-    recipient = db.relationship('User', foreign_keys=[recipient_id], backref='received_messages')
-
-    def __repr__(self):
-        return f'<Message {self.id}>'

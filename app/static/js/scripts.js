@@ -51,4 +51,58 @@ async function loadPosts() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", loadPosts);
+// Fonction pour obtenir le CSRF token depuis la meta tag
+function getCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+}
+
+// Exemple de fonction pour le like d'une publication
+async function likePost(postId) {
+    try {
+        const response = await fetch(`/posts/${postId}/like`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({})
+        });
+        if (response.ok) {
+            // Mettre à jour l'interface utilisateur
+            const result = await response.json();
+            document.querySelector(`#post-${postId} .like-count`).textContent = result.likes;
+        } else {
+            console.error('Erreur lors du like de la publication');
+        }
+    } catch (error) {
+        console.error('Erreur réseau :', error);
+    }
+}
+
+function openAuthModal() {
+    document.getElementById('auth-modal').style.display = 'block';
+}
+
+function closeAuthModal() {
+    document.getElementById('auth-modal').style.display = 'none';
+}
+
+function showLoginForm() {
+    document.getElementById('login-form').classList.add('active');
+    document.getElementById('register-form').classList.remove('active');
+}
+
+function showRegisterForm() {
+    document.getElementById('login-form').classList.remove('active');
+    document.getElementById('register-form').classList.add('active');
+}
+
+function openAuthModal() {
+    var modal = document.getElementById('auth-modal');
+    modal.style.display = 'block';
+}
+
+function closeAuthModal() {
+    var modal = document.getElementById('auth-modal');
+    modal.style.display = 'none';
+}

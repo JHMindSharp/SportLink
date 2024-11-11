@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Photos de {{ user.username }}{% endblock %}
+
+{% block content %}
+<h2>Photos de {{ user.username }}</h2>
+<div class="photos-grid">
+    {% if posts %}
+        {% for post in posts %}
+            <img src="{{ url_for('main.uploaded_file', filename=post.image) }}" alt="Photo">
+        {% endfor %}
+    {% else %}
+        <p>Aucune photo à afficher.</p>
+    {% endif %}
+</div>
+{% endblock %}

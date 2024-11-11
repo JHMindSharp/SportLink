@@ -7,8 +7,9 @@
     {% for message in messages %}
         <li>
             <strong>De :</strong> {{ message.sender.username }}
-            <p>{{ message.content }}</p>
+            <p>{{ message.body }}</p>
             <em>{{ message.timestamp.strftime('%d/%m/%Y %H:%M') }}</em>
+            <a href="{{ url_for('messages.send_message', user_id=message.sender.id) }}">Répondre</a>
         </li>
     {% endfor %}
     </ul>

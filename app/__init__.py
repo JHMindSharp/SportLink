@@ -2,7 +2,8 @@ from flask import Flask
 from flask_dance.contrib.facebook import make_facebook_blueprint
 from flask_dance.contrib.strava import make_strava_blueprint
 from app.extensions import db, migrate, bcrypt, jwt, mail, login_manager
-from app.main.routes import main_bp
+from flask_wtf.csrf import CSRFProtect, generate_csrf
+from app.events.routes import events_bp
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
@@ -16,6 +17,9 @@ def create_app():
     mail.init_app(app)
     login_manager.init_app(app)
 
+    # Activer CSRFProtect
+    csrf = CSRFProtect(app)
+
     # Configurer le login manager
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'info'
@@ -27,19 +31,21 @@ def create_app():
     from app.messages.routes import messages_bp
     from app.news_feed.routes import news_feed_bp
     from app.main.routes import main_bp
-    
+    from app.notifications.routes import notifications_bp
+
     app.register_blueprint(news_feed_bp, url_prefix='/news_feed')
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(profile_bp, url_prefix='/profile')
     app.register_blueprint(posts_bp, url_prefix='/posts')
     app.register_blueprint(messages_bp, url_prefix='/messages')
-    app.register_blueprint(main_bp, url_prefix='/')
-
+    app.register_blueprint(main_bp)
+    app.register_blueprint(notifications_bp, url_prefix='/notifications')
+    app.register_blueprint(events_bp, url_prefix='/events')
     # OAuth Facebook
     facebook_bp = make_facebook_blueprint(
         client_id=app.config['FACEBOOK_OAUTH_CLIENT_ID'],
         client_secret=app.config['FACEBOOK_OAUTH_CLIENT_SECRET'],
-        redirect_to='profile.edit_profile'
+        redirect_to='auth.oauth_facebook'
     )
     app.register_blueprint(facebook_bp, url_prefix='/facebook_login')
 
@@ -47,7 +53,7 @@ def create_app():
     strava_bp = make_strava_blueprint(
         client_id=app.config['STRAVA_OAUTH_CLIENT_ID'],
         client_secret=app.config['STRAVA_OAUTH_CLIENT_SECRET'],
-        redirect_to='profile.edit_profile'
+        redirect_to='auth.oauth_strava'
     )
     app.register_blueprint(strava_bp, url_prefix='/strava_login')
 
@@ -58,5 +64,17 @@ def create_app():
         @login_manager.user_loader
         def load_user(user_id):
             return User.query.get(int(user_id))
+
+    # Importer les formulaires
+    from app.auth.forms import LoginForm, RegistrationForm
+
+    # Ajouter le context processor pour injecter les formulaires et csrf_token
+    @app.context_processor
+    def inject_globals():
+        return dict(
+            login_form=LoginForm(),
+            register_form=RegistrationForm(),
+            csrf_token=generate_csrf
+        )
 
     return app

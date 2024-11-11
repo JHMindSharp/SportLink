@@ -1,32 +1,38 @@
 {% extends 'base.html' %}
 
-{% block title %}Inscription - SportLink{% endblock %}
+{% block title %}Inscription{% endblock %}
+
 {% block content %}
-<div class="registration-form">
-    <h1>Inscription</h1>
-    <form method="POST" action="{{ url_for('auth.register') }}">
-        <label for='username'>Nom d'utilisateur :</label>
-        <input type='text' name='username' id='username' required>
-    
-        <label for='email'>Email :</label>
-        <input type='email' name='email' id='email' required>
-    
-        <label for='password'>Mot de passe :</label>
-        <input type='password' name='password' id='password' required>
-    
-        <label for='country'>Pays :</label>
-        <input type='text' name='country' id='country'>
-    
-        <label for='city'>Ville :</label>
-        <input type='text' name='city' id='city'>
-    
-        <label for='phone'>Numéro de téléphone :</label>
-        <input type='tel' name='phone' id='phone'>
-    
-        <label for='birth_date'>Date de naissance :</label>
-        <input type='date' name='birth_date' id='birth_date'>
-    
-        <button type='submit'>S'inscrire</button>
-    </form>
-</div>
+<h2>Inscription</h2>
+<form method="POST" action="{{ url_for('auth.register') }}">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.username.label }} {{ form.username }}
+    </div>
+    <div class="form-group">
+        {{ form.email.label }} {{ form.email }}
+    </div>
+    <div class="form-group">
+        {{ form.first_name.label }} {{ form.first_name }}
+    </div>
+    <div class="form-group">
+        {{ form.last_name.label }} {{ form.last_name }}
+    </div>
+    <div class="form-group">
+        {{ form.birth_date.label }} {{ form.birth_date }}
+    </div>
+    <div class="form-group">
+        {{ form.gender.label }} {{ form.gender }}
+    </div>
+    <div class="form-group">
+        {{ form.password.label }} {{ form.password }}
+    </div>
+    <div class="form-group">
+        {{ form.confirm_password.label }} {{ form.confirm_password }}
+    </div>
+    <div class="form-group">
+        {{ form.accept_terms }} {{ form.accept_terms.label|safe }}
+    </div>
+    {{ form.submit }}
+</form>
 {% endblock %}

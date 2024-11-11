@@ -1,48 +1,133 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
+from flask import Blueprint, request, render_template, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User
-from app.extensions import db, bcrypt, mail
+from app.extensions import db, mail
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Message
-from datetime import datetime
-from flask_dance.contrib.facebook import facebook
+from app.auth.forms import RegistrationForm, LoginForm, ResetPasswordRequestForm, ResetPasswordForm
 from flask_dance.contrib.strava import strava
-from app.auth.utils import register_user_if_new
-from app.auth.forms import RegistrationForm, LoginForm
+from flask_dance.contrib.facebook import facebook
 
 auth_bp = Blueprint('auth', __name__)
+
+@auth_bp.route('/oauth_strava')
+def oauth_strava():
+    if not strava.authorized:
+        flash('L\'autorisation avec Strava a échoué.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    resp = strava.get('/athlete')
+    if not resp.ok:
+        flash('Impossible de récupérer les informations depuis Strava.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    info = resp.json()
+    email = info.get('email')
+    first_name = info.get('firstname')
+    last_name = info.get('lastname')
+
+    if not email:
+        flash('Votre compte Strava ne fournit pas d\'adresse email.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        # Créer un nouvel utilisateur
+        user = User(
+            email=email,
+            username=f"{first_name}_{last_name}_{strava_id}",
+            first_name=first_name,
+            last_name=last_name,
+            # Remplissez les autres champs requis avec des valeurs par défaut si nécessaire
+        )
+        db.session.add(user)
+        db.session.commit()
+        new_user = True
+    else:
+        new_user = False
+
+    login_user(user)
+    if new_user:
+        flash('Inscription réussie via Strava !', 'success')
+        return redirect(url_for('profile.complete_profile'))
+    else:
+        flash('Connexion réussie via Strava.', 'success')
+        return redirect(url_for('profile.profile'))
+
+@auth_bp.route('/oauth_facebook')
+def oauth_facebook():
+    if not facebook.authorized:
+        flash('L\'autorisation avec Facebook a échoué.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    resp = facebook.get('/me?fields=id,name,email,first_name,last_name')
+    if not resp.ok:
+        flash('Impossible de récupérer les informations depuis Facebook.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    info = resp.json()
+    email = info.get('email')
+    first_name = info.get('first_name')
+    last_name = info.get('last_name')
+
+    if not email:
+        flash('Votre compte Facebook ne fournit pas d\'adresse email.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        # Créer un nouvel utilisateur
+        user = User(
+            email=email,
+            username=f"{first_name}_{last_name}_{facebook_id}",
+            first_name=first_name,
+            last_name=last_name,
+            # Remplissez les autres champs requis avec des valeurs par défaut si nécessaire
+        )
+        db.session.add(user)
+        db.session.commit()
+        new_user = True
+    else:
+        new_user = False
+
+    login_user(user)
+    if new_user:
+        flash('Inscription réussie via Facebook !', 'success')
+        return redirect(url_for('profile.complete_profile'))
+    else:
+        flash('Connexion réussie via Facebook.', 'success')
+        return redirect(url_for('profile.profile'))
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('profile.profile'))
     form = RegistrationForm()
+    login_form = LoginForm()
     if form.validate_on_submit():
-        username = form.username.data
-        email = form.email.data
-        password = form.password.data
-
-        # Vérification de l'existence de l'utilisateur
-        if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
-            flash("Nom d'utilisateur ou email déjà existant.", "danger")
-            return redirect(url_for('auth.register'))
-
-        user = User(username=username, email=email)
-        user.set_password(password)
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            first_name=form.first_name.data,
+            last_name=form.last_name.data,
+            birth_date=form.birth_date.data,
+            gender=form.gender.data
+        )
+        user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
         send_confirmation_email(user.email)
-        
         flash("Inscription réussie ! Vérifiez votre email pour confirmer votre inscription.", "success")
         login_user(user)
         return redirect(url_for('profile.profile'))
-    return render_template('auth/register.html', form=form)
+    return render_template('auth/register.html', form=form, login_form=login_form, register_form=form)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('profile.profile'))
     form = LoginForm()
+    register_form = RegistrationForm()
     if form.validate_on_submit():
         email = form.email.data
         password = form.password.data
@@ -56,66 +141,7 @@ def login():
         flash("Connexion réussie.", "success")
         next_page = request.args.get('next')
         return redirect(next_page or url_for('profile.profile'))
-    return render_template('auth/login.html', form=form)
-
-@auth_bp.route('/facebook_login')
-def facebook_login():
-    if not facebook.authorized:
-        return redirect(url_for("facebook.login"))
-
-    resp = facebook.get("/me?fields=id,name,email")
-    if resp.ok:
-        user_data = resp.json()
-        user = register_user_if_new(
-            provider="facebook",
-            provider_id=user_data["id"],
-            email=user_data.get("email"),
-            username=user_data["name"]
-        )
-        login_user(user)
-        flash("Connexion réussie avec Facebook.", "success")
-        return redirect(url_for("profile.profile"))
-    flash("Échec de connexion via Facebook.", "danger")
-    return redirect(url_for("auth.login"))
-
-@auth_bp.route('/strava_login')
-def strava_login():
-    if not strava.authorized:
-        return redirect(url_for("strava.login"))
-
-    # Récupérer les données utilisateur de Strava
-    resp = strava.get("/athlete")
-    if resp.ok:
-        user_data = resp.json()
-        
-        # Récupérer les informations de base
-        provider_id = user_data.get("id")
-        email = user_data.get("email")
-        username = user_data.get("username") or f"strava_{provider_id}"
-
-        # Vérifier si l'utilisateur existe déjà
-        user = User.query.filter_by(provider_id=provider_id, provider="strava").first()
-        if not user:
-            # Créer un nouvel utilisateur si non existant
-            user = User(
-                provider="strava",
-                provider_id=provider_id,
-                email=email,
-                username=username
-            )
-            db.session.add(user)
-            db.session.commit()
-            flash("Utilisateur créé avec succès via Strava.", "success")
-        
-        # Connecter l'utilisateur
-        login_user(user)
-        flash("Connexion réussie avec Strava.", "success")
-        
-        # Rediriger vers le profil
-        return redirect(url_for("profile.profile"))
-
-    flash("Échec de connexion via Strava.", "danger")
-    return redirect(url_for("auth.login"))
+    return render_template('auth/login.html', form=form, register_form=register_form, login_form=form)
 
 @auth_bp.route('/logout')
 @login_required
@@ -150,3 +176,35 @@ def send_email(subject, recipients, html_body):
     msg = Message(subject, recipients=recipients)
     msg.html = html_body
     mail.send(msg)
+
+@auth_bp.route('/reset_password_request', methods=['GET', 'POST'])
+def reset_password_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('profile.profile'))
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            send_password_reset_email(user)
+        flash('Un email avec les instructions pour réinitialiser votre mot de passe a été envoyé.', 'info')
+        return redirect(url_for('auth.login'))
+    return render_template('auth/reset_password_request.html', form=form)
+
+@auth_bp.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('profile.profile'))
+    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        email = s.loads(token, salt='password-reset-salt', max_age=3600)
+    except Exception:
+        flash('Le lien de réinitialisation est invalide ou a expiré.', 'danger')
+        return redirect(url_for('auth.reset_password_request'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=email).first_or_404()
+        user.set_password(form.password.data)
+        db.session.commit()
+        flash('Votre mot de passe a été mis à jour.', 'success')
+        return redirect(url_for('auth.login'))
+    return render_template('auth/reset_password.html', form=form)

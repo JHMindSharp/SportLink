@@ -9,6 +9,7 @@
 <body>
     <h1>Créez votre Profil</h1>
     <form method="POST" action="{{ url_for('auth.register') }}">
+        {{ form.hidden_tag() }}
         <label for="username">Nom d'utilisateur :</label>
         <input type="text" name="username" placeholder="Nom d'utilisateur" required>
 
