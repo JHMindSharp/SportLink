@@ -84,7 +84,7 @@ def profile():
         total_ratings=total_ratings,
         posts=posts,
         sports=sports,
-        form=form  # Passer le formulaire au template
+        form=form
     )
 
 @profile_bp.route('/edit_profile', methods=['GET', 'POST'])
@@ -191,6 +191,26 @@ def photos(user_id):
     posts = Post.query.filter_by(user_id=user_id).filter(Post.image.isnot(None)).all()
     return render_template('profile/photos.html', user=user, posts=posts)
 
+@profile_bp.route('/set_profile_photo/<int:photo_id>', methods=['GET'])
+@login_required
+def set_profile_photo(photo_id):
+    post = Post.query.get_or_404(photo_id)
+    if post.user_id == current_user.id:
+        current_user.profile_image = post.image
+        db.session.commit()
+        flash("Votre photo de profil a été mise à jour.", "success")
+    return redirect(url_for('profile.photos', user_id=current_user.id))
+
+@profile_bp.route('/set_cover_photo/<int:photo_id>', methods=['GET'])
+@login_required
+def set_cover_photo(photo_id):
+    post = Post.query.get_or_404(photo_id)
+    if post.user_id == current_user.id:
+        current_user.cover_image = post.image
+        db.session.commit()
+        flash("Votre photo de couverture a été mise à jour.", "success")
+    return redirect(url_for('profile.photos', user_id=current_user.id))
+
 @profile_bp.route('/complete_profile', methods=['GET', 'POST'])
 @login_required
 def complete_profile():
@@ -198,7 +218,6 @@ def complete_profile():
     if form.validate_on_submit():
         current_user.birth_date = form.birth_date.data
         current_user.sex = form.sex.data
-        # ... autres champs si nécessaire ...
         db.session.commit()
         flash('Votre profil a été complété avec succès.', 'success')
         return redirect(url_for('profile.profile'))

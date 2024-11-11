@@ -1,38 +1,49 @@
-{% extends 'base.html' %}
-
-{% block title %}Inscription{% endblock %}
-
-{% block content %}
-<h2>Inscription</h2>
-<form method="POST" action="{{ url_for('auth.register') }}">
-    {{ form.hidden_tag() }}
-    <div class="form-group">
-        {{ form.username.label }} {{ form.username }}
+<div class="modal" id="auth-modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <div class="tabs">
+            <div class="tab active" onclick="showLogin()">Connexion</div>
+            <div class="tab" onclick="showRegister()">Inscription</div>
+        </div>
+        <div id="loginForm" class="form-container active">
+            <form>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Votre email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" placeholder="Votre mot de passe" required>
+                </div>
+                <button type="submit" class="btn-primary">Connexion</button>
+                <a href="#" class="forgot-password">Mot de passe perdu ?</a>
+            </form>
+            <p>Ou connectez-vous avec :</p>
+            <div class="social-login">
+                <a href="#" class="btn-social facebook"><i class="fab fa-facebook-f"></i> Facebook</a>
+                <a href="#" class="btn-social strava"><i class="fas fa-bicycle"></i> Strava</a>
+            </div>
+        </div>
+        <div id="registerForm" class="form-container">
+            <form>
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur</label>
+                    <input type="text" id="username" placeholder="Votre nom d'utilisateur" required>
+                </div>
+                <div class="form-group">
+                    <label for="emailRegister">Email</label>
+                    <input type="email" id="emailRegister" placeholder="Votre email" required>
+                </div>
+                <div class="form-group">
+                    <label for="passwordRegister">Mot de passe</label>
+                    <input type="password" id="passwordRegister" placeholder="Votre mot de passe" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmez le mot de passe</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirmez le mot de passe" required>
+                </div>
+                <button type="submit" class="btn-primary">Inscription</button>
+            </form>
+        </div>
     </div>
-    <div class="form-group">
-        {{ form.email.label }} {{ form.email }}
-    </div>
-    <div class="form-group">
-        {{ form.first_name.label }} {{ form.first_name }}
-    </div>
-    <div class="form-group">
-        {{ form.last_name.label }} {{ form.last_name }}
-    </div>
-    <div class="form-group">
-        {{ form.birth_date.label }} {{ form.birth_date }}
-    </div>
-    <div class="form-group">
-        {{ form.gender.label }} {{ form.gender }}
-    </div>
-    <div class="form-group">
-        {{ form.password.label }} {{ form.password }}
-    </div>
-    <div class="form-group">
-        {{ form.confirm_password.label }} {{ form.confirm_password }}
-    </div>
-    <div class="form-group">
-        {{ form.accept_terms }} {{ form.accept_terms.label|safe }}
-    </div>
-    {{ form.submit }}
-</form>
-{% endblock %}
+</div>

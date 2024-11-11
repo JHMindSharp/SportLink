@@ -112,6 +112,8 @@ class User(db.Model, UserMixin):
     provider_id = db.Column(db.String(100), nullable=True, unique=True)
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
+    sport = db.Column(db.String(50), nullable=True)
+    level = db.Column(db.String(50), nullable=True)
     strava_id = db.Column(db.String(64), nullable=True)
     facebook_id = db.Column(db.String(64), nullable=True)
     __table_args__ = (

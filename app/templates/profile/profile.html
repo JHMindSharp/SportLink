@@ -12,44 +12,12 @@
 
 <div class="profile-container">
     <!-- Couverture et photo de profil -->
-    <div class="profile-header">
-        <div class="cover-photo" style="background-image: url('{{ url_for('main.uploaded_file', filename='covers/' ~ user.cover_image) if user.cover_image else url_for('static', filename='images/default_cover.jpg') }}');">
-            <!-- Bouton pour changer la photo de couverture (retiré selon votre demande) -->
-            <!--
-            {% if current_user == user %}
-                <button class="change-cover-btn" onclick="openCoverPhotoModal()">Modifier la couverture</button>
-            {% endif %}
-            -->
-        </div>
-        <div class="profile-photo" style="background-image: url('{{ url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) if user.profile_image else url_for('static', filename='images/default_profile.jpg') }}');">
-            <!-- Bouton pour changer la photo de profil (retiré selon votre demande) -->
-            <!--
-            {% if current_user == user %}
-                <button class="change-profile-btn" onclick="openProfilePhotoModal()">Modifier la photo</button>
-            {% endif %}
-            -->
-        </div>
-        <div class="user-info">
-            <h1>{{ user.first_name }} {{ user.last_name }}</h1>
-            <p>{{ user.city }}, {{ user.country }}</p>
-            <!-- Boutons d'action -->
-            <div class="action-buttons">
-                {% if current_user != user %}
-                    <!-- Bouton pour ajouter en ami ou envoyer un message -->
-                    {% if current_user.is_friend(user) %}
-                        <button class="btn-secondary" onclick="window.location.href='{{ url_for('messages.send_message', user_id=user.id) }}'">Envoyer un message</button>
-                    {% else %}
-                        <form action="{{ url_for('profile.add_friend', user_id=user.id) }}" method="POST">
-                            {{ form.hidden_tag() }}
-                            <button type="submit" class="btn-primary">Ajouter en ami</button>
-                        </form>
-                    {% endif %}
-                {% else %}
-                    <!-- Bouton pour modifier le profil -->
-                    <a href="{{ url_for('profile.edit_profile') }}" class="btn-secondary">Mise à jour de mon profil</a>
-                {% endif %}
-            </div>
-        </div>
+    <div class="cover-photo" style="background-image: url('{{ url_for('main.uploaded_file', filename='covers/' ~ user.cover_image) if user.cover_image else url_for('static', filename='images/default_cover.jpg') }}');" draggable="false"></div>
+    <div class="profile-photo" style="background-image: url('{{ url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) if user.profile_image else url_for('static', filename='images/default_profile.jpg') }}');" draggable="false"></div>
+    <div class="user-info">
+        <h1>{{ user.first_name }}</h1>
+        <h1>{{ user.last_name }}</h1>
+        <p>{{ user.city }}, {{ user.country }}</p>
     </div>
 
     <!-- Navigation du profil -->
@@ -60,6 +28,9 @@
             <li><a href="{{ url_for('profile.list_friends') }}">Amis</a></li>
             <li><a href="{{ url_for('profile.photos', user_id=user.id) }}">Photos</a></li>
             <li><a href="{{ url_for('profile.settings') }}">Paramètres</a></li>
+            {% if current_user == user %}
+                <li><a href="{{ url_for('profile.edit_profile') }}">Mise à jour de mon profil</a></li>
+            {% endif %}
         </ul>
     </nav>
 
@@ -67,14 +38,12 @@
     <div class="main-content">
         <!-- Section des publications -->
         <div class="posts-section">
-            <!-- Formulaire de création de publication -->
             {% if current_user == user %}
                 <div class="create-post" onclick="window.location.href='{{ url_for('posts.create_post') }}'">
                     <p>Quoi de neuf, {{ user.username }} ?</p>
                 </div>
             {% endif %}
 
-            <!-- Liste des publications -->
             {% for post in posts %}
                 <div class="post">
                     <div class="post-header">
@@ -89,7 +58,6 @@
                             <h3>{{ post.title }}</h3>
                         {% endif %}
                         <p>{{ post.content }}</p>
-                        <!-- Affichage des médias -->
                         {% if post.image %}
                             <img src="{{ url_for('main.uploaded_file', filename=post.image) }}" alt="Image de la publication">
                         {% endif %}
@@ -105,7 +73,6 @@
                             </audio>
                         {% endif %}
                     </div>
-                    <!-- Boutons d'interaction -->
                     <div class="post-actions">
                         <button class="like-btn" onclick="likePost({{ post.id }})">J'aime</button>
                         <button class="comment-btn" onclick="commentPost({{ post.id }})">Commenter</button>
@@ -120,9 +87,8 @@
             {% endfor %}
         </div>
 
-        <!-- Section latérale (Informations, Amis, Photos) -->
+        <!-- Section latérale -->
         <aside class="sidebar">
-            <!-- Informations personnelles -->
             <div class="info-card">
                 <h3>Informations</h3>
                 <ul>
@@ -130,7 +96,6 @@
                     <li><strong>Sexe :</strong> {{ user.sex }}</li>
                     <li><strong>Email :</strong> {{ user.email if user.display_email else 'Privé' }}</li>
                     <li><strong>Téléphone :</strong> {{ user.phone if user.display_phone else 'Privé' }}</li>
-                    <!-- Affichage des sports et niveaux -->
                     <li><strong>Sports :</strong>
                         <ul>
                             {% for user_sport in user.sports %}
@@ -141,7 +106,6 @@
                 </ul>
             </div>
 
-            <!-- Liste des amis -->
             <div class="friends-card">
                 <h3>Amis</h3>
                 <div class="friends-list">
@@ -155,7 +119,6 @@
                 <a href="{{ url_for('profile.list_friends') }}" class="see-all">Voir tous les amis</a>
             </div>
 
-            <!-- Photos récentes -->
             <div class="photos-card">
                 <h3>Photos</h3>
                 <div class="photos-grid">

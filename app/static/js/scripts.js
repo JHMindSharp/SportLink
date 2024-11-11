@@ -79,6 +79,7 @@ async function likePost(postId) {
     }
 }
 
+// Fonctions pour gérer l'affichage des modales
 function openAuthModal() {
     document.getElementById('auth-modal').style.display = 'block';
 }
@@ -92,11 +93,27 @@ function showLoginForm() {
     document.getElementById('register-form').classList.remove('active');
 }
 
-function showRegisterForm() {
-    document.getElementById('login-form').classList.remove('active');
-    document.getElementById('register-form').classList.add('active');
+// Fonctions pour afficher les formulaires de connexion et d'inscription
+function showLogin() {
+    document.getElementById('loginForm').classList.add('active');
+    document.getElementById('registerForm').classList.remove('active');
+    document.querySelector('.tabs .tab:nth-child(1)').classList.add('active');
+    document.querySelector('.tabs .tab:nth-child(2)').classList.remove('active');
 }
 
+function showRegister() {
+    document.getElementById('registerForm').classList.add('active');
+    document.getElementById('loginForm').classList.remove('active');
+    document.querySelector('.tabs .tab:nth-child(2)').classList.add('active');
+    document.querySelector('.tabs .tab:nth-child(1)').classList.remove('active');
+}
+
+// Fonction pour fermer la modale
+function closeModal() {
+    document.querySelector('.modal').style.display = 'none';
+}
+
+// Améliorations des fonctions modales
 function openAuthModal() {
     var modal = document.getElementById('auth-modal');
     modal.style.display = 'block';
@@ -106,3 +123,64 @@ function closeAuthModal() {
     var modal = document.getElementById('auth-modal');
     modal.style.display = 'none';
 }
+
+// Script pour ajuster dynamiquement la couleur du texte
+document.addEventListener("DOMContentLoaded", function() {
+    const profileHeader = document.querySelector('.profile-header');
+    const userName = document.querySelector('.user-info h1');
+
+    if (profileHeader && userName) {
+        const bgColor = window.getComputedStyle(profileHeader).backgroundColor;
+        const rgb = bgColor.match(/\d+/g);
+
+        if (rgb) {
+            const brightness = Math.round(((parseInt(rgb[0]) * 299) +
+                                           (parseInt(rgb[1]) * 587) +
+                                           (parseInt(rgb[2]) * 114)) / 1000);
+
+            userName.style.color = (brightness > 125) ? '#000' : '#fff'; // Noir si clair, blanc si foncé
+        }
+    }
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+    const profilePhoto = document.querySelector('.profile-photo');
+    const coverPhoto = document.querySelector('.cover-photo');
+
+    function enableZoom(element) {
+        let scale = 1;
+        let posX = 0;
+        let posY = 0;
+
+        element.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            scale += e.deltaY * -0.01;
+            scale = Math.min(Math.max(.5, scale), 3);
+            element.style.transform = `scale(${scale})`;
+        });
+
+        let isDragging = false;
+        let startX, startY;
+
+        element.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX - posX;
+            startY = e.clientY - posY;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                posX = e.clientX - startX;
+                posY = e.clientY - startY;
+                element.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+    }
+
+    enableZoom(profilePhoto);
+    enableZoom(coverPhoto);
+});

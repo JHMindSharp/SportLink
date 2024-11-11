@@ -64,5 +64,9 @@ class ChangeProfilePhotoForm(FlaskForm):
 
 class CompleteProfileForm(FlaskForm):
     birth_date = DateField('Date de naissance', validators=[DataRequired()])
-    gender = SelectField('Sexe', choices=[('male', 'Homme'), ('female', 'Femme'), ('other', 'Autre')], validators=[DataRequired()])
+    sex = SelectField(
+        'Sexe',
+        choices=[('male', 'Homme'), ('female', 'Femme'), ('other', 'Autre')],
+        validators=[DataRequired()]
+    )
     submit = SubmitField('Enregistrer')

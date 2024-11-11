@@ -6,7 +6,7 @@ from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Message
 from app.auth.forms import RegistrationForm, LoginForm, ResetPasswordRequestForm, ResetPasswordForm
 from flask_dance.contrib.strava import strava
-from flask_dance.contrib.facebook import facebook
+from flask_dance.contrib.facebook import facebook  # Import du blueprint Facebook
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -15,6 +15,10 @@ def oauth_strava():
     if not strava.authorized:
         current_app.logger.warning("Utilisateur non autorisé, redirection vers la connexion.")
         return redirect(url_for('auth.login'))
+
+    # Vérifier le token
+    token = strava.token
+    current_app.logger.debug(f"Token Strava : {token}")
 
     resp = strava.get('/athlete')
     current_app.logger.info(f"Statut de la réponse : {resp.status_code}")
@@ -33,12 +37,18 @@ def oauth_strava():
         flash("Erreur de lecture des données de Strava.", "danger")
         return redirect(url_for('auth.login'))
 
-    return render_template('profile.html', user=info)
+    return create_or_get_user_from_strava(info)
+
 def create_or_get_user_from_strava(info):
     email = info.get('email')
     first_name = info.get('firstname')
     last_name = info.get('lastname')
     strava_id = info.get('id')
+
+    if not email:
+        current_app.logger.error("Aucune adresse email n'a été fournie par Strava.")
+        flash("Votre compte Strava ne fournit pas d'adresse email.", "danger")
+        return redirect(url_for('auth.login'))
 
     user = User.query.filter_by(email=email).first()
 
@@ -61,13 +71,68 @@ def create_or_get_user_from_strava(info):
         flash('Connexion réussie via Strava.', 'success')
         return redirect(url_for('profile.profile'))
 
+@auth_bp.route('/oauth_facebook')
+def oauth_facebook():
+    if not facebook.authorized:
+        current_app.logger.warning("Utilisateur non autorisé, redirection vers la connexion.")
+        return redirect(url_for('auth.login'))
+
+    resp = facebook.get('/me?fields=id,name,email,first_name,last_name')
+    current_app.logger.info(f"Statut de la réponse : {resp.status_code}")
+    current_app.logger.debug(f"Contenu de la réponse : {resp.text}")
+
+    if resp.status_code != 200:
+        current_app.logger.error("Erreur lors de l'appel à l'API Facebook.")
+        flash("Erreur de récupération des données de Facebook.", "danger")
+        return redirect(url_for('auth.login'))
+
+    try:
+        info = resp.json()
+        current_app.logger.info(f"Données utilisateur récupérées : {info}")
+    except ValueError as e:
+        current_app.logger.error(f"Erreur de décodage JSON : {e}")
+        flash("Erreur de lecture des données de Facebook.", "danger")
+        return redirect(url_for('auth.login'))
+
+    return create_or_get_user_from_facebook(info)
+
+def create_or_get_user_from_facebook(info):
+    email = info.get('email')
+    first_name = info.get('first_name')
+    last_name = info.get('last_name')
+    facebook_id = info.get('id')
+
+    if not email:
+        current_app.logger.error("Aucune adresse email n'a été fournie par Facebook.")
+        flash("Votre compte Facebook ne fournit pas d'adresse email.", "danger")
+        return redirect(url_for('auth.login'))
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        user = User(
+            username=email.split('@')[0],
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            facebook_id=facebook_id,
+            provider='facebook'
+        )
+        db.session.add(user)
+        db.session.commit()
+        login_user(user)
+        flash('Inscription réussie via Facebook !', 'success')
+        return redirect(url_for('profile.complete_profile'))
+    else:
+        login_user(user)
+        flash('Connexion réussie via Facebook.', 'success')
+        return redirect(url_for('profile.profile'))
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('profile.profile'))
     form = RegistrationForm()
-    login_form = LoginForm()
     if form.validate_on_submit():
         user = User(
             username=form.username.data,
@@ -84,7 +149,7 @@ def register():
         flash("Inscription réussie ! Vérifiez votre email pour confirmer votre inscription.", "success")
         login_user(user)
         return redirect(url_for('profile.profile'))
-    return render_template('auth/register.html', form=form, login_form=login_form, register_form=form)
+    return render_template('auth/register.html', form=form)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -98,13 +163,8 @@ def login():
         password = form.password.data
 
         user = User.query.filter_by(email=email).first()
-        if user is None:
-            current_app.logger.warning(f"Utilisateur non trouvé pour l'email : {email}")
-            flash("Email ou mot de passe invalide.", "danger")
-            return redirect(url_for('auth.login'))
-
-        if not user.check_password(password):
-            current_app.logger.warning("Échec de la validation du mot de passe.")
+        if user is None or not user.check_password(password):
+            current_app.logger.warning(f"Échec de connexion pour l'email : {email}")
             flash("Email ou mot de passe invalide.", "danger")
             return redirect(url_for('auth.login'))
 
@@ -165,6 +225,13 @@ def reset_password_request():
         flash('Un email avec les instructions pour réinitialiser votre mot de passe a été envoyé.', 'info')
         return redirect(url_for('auth.login'))
     return render_template('auth/reset_password_request.html', form=form)
+
+def send_password_reset_email(user):
+    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    token = s.dumps(user.email, salt='password-reset-salt')
+    reset_url = url_for('auth.reset_password', token=token, _external=True)
+    html = render_template('auth/reset_password_email.html', reset_url=reset_url)
+    send_email('Réinitialisation de votre mot de passe', [user.email], html)
 
 @auth_bp.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
