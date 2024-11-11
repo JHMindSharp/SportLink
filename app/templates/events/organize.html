@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Organiser une Activité - SportLink{% endblock %}
+
+{% block content %}
+<h2>Organiser une Activité Sportive</h2>
+<form method="POST" action="{{ url_for('events.organize') }}">
+    {{ form.hidden_tag() }}
+
+    <div class="form-group">
+        <label for="sport">Sport :</label>
+        {{ form.sport }}
+    </div>
+    <div class="form-group">
+        <label for="level">Niveau :</label>
+        {{ form.level }}
+    </div>
+    <div class="form-group">
+        <label for="distance">Distance maximale (km) :</label>
+        {{ form.distance }}
+    </div>
+    <div class="form-group">
+        <label for="date">Date :</label>
+        {{ form.date }}
+    </div>
+
+    <button type="submit" class="btn-primary">Rechercher des Partenaires</button>
+</form>
+
+<!-- Affichage des partenaires potentiels -->
+{% if partners %}
+    <h3>Partenaires Potentiels</h3>
+    <div class="partners-list">
+        {% for partner in partners %}
+            <div class="partner-card">
+                <h4>{{ partner.username }}</h4>
+                <p>{{ partner.city }}, {{ partner.country }}</p>
+                <a href="{{ url_for('profile.profile', user_id=partner.id) }}" class="btn">Voir le profil</a>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>Aucun partenaire trouvé pour ces critères.</p>
+{% endif %}
+{% endblock %}

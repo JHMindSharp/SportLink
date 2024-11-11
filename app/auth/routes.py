@@ -13,90 +13,54 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/oauth_strava')
 def oauth_strava():
     if not strava.authorized:
-        flash('L\'autorisation avec Strava a échoué.', 'danger')
+        current_app.logger.warning("Utilisateur non autorisé, redirection vers la connexion.")
         return redirect(url_for('auth.login'))
 
     resp = strava.get('/athlete')
-    if not resp.ok:
-        flash('Impossible de récupérer les informations depuis Strava.', 'danger')
+    current_app.logger.info(f"Statut de la réponse : {resp.status_code}")
+    current_app.logger.debug(f"Contenu de la réponse : {resp.text}")
+
+    if resp.status_code != 200:
+        current_app.logger.error("Erreur lors de l'appel à l'API Strava.")
+        flash("Erreur de récupération des données de Strava.", "danger")
         return redirect(url_for('auth.login'))
 
-    info = resp.json()
+    try:
+        info = resp.json()
+        current_app.logger.info(f"Données utilisateur récupérées : {info}")
+    except ValueError as e:
+        current_app.logger.error(f"Erreur de décodage JSON : {e}")
+        flash("Erreur de lecture des données de Strava.", "danger")
+        return redirect(url_for('auth.login'))
+
+    return render_template('profile.html', user=info)
+def create_or_get_user_from_strava(info):
     email = info.get('email')
     first_name = info.get('firstname')
     last_name = info.get('lastname')
-
-    if not email:
-        flash('Votre compte Strava ne fournit pas d\'adresse email.', 'danger')
-        return redirect(url_for('auth.login'))
+    strava_id = info.get('id')
 
     user = User.query.filter_by(email=email).first()
+
     if not user:
-        # Créer un nouvel utilisateur
         user = User(
+            username=email.split('@')[0],
             email=email,
-            username=f"{first_name}_{last_name}_{strava_id}",
             first_name=first_name,
             last_name=last_name,
-            # Remplissez les autres champs requis avec des valeurs par défaut si nécessaire
+            strava_id=strava_id,
+            provider='strava'
         )
         db.session.add(user)
         db.session.commit()
-        new_user = True
-    else:
-        new_user = False
-
-    login_user(user)
-    if new_user:
+        login_user(user)
         flash('Inscription réussie via Strava !', 'success')
         return redirect(url_for('profile.complete_profile'))
     else:
+        login_user(user)
         flash('Connexion réussie via Strava.', 'success')
         return redirect(url_for('profile.profile'))
 
-@auth_bp.route('/oauth_facebook')
-def oauth_facebook():
-    if not facebook.authorized:
-        flash('L\'autorisation avec Facebook a échoué.', 'danger')
-        return redirect(url_for('auth.login'))
-
-    resp = facebook.get('/me?fields=id,name,email,first_name,last_name')
-    if not resp.ok:
-        flash('Impossible de récupérer les informations depuis Facebook.', 'danger')
-        return redirect(url_for('auth.login'))
-
-    info = resp.json()
-    email = info.get('email')
-    first_name = info.get('first_name')
-    last_name = info.get('last_name')
-
-    if not email:
-        flash('Votre compte Facebook ne fournit pas d\'adresse email.', 'danger')
-        return redirect(url_for('auth.login'))
-
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        # Créer un nouvel utilisateur
-        user = User(
-            email=email,
-            username=f"{first_name}_{last_name}_{facebook_id}",
-            first_name=first_name,
-            last_name=last_name,
-            # Remplissez les autres champs requis avec des valeurs par défaut si nécessaire
-        )
-        db.session.add(user)
-        db.session.commit()
-        new_user = True
-    else:
-        new_user = False
-
-    login_user(user)
-    if new_user:
-        flash('Inscription réussie via Facebook !', 'success')
-        return redirect(url_for('profile.complete_profile'))
-    else:
-        flash('Connexion réussie via Facebook.', 'success')
-        return redirect(url_for('profile.profile'))
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -126,22 +90,34 @@ def register():
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('profile.profile'))
+    
     form = LoginForm()
-    register_form = RegistrationForm()
     if form.validate_on_submit():
+        current_app.logger.debug("Formulaire de connexion validé.")
         email = form.email.data
         password = form.password.data
 
         user = User.query.filter_by(email=email).first()
-        if user is None or not user.check_password(password):
+        if user is None:
+            current_app.logger.warning(f"Utilisateur non trouvé pour l'email : {email}")
+            flash("Email ou mot de passe invalide.", "danger")
+            return redirect(url_for('auth.login'))
+
+        if not user.check_password(password):
+            current_app.logger.warning("Échec de la validation du mot de passe.")
             flash("Email ou mot de passe invalide.", "danger")
             return redirect(url_for('auth.login'))
 
         login_user(user)
         flash("Connexion réussie.", "success")
+        current_app.logger.info(f"Utilisateur {email} connecté avec succès.")
         next_page = request.args.get('next')
         return redirect(next_page or url_for('profile.profile'))
-    return render_template('auth/login.html', form=form, register_form=register_form, login_form=form)
+
+    if form.errors:
+        current_app.logger.debug(f"Erreurs de validation du formulaire : {form.errors}")
+
+    return render_template('auth/login.html', form=form)
 
 @auth_bp.route('/logout')
 @login_required

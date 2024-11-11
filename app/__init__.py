@@ -5,6 +5,9 @@ from app.extensions import db, migrate, bcrypt, jwt, mail, login_manager
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from app.events.routes import events_bp
 
+if __name__ == "__main__":
+    app.run(debug=True)
+
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object('instance.config.Config')
