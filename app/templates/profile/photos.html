@@ -4,14 +4,31 @@
 
 {% block content %}
 <h2>Photos de {{ user.username }}</h2>
+
+{% if current_user == user %}
+    <!-- Formulaire pour ajouter des photos -->
+    <form action="{{ url_for('profile.add_photo') }}" method="POST" enctype="multipart/form-data">
+        <label for="photoUpload">Ajouter des photos :</label>
+        <input type="file" name="photoUpload" multiple>
+        <button type="submit">Téléverser</button>
+    </form>
+
+    <!-- Formulaire pour créer un album -->
+    <form action="{{ url_for('profile.create_album') }}" method="POST">
+        <label for="albumName">Créer un nouvel album :</label>
+        <input type="text" name="albumName" placeholder="Nom de l'album" required>
+        <button type="submit">Créer</button>
+    </form>
+{% endif %}
+
 <div class="photos-grid">
-    {% if posts %}
-        {% for post in posts %}
+    {% if images %}
+        {% for image in images %}
             <div class="photo-item">
-                <img src="{{ url_for('main.uploaded_file', filename=post.image) }}" alt="Photo">
+                <img src="{{ url_for('main.uploaded_file', filename=image) }}" alt="Photo">
                 {% if current_user == user %}
-                    <button onclick="window.location.href='{{ url_for('profile.set_profile_photo', photo_id=post.id) }}'">Utiliser comme photo de profil</button>
-                    <button onclick="window.location.href='{{ url_for('profile.set_cover_photo', photo_id=post.id) }}'">Utiliser comme photo de couverture</button>
+                    <button onclick="window.location.href='{{ url_for('profile.set_profile_photo', photo_id=image) }}'">Utiliser comme photo de profil</button>
+                    <button onclick="window.location.href='{{ url_for('profile.set_cover_photo', photo_id=image) }}'">Utiliser comme photo de couverture</button>
                 {% endif %}
             </div>
         {% endfor %}

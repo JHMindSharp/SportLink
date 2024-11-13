@@ -132,8 +132,11 @@ def create_or_get_user_from_facebook(info):
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('profile.profile'))
+    
     form = RegistrationForm()
     if form.validate_on_submit():
+        current_app.logger.debug("Formulaire soumis avec succès.")
+        # Ajoutez ici d'autres print() pour voir les valeurs
         user = User(
             username=form.username.data,
             email=form.email.data,
@@ -149,6 +152,10 @@ def register():
         flash("Inscription réussie ! Vérifiez votre email pour confirmer votre inscription.", "success")
         login_user(user)
         return redirect(url_for('profile.profile'))
+    
+    if form.errors:
+        current_app.logger.debug(f"Erreurs de validation : {form.errors}")
+    
     return render_template('auth/register.html', form=form)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])

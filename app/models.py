@@ -95,6 +95,12 @@ class User(db.Model, UserMixin):
     gender = db.Column(db.String(10))
     profile_image = db.Column(db.String(255), nullable=True)
     cover_image = db.Column(db.String(255), nullable=True)
+    profile_image_zoom = db.Column(db.Float, default=1.0)
+    profile_image_pos_x = db.Column(db.Float, default=0.0)
+    profile_image_pos_y = db.Column(db.Float, default=0.0)
+    cover_image_zoom = db.Column(db.Float, default=1.0)
+    cover_image_pos_x = db.Column(db.Float, default=0.0)
+    cover_image_pos_y = db.Column(db.Float, default=0.0)
     country = db.Column(db.String(100), nullable=True)
     city = db.Column(db.String(100), nullable=True)
     address = db.Column(db.String(200), nullable=True)
@@ -123,7 +129,7 @@ class User(db.Model, UserMixin):
     # Relationships
     notifications = db.relationship('Notification', back_populates='user', lazy='dynamic')
     sports = db.relationship('UserSport', backref='user', lazy='dynamic')
-    posts = db.relationship('Post', back_populates='author', lazy='dynamic')
+    posts = db.relationship('Post', back_populates='author', cascade="all, delete-orphan", lazy='dynamic')
     ratings_received = db.relationship('Rating', foreign_keys='Rating.rated_id', backref='rated_user', lazy='dynamic')
     ratings_given = db.relationship('Rating', foreign_keys='Rating.rater_id', backref='rater_user', lazy='dynamic')
     friends = db.relationship(

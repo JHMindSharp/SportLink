@@ -6,18 +6,16 @@
     <meta charset="UTF-8">
     <title>{% block title %}SportLink{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Inclusion des scripts JavaScript -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <!-- Header flottant avec logo et navigation -->
     <header class="header">
         <div class="header-container">
             <a href="{{ url_for('profile.profile') if current_user.is_authenticated else url_for('main.index') }}" class="logo-container">
                 <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo SportLink">
             </a>
-            <!-- Navigation -->
             <nav class="nav">
                 <ul class="menu">
                     {% if current_user.is_authenticated %}
@@ -30,15 +28,14 @@
                         <li><a href="{{ url_for('auth.logout') }}">Déconnexion</a></li>
                         <li>Bienvenue sur SportLink, {{ current_user.username }}</li>
                     {% else %}
-                        <li><a href="#" onclick="openAuthModal()">Connexion / Inscription</a></li>
+                        <li><a href="{{ url_for('auth.login') }}">Connexion</a></li>
+                        <li><a href="{{ url_for('auth.register') }}">Inscription</a></li>
                         <li>Bienvenue sur SportLink</li>
                     {% endif %}
                 </ul>
             </nav>
         </div>
     </header>
-
-    <!-- Contenu principal -->
     <main class="main-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -51,16 +48,9 @@
         {% endwith %}
         {% block content %}{% endblock %}
     </main>
-
-    <!-- Pied de page -->
     <footer>
         <p>&copy; 2024 SportLink. Tous droits réservés.</p>
     </footer>
-
-    <!-- Modale d'authentification -->
-    {% include 'auth/auth_modal.html' %}
-
     {% block extra_scripts %}{% endblock %}
-    {% include 'auth/auth_modal.html' %}
 </body>
 </html>

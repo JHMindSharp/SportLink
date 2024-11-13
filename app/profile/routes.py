@@ -58,14 +58,17 @@ def change_password():
 def delete_account():
     form = DeleteAccountForm()
     if form.validate_on_submit():
-        user = current_user
-        logout_user()
-        db.session.delete(user)
-        db.session.commit()
-        flash("Votre compte a été supprimé.", "success")
-        return redirect(url_for('main.index'))
+        user = current_user._get_current_object()  # Obtenir l'instance réelle de l'utilisateur
+        if isinstance(user, User):  # Vérification que l'utilisateur est bien de la classe User
+            db.session.delete(user)
+            db.session.commit()
+            logout_user()  # Déconnexion après la suppression de l'utilisateur
+            flash("Votre compte a été supprimé.", "success")
+            return redirect(url_for('main.index'))
+        else:
+            flash("Erreur lors de la suppression du compte.", "danger")
     else:
-        flash("Erreur lors de la suppression du compte.", "danger")
+        flash("Erreur lors de la validation du formulaire.", "danger")
     return redirect(url_for('profile.settings'))
 
 @profile_bp.route('/profile', methods=['GET'])
@@ -124,7 +127,7 @@ def edit_profile():
             cover_image.save(cover_image_path)
             user.cover_image = filename
 
-        # Mise à jour des sports et niveaux
+        # Update sports and levels
         for sport in Sport.query.all():
             level = request.form.get(f'sport_{sport.id}')
             if level:
@@ -140,7 +143,7 @@ def edit_profile():
         flash("Profil mis à jour avec succès.", "success")
         return redirect(url_for('profile.profile'))
 
-    # Pré-remplir le formulaire avec les données existantes
+    # Pre-fill the form with existing data
     form.username.data = user.username
     form.email.data = user.email
     form.first_name.data = user.first_name
@@ -189,7 +192,14 @@ def list_friends():
 def photos(user_id):
     user = User.query.get_or_404(user_id)
     posts = Post.query.filter_by(user_id=user_id).filter(Post.image.isnot(None)).all()
-    return render_template('profile/photos.html', user=user, posts=posts)
+    profile_images = [user.profile_image] if user.profile_image else []
+    cover_images = [user.cover_image] if user.cover_image else []
+    images = profile_images + cover_images + [post.image for post in posts]
+    
+    if not images:
+        flash("Aucune image disponible à afficher.", "info")
+    
+    return render_template('profile/photos.html', user=user, images=images)
 
 @profile_bp.route('/set_profile_photo/<int:photo_id>', methods=['GET'])
 @login_required
@@ -222,3 +232,25 @@ def complete_profile():
         flash('Votre profil a été complété avec succès.', 'success')
         return redirect(url_for('profile.profile'))
     return render_template('profile/complete_profile.html', form=form)
+
+@profile_bp.route('/add_photo', methods=['POST'])
+@login_required
+def add_photo():
+    if 'photoUpload' in request.files:
+        photos = request.files.getlist('photoUpload')
+        for photo in photos:
+            filename = secure_filename(photo.filename)
+            photo.save(os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', filename))
+            new_post = Post(user_id=current_user.id, image=filename, created_at=datetime.utcnow())
+            db.session.add(new_post)
+        db.session.commit()
+        flash("Photos ajoutées avec succès.", "success")
+    return redirect(url_for('profile.photos', user_id=current_user.id))
+
+@profile_bp.route('/create_album', methods=['POST'])
+@login_required
+def create_album():
+    album_name = request.form.get('albumName')
+    # Logic to create an album can be added here (e.g., storing album info in the database)
+    flash(f"Album '{album_name}' créé avec succès.", "success")
+    return redirect(url_for('profile.photos', user_id=current_user.id))

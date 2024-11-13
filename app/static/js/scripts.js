@@ -79,15 +79,6 @@ async function likePost(postId) {
     }
 }
 
-// Fonctions pour gérer l'affichage des modales
-function openAuthModal() {
-    document.getElementById('auth-modal').style.display = 'block';
-}
-
-function closeAuthModal() {
-    document.getElementById('auth-modal').style.display = 'none';
-}
-
 function showLoginForm() {
     document.getElementById('login-form').classList.add('active');
     document.getElementById('register-form').classList.remove('active');

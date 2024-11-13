@@ -8,7 +8,7 @@
         <div class="banner-content">
             <h1>Bienvenue sur SportLink</h1>
             <p>Connectez-vous, engagez-vous, exercez-vous, réservez et rencontrez des partenaires sportifs similaires !</p>
-            <button id="get-started-btn" class="btn-primary" onclick="openAuthModal()">Commencer</button>
+            <a href="{{ url_for('auth.register') }}" class="btn-primary">Commencer</a>
         </div>
     </section>
 
