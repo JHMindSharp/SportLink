@@ -3,26 +3,23 @@ from flask_login import UserMixin
 from app.extensions import db, bcrypt
 from sqlalchemy import UniqueConstraint
 
-# Association table for user sports (many-to-many relationship) with level
-class UserSport(db.Model):
-    __tablename__ = 'user_sport'
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    sport_id = db.Column(db.Integer, db.ForeignKey('sport.id'), primary_key=True)
-    level = db.Column(db.Integer, nullable=False)  # Level from 1 to 5
-
-class Sport(db.Model):
-    """Model representing a sport."""
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False, unique=True)
-
-    def __repr__(self):
-        return f'<Sport {self.name}>'
-
-# Table d'association pour les amis
 friends = db.Table('friends',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
     db.Column('friend_id', db.Integer, db.ForeignKey('user.id'))
 )
+
+class Sport(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False, unique=True)
+    user_sports = db.relationship('UserSport', back_populates='sport', lazy='dynamic', overlaps='user_sports')
+
+class UserSport(db.Model):
+    __tablename__ = 'user_sport'
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    sport_id = db.Column(db.Integer, db.ForeignKey('sport.id'), primary_key=True)
+    level = db.Column(db.Integer, nullable=False)
+    sport = db.relationship('Sport', back_populates='user_sports', overlaps='sports.user_sports')
+    user = db.relationship('User', back_populates='user_sports', overlaps='sports.user_sports')
 
 class Rating(db.Model):
     """Model representing a rating between users."""
@@ -128,17 +125,19 @@ class User(db.Model, UserMixin):
     )
     # Relationships
     notifications = db.relationship('Notification', back_populates='user', lazy='dynamic')
-    sports = db.relationship('UserSport', backref='user', lazy='dynamic')
+    sports = db.relationship('UserSport', back_populates='user', lazy='dynamic', overlaps='user_sports')
     posts = db.relationship('Post', back_populates='author', cascade="all, delete-orphan", lazy='dynamic')
     ratings_received = db.relationship('Rating', foreign_keys='Rating.rated_id', backref='rated_user', lazy='dynamic')
     ratings_given = db.relationship('Rating', foreign_keys='Rating.rater_id', backref='rater_user', lazy='dynamic')
     friends = db.relationship(
-        'User', secondary=friends,
+        'User',
+        secondary=friends,
         primaryjoin=(friends.c.user_id == id),
         secondaryjoin=(friends.c.friend_id == id),
         backref=db.backref('friend_of', lazy='dynamic'),
         lazy='dynamic'
     )
+    user_sports = db.relationship('UserSport', back_populates='user', lazy='dynamic', overlaps='sports')
 
     def is_friend(self, user):
         return self.friends.filter(friends.c.friend_id == user.id).count() > 0

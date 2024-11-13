@@ -140,11 +140,11 @@ body {
 /* Photo de couverture */
 .cover-photo {
     width: 100%;
-    height: 450px; /* Hauteur ajustable selon votre besoin */
+    height: 300px;
+    background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
     position: relative;
-    overflow: hidden; /* Pour permettre le zoom sans dépasser */
 }
 
 /* Photo de profil */
@@ -157,12 +157,10 @@ body {
     height: 150px;
     border: 5px solid #ffffff;
     border-radius: 50%;
+    background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
-    z-index: 2;
-    cursor: pointer; /* Ajout d'un curseur pour indiquer le zoom */
 }
-
 /* Informations utilisateur */
 .user-info {
     display: flex;

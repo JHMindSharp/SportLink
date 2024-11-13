@@ -4,14 +4,111 @@
 <h2>Bienvenue sur SportLink, {{ current_user.first_name }} !</h2>
 <p>Veuillez compléter votre profil.</p>
 
-<form method="POST" action="{{ url_for('profile.complete_profile') }}">
+<form method="POST" action="{{ url_for('profile.complete_profile') }}" enctype="multipart/form-data">
     {{ form.hidden_tag() }}
     <div class="form-group">
-        {{ form.birth_date.label }} {{ form.birth_date }}
+        {{ form.birth_date.label }} {{ form.birth_date(class="form-control") }}
     </div>
     <div class="form-group">
-        {{ form.sex.label }} {{ form.sex }}
+        {{ form.sex.label }} {{ form.sex(class="form-control") }}
     </div>
-    {{ form.submit }}
+
+    <div class="form-group">
+        <label for="profile_image">Photo de profil</label>
+        {{ form.profile_image(class="form-control-file", id="profile_image_input") }}
+        <div>
+            <img id="profile_image_preview" style="max-width: 100%;">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="cover_image">Photo de couverture</label>
+        {{ form.cover_image(class="form-control-file", id="cover_image_input") }}
+        <div>
+            <img id="cover_image_preview" style="max-width: 100%;">
+        </div>
+    </div>
+
+    <!-- Hidden fields to store position and zoom -->
+    <input type="hidden" name="profile_image_zoom" id="profile_image_zoom">
+    <input type="hidden" name="profile_image_pos_x" id="profile_image_pos_x">
+    <input type="hidden" name="profile_image_pos_y" id="profile_image_pos_y">
+    <input type="hidden" name="cover_image_zoom" id="cover_image_zoom">
+    <input type="hidden" name="cover_image_pos_x" id="cover_image_pos_x">
+    <input type="hidden" name="cover_image_pos_y" id="cover_image_pos_y">
+
+    <div class="form-group">
+        {{ form.sports.label }}
+        {% for sport in form.sports %}
+            <div>
+                {{ sport }}
+                {{ sport.label.text }}
+                <!-- Level selection for each sport -->
+                Niveau:
+                {{ form.levels[loop.index0](class="form-control") }}
+            </div>
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
 </form>
+
+<!-- Include Cropper.js CSS and JS -->
+<link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.css" />
+<script src="https://unpkg.com/cropperjs/dist/cropper.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var profileImageInput = document.getElementById('profile_image_input');
+    var profileImagePreview = document.getElementById('profile_image_preview');
+    var profileCropper;
+
+    profileImageInput.addEventListener('change', function(e) {
+        var files = e.target.files;
+        if (files && files.length > 0) {
+            var file = files[0];
+            var url = URL.createObjectURL(file);
+            profileImagePreview.src = url;
+
+            if (profileCropper) {
+                profileCropper.destroy();
+            }
+            profileCropper = new Cropper(profileImagePreview, {
+                aspectRatio: 1,
+                viewMode: 2,
+                crop(event) {
+                    document.getElementById('profile_image_zoom').value = event.detail.scaleX;
+                    document.getElementById('profile_image_pos_x').value = event.detail.x;
+                    document.getElementById('profile_image_pos_y').value = event.detail.y;
+                },
+            });
+        }
+    });
+
+    var coverImageInput = document.getElementById('cover_image_input');
+    var coverImagePreview = document.getElementById('cover_image_preview');
+    var coverCropper;
+
+    coverImageInput.addEventListener('change', function(e) {
+        var files = e.target.files;
+        if (files && files.length > 0) {
+            var file = files[0];
+            var url = URL.createObjectURL(file);
+            coverImagePreview.src = url;
+
+            if (coverCropper) {
+                coverCropper.destroy();
+            }
+            coverCropper = new Cropper(coverImagePreview, {
+                aspectRatio: 16 / 9,
+                viewMode: 2,
+                crop(event) {
+                    document.getElementById('cover_image_zoom').value = event.detail.scaleX;
+                    document.getElementById('cover_image_pos_x').value = event.detail.x;
+                    document.getElementById('cover_image_pos_y').value = event.detail.y;
+                },
+            });
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="cover-photo" style="
+            background-image: url('{{ url_for('static', filename='uploads/covers/' ~ user.cover_image) }}');
+            background-size: {{ user.cover_image_zoom }};
+            background-position: {{ user.cover_image_pos_x }}% {{ user.cover_image_pos_y }}%;
+        "></div>
+        <div class="profile-photo" style="
+            background-image: url('{{ url_for('static', filename='uploads/profiles/' ~ user.profile_image) }}');
+            background-size: {{ user.profile_image_zoom }};
+            background-position: {{ user.profile_image_pos_x }}% {{ user.profile_image_pos_y }}%;
+        "></div>
+        <div class="user-info">
+            <h1>{{ user.first_name }} {{ user.last_name }}</h1>
+            <!-- Other user info -->
+        </div>
+    </div>
+    <!-- Display user's sports and levels -->
+    <div class="user-sports">
+        <h3>Sports pratiqués</h3>
+        <ul>
+        {% for us in user.sports %}
+            <li>{{ us.sport.name }} - Niveau: {{ us.level }} étoiles</li>
+        {% endfor %}
+        </ul>
+    </div>
+    <!-- Other public profile information -->
+</div>
+{% endblock %}

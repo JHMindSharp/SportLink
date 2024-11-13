@@ -27,8 +27,8 @@
             <div class="photo-item">
                 <img src="{{ url_for('main.uploaded_file', filename=image) }}" alt="Photo">
                 {% if current_user == user %}
-                    <button onclick="window.location.href='{{ url_for('profile.set_profile_photo', photo_id=image) }}'">Utiliser comme photo de profil</button>
-                    <button onclick="window.location.href='{{ url_for('profile.set_cover_photo', photo_id=image) }}'">Utiliser comme photo de couverture</button>
+                <button onclick="window.location.href='{{ url_for('profile.set_profile_photo', photo_id=image) }}'">Utiliser comme photo de profil</button>
+                <button onclick="window.location.href='{{ url_for('profile.set_cover_photo', photo_id=image) }}'">Utiliser comme photo de couverture</button>
                 {% endif %}
             </div>
         {% endfor %}

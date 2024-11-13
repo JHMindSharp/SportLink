@@ -1,11 +1,13 @@
 from flask_wtf import FlaskForm
 from wtforms import (
     StringField, PasswordField, SubmitField, BooleanField, FileField,
-    SelectField, DateField, HiddenField, TelField, FloatField
+    SelectField, DateField, HiddenField, TelField, FloatField, SelectMultipleField
 )
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Optional
-from flask_wtf.file import FileAllowed
+from flask_wtf.file import FileAllowed, FileField
 from app.models import User
+from wtforms_sqlalchemy.fields import QuerySelectMultipleField
+from wtforms.widgets import ListWidget, CheckboxInput
 
 class ChangeEmailForm(FlaskForm):
     email = StringField('Nouvelle adresse email', validators=[DataRequired(), Email()])
@@ -63,10 +65,15 @@ class ChangeProfilePhotoForm(FlaskForm):
     submit = SubmitField('Mettre à jour')
 
 class CompleteProfileForm(FlaskForm):
-    birth_date = DateField('Date de naissance', validators=[DataRequired()])
-    sex = SelectField(
-        'Sexe',
-        choices=[('male', 'Homme'), ('female', 'Femme'), ('other', 'Autre')],
-        validators=[DataRequired()]
-    )
+    birth_date = DateField('Date de naissance', format='%Y-%m-%d', validators=[DataRequired()])
+    sex = SelectField('Sexe', choices=[('male', 'Homme'), ('female', 'Femme'), ('other', 'Autre')], validators=[DataRequired()])
+    profile_image = FileField('Photo de profil', validators=[FileAllowed(['jpg', 'png', 'jpeg'], 'Images seulement!')])
+    cover_image = FileField('Photo de couverture', validators=[FileAllowed(['jpg', 'png', 'jpeg'], 'Images seulement!')])
+    sports = SelectMultipleField('Sports pratiqués', choices=[], validators=[DataRequired()])
+    levels = SelectMultipleField('Niveaux', choices=[(str(i), f'{i} étoiles') for i in range(1, 6)], validators=[DataRequired()])
     submit = SubmitField('Enregistrer')
+
+
+class MultiCheckboxField(QuerySelectMultipleField):
+    widget = ListWidget(prefix_label=False)
+    option_widget = CheckboxInput()

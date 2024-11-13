@@ -201,7 +201,7 @@ def photos(user_id):
     
     return render_template('profile/photos.html', user=user, images=images)
 
-@profile_bp.route('/set_profile_photo/<int:photo_id>', methods=['GET'])
+@profile_bp.route('/set_profile_photo/<string:photo_id>', methods=['GET', 'POST'])
 @login_required
 def set_profile_photo(photo_id):
     post = Post.query.get_or_404(photo_id)
@@ -211,7 +211,7 @@ def set_profile_photo(photo_id):
         flash("Votre photo de profil a été mise à jour.", "success")
     return redirect(url_for('profile.photos', user_id=current_user.id))
 
-@profile_bp.route('/set_cover_photo/<int:photo_id>', methods=['GET'])
+@profile_bp.route('/set_cover_photo/<string:photo_id>', methods=['GET', 'POST'])
 @login_required
 def set_cover_photo(photo_id):
     post = Post.query.get_or_404(photo_id)
@@ -225,13 +225,81 @@ def set_cover_photo(photo_id):
 @login_required
 def complete_profile():
     form = CompleteProfileForm()
+    # Populate the sports choices
+    form.sports.choices = [(str(sport.id), sport.name) for sport in Sport.query.all()]
+    form.levels.choices = [(str(i), f'{i} étoiles') for i in range(1, 6)]
+    
     if form.validate_on_submit():
+        # Update user's birth date and sex
         current_user.birth_date = form.birth_date.data
         current_user.sex = form.sex.data
+
+        # Handle profile image upload
+        if form.profile_image.data:
+            profile_image_filename = save_image(form.profile_image.data, 'profiles')
+            current_user.profile_image = profile_image_filename
+
+        # Handle cover image upload
+        if form.cover_image.data:
+            cover_image_filename = save_image(form.cover_image.data, 'covers')
+            current_user.cover_image = cover_image_filename
+
+        # Save image positions and zoom levels
+        current_user.profile_image_zoom = float(request.form.get('profile_image_zoom', 1.0))
+        current_user.profile_image_pos_x = float(request.form.get('profile_image_pos_x', 0.0))
+        current_user.profile_image_pos_y = float(request.form.get('profile_image_pos_y', 0.0))
+        current_user.cover_image_zoom = float(request.form.get('cover_image_zoom', 1.0))
+        current_user.cover_image_pos_x = float(request.form.get('cover_image_pos_x', 0.0))
+        current_user.cover_image_pos_y = float(request.form.get('cover_image_pos_y', 0.0))
+
+        # Clear existing sports
+        UserSport.query.filter_by(user_id=current_user.id).delete()
+        # Add selected sports and levels
+        selected_sports = form.sports.data  # List of sport IDs as strings
+        selected_levels = form.levels.data  # List of levels as strings
+        for sport_id, level in zip(selected_sports, selected_levels):
+            user_sport = UserSport(user_id=current_user.id, sport_id=int(sport_id), level=int(level))
+            db.session.add(user_sport)
+
         db.session.commit()
-        flash('Votre profil a été complété avec succès.', 'success')
+        flash('Profil complété avec succès!', 'success')
         return redirect(url_for('profile.profile'))
+
     return render_template('profile/complete_profile.html', form=form)
+
+def save_image(image_file, folder_name):
+    filename = secure_filename(image_file.filename)
+    path = os.path.join(current_app.root_path, 'static', 'uploads', folder_name, filename)
+    image_file.save(path)
+    return filename
+
+@profile_bp.route('/friends')
+@login_required
+def friends():
+    if current_user.friends.count() == 0:
+        # Find users in the same city with similar sports
+        similar_users = User.query.filter(
+            User.city == current_user.city,
+            User.id != current_user.id
+        ).all()
+
+        # Filter users based on shared sports and similar levels
+        user_sports = {us.sport_id: us.level for us in current_user.sports}
+        suggestions = []
+        for user in similar_users:
+            common_sports = []
+            for us in user.sports:
+                if us.sport_id in user_sports:
+                    level_diff = abs(us.level - user_sports[us.sport_id])
+                    if level_diff <= 1:  # Similar level
+                        common_sports.append(us.sport.name)
+            if common_sports:
+                suggestions.append((user, common_sports))
+
+        return render_template('profile/friends.html', suggestions=suggestions)
+    else:
+        friends = current_user.friends.all()
+        return render_template('profile/friends.html', friends=friends)
 
 @profile_bp.route('/add_photo', methods=['POST'])
 @login_required
@@ -254,3 +322,26 @@ def create_album():
     # Logic to create an album can be added here (e.g., storing album info in the database)
     flash(f"Album '{album_name}' créé avec succès.", "success")
     return redirect(url_for('profile.photos', user_id=current_user.id))
+
+def save_image(image_file, folder_name):
+    filename = secure_filename(image_file.filename)
+    path = os.path.join(current_app.root_path, 'static', 'uploads', folder_name, filename)
+    image_file.save(path)
+    return filename
+
+@profile_bp.route('/search_users')
+@login_required
+def search_users():
+    query = request.args.get('query', '')
+    results = []
+    if query:
+        results = User.query.filter(
+            (User.first_name.ilike(f'%{query}%')) | (User.last_name.ilike(f'%{query}%'))
+        ).all()
+    return render_template('profile/search_results.html', results=results, query=query)
+
+@profile_bp.route('/view_profile/<int:user_id>')
+@login_required
+def view_profile(user_id):
+    user = User.query.get_or_404(user_id)
+    return render_template('profile/view_profile.html', user=user)
