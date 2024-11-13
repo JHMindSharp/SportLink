@@ -3,38 +3,28 @@
 {% block title %}Profil de {{ user.username }} - SportLink{% endblock %}
 
 {% block content %}
-{% if current_user.birth_date is none or current_user.sex is none %}
-    <div class="welcome-message">
-        <h2>Bienvenue sur SportLink !</h2>
-        <p>Pour profiter pleinement de l'application, veuillez <a href="{{ url_for('profile.complete_profile') }}">compléter votre profil</a>.</p>
-    </div>
-{% endif %}
-
 <div class="profile-container">
     <!-- Couverture et photo de profil -->
     <div class="profile-header">
         <div class="cover-photo" style="
             background-image: url('{{ url_for('main.uploaded_file', filename='covers/' ~ user.cover_image) if user.cover_image else url_for('static', filename='images/default_cover.jpg') }}');
-            background-size: {{ user.cover_image_zoom or 'cover' }};
-            background-position: {{ user.cover_image_pos_x or 'center' }}% {{ user.cover_image_pos_y or 'center' }}%;
-        "></div>
-        <div class="profile-photo" style="
-            background-image: url('{{ url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) if user.profile_image else url_for('static', filename='images/default_profile.jpg') }}');
-            background-size: {{ user.profile_image_zoom or 'cover' }};
-            background-position: {{ user.profile_image_pos_x or 'center' }}% {{ user.profile_image_pos_y or 'center' }}%;
         "></div>
         <div class="user-info">
             <h1 id="user-name">{{ user.first_name }} {{ user.last_name }}</h1>
-            <p>{{ user.city }}, {{ user.country }}</p>
         </div>
+        <div class="profile-photo" style="
+            background-image: url('{{ url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) if user.profile_image else url_for('static', filename='images/default_profile.jpg') }}');
+        "></div>
     </div>
 
     <!-- Navigation du profil -->
     <nav class="profile-nav">
-        <ul>
+        <ul class="left-nav">
             <li><a href="{{ url_for('profile.profile', user_id=user.id) }}" class="active">Publications</a></li>
             <li><a href="{{ url_for('profile.profile', user_id=user.id) }}">Profil</a></li>
             <li><a href="{{ url_for('profile.friends', user_id=user.id) }}">Amis</a></li>
+        </ul>
+        <ul class="right-nav">
             <li><a href="{{ url_for('profile.photos', user_id=user.id) }}">Photos</a></li>
             <li><a href="{{ url_for('profile.settings') }}">Paramètres</a></li>
             {% if current_user == user %}
@@ -43,16 +33,14 @@
         </ul>
     </nav>
 
-    <!-- Contenu principal -->
+    <!-- Section des publications -->
     <div class="main-content">
-        <!-- Section des publications -->
         <div class="posts-section">
             {% if current_user == user %}
                 <div class="create-post" onclick="window.location.href='{{ url_for('posts.create_post') }}'">
                     <p>Quoi de neuf, {{ user.username }} ?</p>
                 </div>
             {% endif %}
-
             {% for post in posts %}
                 <div class="post">
                     <div class="post-header">
@@ -71,19 +59,23 @@
                             <img src="{{ url_for('main.uploaded_file', filename=post.image) }}" alt="Image de la publication">
                         {% endif %}
                         {% if post.video %}
-                            <video controls>
+                            <video controls class="post-video">
                                 <source src="{{ url_for('main.uploaded_file', filename=post.video) }}" type="video/mp4">
+                                Votre navigateur ne supporte pas la lecture vidéo.
                             </video>
                         {% endif %}
                         {% if post.music %}
-                            <audio controls>
+                            <audio controls class="post-audio">
                                 <source src="{{ url_for('main.uploaded_file', filename=post.music) }}" type="audio/mpeg">
-                                Votre navigateur ne supporte pas la balise audio.
+                                Votre navigateur ne supporte pas la lecture audio.
                             </audio>
                         {% endif %}
                     </div>
+                    
                     <div class="post-actions">
                         <button class="like-btn" onclick="likePost({{ post.id }})">J'aime</button>
+                        <button class="dislike-btn" onclick="dislikePost({{ post.id }})">Je n'aime pas</button>
+                        <button class="emoji-btn" onclick="addEmoji({{ post.id }})">😊</button>
                         <button class="comment-btn" onclick="commentPost({{ post.id }})">Commenter</button>
                         {% if current_user == post.author %}
                             <form action="{{ url_for('posts.delete_post', post_id=post.id) }}" method="POST">
@@ -96,82 +88,25 @@
             {% endfor %}
         </div>
 
-        <!-- Section latérale -->
+        <!-- Section des informations personnelles -->
         <aside class="sidebar">
             <div class="info-card">
                 <h3>Informations</h3>
                 <ul>
-                    <li><strong>Âge :</strong> {{ user.age }} ans</li>
+                    <li><strong>Nom d'utilisateur :</strong> {{ user.username }}</li>
+                    <li><strong>Email :</strong> {% if current_user == user %}{{ user.email }}{% else %}Privé{% endif %}</li>
+                    <li><strong>Prénom :</strong> {{ user.first_name }}</li>
+                    <li><strong>Nom de famille :</strong> {{ user.last_name }}</li>
+                    <li><strong>Pays :</strong> {{ user.country }}</li>
+                    <li><strong>Ville :</strong> {{ user.city }}</li>
+                    <li><strong>Adresse :</strong> {% if current_user == user %}{{ user.address }}{% else %}Privé{% endif %}</li>
+                    <li><strong>Code Postal :</strong> {% if current_user == user %}{{ user.postal_code }}{% else %}Privé{% endif %}</li>
                     <li><strong>Sexe :</strong> {{ user.sex }}</li>
-                    <li><strong>Email :</strong> {{ user.email if user.display_email else 'Privé' }}</li>
-                    <li><strong>Téléphone :</strong> {{ user.phone if user.display_phone else 'Privé' }}</li>
-                    <li><strong>Sports :</strong>
-                        <ul>
-                            {% for user_sport in user.sports %}
-                                <li>{{ user_sport.sport.name }} - Niveau {{ user_sport.level }}/5</li>
-                            {% endfor %}
-                        </ul>
-                    </li>
+                    <li><strong>Date de Naissance :</strong> {% if current_user == user %}{{ user.birth_date }}{% else %}Privé{% endif %}</li>
+                    <li><strong>Numéro de Téléphone :</strong> {% if current_user == user %}{{ user.phone }}{% else %}Privé{% endif %}</li>
                 </ul>
-            </div>
-
-            <div class="friends-card">
-                <h3>Amis</h3>
-                <div class="friends-list">
-                    {% for friend in user.friends %}
-                        <a href="{{ url_for('profile.profile', user_id=friend.id) }}" class="friend">
-                            <img src="{{ url_for('main.uploaded_file', filename='profiles/' ~ friend.profile_image) if friend.profile_image else url_for('static', filename='images/default_profile.jpg') }}" alt="{{ friend.username }}">
-                            <span>{{ friend.username }}</span>
-                        </a>
-                    {% endfor %}
-                </div>
-                <a href="{{ url_for('profile.friends', user_id=user.id) }}" class="see-all">Voir tous les amis</a>
-            </div>
-
-            <div class="photos-card">
-                <h3>Photos</h3>
-                <div class="photos-grid">
-                    {% for post in posts %}
-                        {% if post.image %}
-                            <img src="{{ url_for('main.uploaded_file', filename=post.image) }}" alt="Photo">
-                        {% endif %}
-                    {% endfor %}
-                </div>
-                <a href="{{ url_for('profile.photos', user_id=user.id) }}" class="see-all">Voir toutes les photos</a>
             </div>
         </aside>
     </div>
 </div>
-
-<!-- Include a script for dynamic text color adjustment -->
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const coverPhoto = document.querySelector('.cover-photo');
-        const userName = document.getElementById('user-name');
-
-        // Create an off-screen canvas to analyze the cover image
-        const img = new Image();
-        img.src = coverPhoto.style.backgroundImage.slice(5, -2);
-        img.crossOrigin = 'Anonymous';
-
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-
-            // Get pixel data at the center of the image
-            const x = canvas.width / 2;
-            const y = canvas.height / 2;
-            const pixel = ctx.getImageData(x, y, 1, 1).data;
-
-            // Calculate brightness
-            const brightness = (pixel[0]*299 + pixel[1]*587 + pixel[2]*114) / 1000;
-
-            // Set text color based on brightness
-            userName.style.color = (brightness > 125) ? 'black' : 'white';
-        };
-    });
-</script>
 {% endblock %}

@@ -46,9 +46,11 @@ def change_email():
 def change_password():
     form = ChangePasswordForm()
     if form.validate_on_submit():
-        current_user.password = generate_password_hash(form.new_password.data)
+        current_user.set_password(form.new_password.data)
         db.session.commit()
-        flash("Votre mot de passe a été mis à jour.", "success")
+        flash("Votre mot de passe a été mis à jour. Veuillez vous reconnecter.", "success")
+        logout_user()  # Déconnecte l'utilisateur après la mise à jour du mot de passe
+        return redirect(url_for('auth.login'))
     else:
         flash("Erreur lors de la mise à jour du mot de passe.", "danger")
     return redirect(url_for('profile.settings'))
@@ -195,11 +197,15 @@ def photos(user_id):
     profile_images = [user.profile_image] if user.profile_image else []
     cover_images = [user.cover_image] if user.cover_image else []
     images = profile_images + cover_images + [post.image for post in posts]
-    
+
+    # Formulaire vide si nécessaire (pour utiliser hidden_tag())
+    form = EmptyForm()
+
     if not images:
         flash("Aucune image disponible à afficher.", "info")
     
-    return render_template('profile/photos.html', user=user, images=images)
+    # Passer l'instance de formulaire au template
+    return render_template('profile/photos.html', user=user, images=images, form=form)
 
 @profile_bp.route('/set_profile_photo/<string:photo_id>', methods=['GET', 'POST'])
 @login_required
@@ -309,10 +315,19 @@ def add_photo():
         for photo in photos:
             filename = secure_filename(photo.filename)
             photo.save(os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', filename))
-            new_post = Post(user_id=current_user.id, image=filename, created_at=datetime.utcnow())
+            new_post = Post(
+                user_id=current_user.id,
+                image=filename,
+                created_at=datetime.utcnow(),
+                content='Photo ajoutée',  # Ajouter un contenu par défaut
+                content_type='free',  # Exemple de type de contenu
+                visibility='public'  # Exemple de visibilité par défaut
+            )
             db.session.add(new_post)
         db.session.commit()
         flash("Photos ajoutées avec succès.", "success")
+    else:
+        flash("Aucune photo n'a été sélectionnée.", "danger")
     return redirect(url_for('profile.photos', user_id=current_user.id))
 
 @profile_bp.route('/create_album', methods=['POST'])

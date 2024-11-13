@@ -135,8 +135,6 @@ def register():
     
     form = RegistrationForm()
     if form.validate_on_submit():
-        current_app.logger.debug("Formulaire soumis avec succès.")
-        # Ajoutez ici d'autres print() pour voir les valeurs
         user = User(
             username=form.username.data,
             email=form.email.data,
@@ -243,18 +241,21 @@ def send_password_reset_email(user):
 @auth_bp.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     if current_user.is_authenticated:
-        return redirect(url_for('profile.profile'))
+        logout_user()  # Assurez-vous que l'utilisateur est déconnecté
+
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     try:
         email = s.loads(token, salt='password-reset-salt', max_age=3600)
     except Exception:
         flash('Le lien de réinitialisation est invalide ou a expiré.', 'danger')
         return redirect(url_for('auth.reset_password_request'))
+
     form = ResetPasswordForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=email).first_or_404()
         user.set_password(form.password.data)
-        db.session.commit()
-        flash('Votre mot de passe a été mis à jour.', 'success')
+        db.session.commit()  # Enregistrer le nouveau mot de passe
+        flash('Votre mot de passe a été mis à jour. Veuillez vous reconnecter.', 'success')
         return redirect(url_for('auth.login'))
-    return render_template('auth/reset_password.html', form=form)
+
+    return render_template('auth/reset_password.html', form=form, token=token)

@@ -137,41 +137,80 @@ document.addEventListener("DOMContentLoaded", function() {
 document.addEventListener("DOMContentLoaded", function() {
     const profilePhoto = document.querySelector('.profile-photo');
     const coverPhoto = document.querySelector('.cover-photo');
+    const textElements = document.querySelectorAll('.text-adapt');
 
-    function enableZoom(element) {
-        let scale = 1;
-        let posX = 0;
-        let posY = 0;
+    textElements.forEach(element => {
+        // Obtenir la couleur d'arrière-plan de l'élément parent ou de l'élément lui-même
+        let bgColor = window.getComputedStyle(element.parentElement).backgroundColor || window.getComputedStyle(element).backgroundColor;
+        console.log(`Couleur d'arrière-plan pour l'élément: ${bgColor}`); // Journal de débogage
 
-        element.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            scale += e.deltaY * -0.01;
-            scale = Math.min(Math.max(.5, scale), 3);
-            element.style.transform = `scale(${scale})`;
-        });
+        let rgb = bgColor.match(/\d+/g);
 
-        let isDragging = false;
-        let startX, startY;
+        if (rgb) {
+            // Calcul de la luminosité
+            const brightness = Math.round(((parseInt(rgb[0]) * 299) +
+                                           (parseInt(rgb[1]) * 587) +
+                                           (parseInt(rgb[2]) * 114)) / 1000);
+            console.log(`Luminosité calculée: ${brightness}`); // Journal de débogage
 
-        element.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX - posX;
-            startY = e.clientY - posY;
-        });
+            // Adapter la couleur du texte en fonction de la luminosité et ajouter un contour
+            element.style.color = (brightness > 125) ? '#1dff00' : '#e6e600'; // Vert clair si fond clair, jaune si fond foncé
+            element.style.textShadow = (brightness > 125) ? '1px 1px 2px rgba(0, 0, 0, 0.5)' : '1px 1px 2px rgba(255, 255, 255, 0.5)'; // Contour sombre ou clair pour améliorer la lisibilité
+            console.log(`Couleur de texte appliquée: ${element.style.color}`); // Journal de débogage
+        } else {
+            console.log(`Impossible de déterminer la couleur d'arrière-plan pour l'élément.`);
+        }
+    });
+});
 
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                posX = e.clientX - startX;
-                posY = e.clientY - startY;
-                element.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
-            }
-        });
+document.addEventListener("DOMContentLoaded", function() {
+    const textElements = document.querySelectorAll('.text-adapt');
 
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
+    textElements.forEach((element, index) => {
+        // Calculer la couleur dégradée basée sur la position de l'élément
+        const percentage = index / (textElements.length - 1);
+        const red = Math.round(255 * (1 - percentage));
+        const green = Math.round(255 * percentage);
+        const color = `rgb(${red}, ${green}, 0)`;
+
+        element.style.color = color;
+    });
+});
+
+function toggleVisibility(id) {
+    const form = document.getElementById(id);
+    if (form.style.display === "none" || form.style.display === "") {
+        form.style.display = "block";
+    } else {
+        form.style.display = "none";
     }
+}
 
-    enableZoom(profilePhoto);
-    enableZoom(coverPhoto);
+document.addEventListener("DOMContentLoaded", function() {
+    const coverPhoto = document.querySelector('.cover-photo');
+    const userName = document.getElementById('user-name');
+
+    // Create an off-screen canvas to analyze the cover image
+    const img = new Image();
+    img.src = coverPhoto.style.backgroundImage.slice(5, -2);
+    img.crossOrigin = 'Anonymous';
+
+    img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        // Get pixel data at the center of the image
+        const x = canvas.width / 2;
+        const y = canvas.height / 2;
+        const pixel = ctx.getImageData(x, y, 1, 1).data;
+
+        // Calculate brightness
+        const brightness = (pixel[0] * 299 + pixel[1] * 587 + pixel[2] * 114) / 1000;
+
+        // Set text color based on brightness
+        userName.style.color = (brightness > 125) ? 'black' : '#00FF00';
+    };
 });

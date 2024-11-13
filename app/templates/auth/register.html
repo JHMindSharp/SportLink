@@ -1,61 +1,63 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="register-form">
-    <h2>Inscription</h2>
-    <form action="{{ url_for('auth.register') }}" method="POST">
-        {{ form.hidden_tag() }}
-        <div class="form-group">
-            {{ form.username.label }}
-            {{ form.username(class="form-control") }}
+<div class="register-container">
+    <div class="register-form">
+        <h2>Inscription</h2>
+        <form action="{{ url_for('auth.register') }}" method="POST">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.first_name.label }}
+                {{ form.first_name(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.last_name.label }}
+                {{ form.last_name(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.birth_date.label }}
+                {{ form.birth_date(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.gender.label }}
+                {{ form.gender(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.confirm_password.label }}
+                {{ form.confirm_password(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.accept_terms() }}
+                {{ form.accept_terms.label|safe }}
+            </div>
+            <button type="submit" class="btn-primary">{{ form.submit.label }}</button>
+        </form>
+        <p>Ou inscrivez-vous avec :</p>
+        <div class="social-login">
+            <a href="{{ url_for('facebook.login') }}" class="btn-social facebook"><i class="fab fa-facebook-f"></i> Facebook</a>
+            <a href="{{ url_for('strava.login') }}" class="btn-social strava"><i class="fas fa-bicycle"></i> Strava</a>
         </div>
-        <div class="form-group">
-            {{ form.email.label }}
-            {{ form.email(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.first_name.label }}
-            {{ form.first_name(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.last_name.label }}
-            {{ form.last_name(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.birth_date.label }}
-            {{ form.birth_date(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.gender.label }}
-            {{ form.gender(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.password.label }}
-            {{ form.password(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.confirm_password.label }}
-            {{ form.confirm_password(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.accept_terms() }}
-            {{ form.accept_terms.label|safe }}
-        </div>
-        <button type="submit" class="btn-primary">{{ form.submit.label }}</button>
-    </form>
-    <p>Ou inscrivez-vous avec :</p>
-    <div class="social-login">
-        <a href="{{ url_for('facebook.login') }}" class="btn-social facebook"><i class="fab fa-facebook-f"></i> Facebook</a>
-        <a href="{{ url_for('strava.login') }}" class="btn-social strava"><i class="fas fa-bicycle"></i> Strava</a>
+        <p>Vous avez déjà un compte ? <a href="{{ url_for('auth.login') }}">Connectez-vous ici</a></p>
     </div>
-    <p>Vous avez déjà un compte ? <a href="{{ url_for('auth.login') }}">Connectez-vous ici</a></p>
-</div>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }}">{{ message }}</div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+</div>
 {% endblock %}

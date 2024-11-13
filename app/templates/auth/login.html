@@ -1,34 +1,36 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="login-form">
-    <h2>Connexion</h2>
-    <form action="{{ url_for('auth.login') }}" method="POST">
-        {{ form.hidden_tag() }}
-        <div class="form-group">
-            {{ form.email.label }}
-            {{ form.email(class="form-control") }}
+<div class="login-container">
+    <div class="login-form">
+        <h2>Connexion</h2>
+        <form action="{{ url_for('auth.login') }}" method="POST">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(class="form-control") }}
+            </div>
+            <button type="submit" class="btn-primary">{{ form.submit.label }}</button>
+        </form>
+        <p>Ou connectez-vous avec :</p>
+        <div class="social-login">
+            <a href="{{ url_for('facebook.login') }}" class="btn-social facebook"><i class="fab fa-facebook-f"></i> Facebook</a>
+            <a href="{{ url_for('strava.login') }}" class="btn-social strava"><i class="fas fa-bicycle"></i> Strava</a>
         </div>
-        <div class="form-group">
-            {{ form.password.label }}
-            {{ form.password(class="form-control") }}
-        </div>
-        <button type="submit" class="btn-primary">{{ form.submit.label }}</button>
-    </form>
-    <p>Ou connectez-vous avec :</p>
-    <div class="social-login">
-        <a href="{{ url_for('facebook.login') }}" class="btn-social facebook"><i class="fab fa-facebook-f"></i> Facebook</a>
-        <a href="{{ url_for('strava.login') }}" class="btn-social strava"><i class="fas fa-bicycle"></i> Strava</a>
+        <p>Vous n'avez pas de compte ? <a href="{{ url_for('auth.register') }}">Inscrivez-vous ici</a></p>
+        <a href="{{ url_for('auth.reset_password_request') }}" class="forgot-password">Mot de passe perdu ?</a>
     </div>
-    <p>Vous n'avez pas de compte ? <a href="{{ url_for('auth.register') }}">Inscrivez-vous ici</a></p>
-    <a href="{{ url_for('auth.reset_password_request') }}" class="forgot-password">Mot de passe perdu ?</a>
-</div>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }}">{{ message }}</div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+</div>
 {% endblock %}

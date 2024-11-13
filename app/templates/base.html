@@ -19,6 +19,7 @@
             <nav class="nav">
                 <ul class="menu">
                     {% if current_user.is_authenticated %}
+                        <li class="nav-item user-name">{{ current_user.first_name }} {{ current_user.last_name }}</li>
                         <li><a href="{{ url_for('news_feed.news_feed') }}">Fil d'actualité</a></li>
                         <li><a href="{{ url_for('profile.profile') }}">Profil</a></li>
                         <li><a href="{{ url_for('profile.list_friends') }}">Amis</a></li>
@@ -26,16 +27,15 @@
                         <li><a href="{{ url_for('notifications.list_notifications') }}">Notifications</a></li>
                         <li><a href="{{ url_for('events.organize') }}">Organiser</a></li>
                         <li><a href="{{ url_for('auth.logout') }}">Déconnexion</a></li>
-                        <li>Bienvenue sur SportLink, {{ current_user.username }}</li>
                     {% else %}
+                        <li class="nav-title">SportLink</li>
                         <li><a href="{{ url_for('auth.login') }}">Connexion</a></li>
                         <li><a href="{{ url_for('auth.register') }}">Inscription</a></li>
-                        <li>Bienvenue sur SportLink</li>
                     {% endif %}
                 </ul>
-            </nav>
+            </nav>            
         </div>
-    </header>
+    </header>    
     <main class="main-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -51,6 +51,20 @@
     <footer>
         <p>&copy; 2024 SportLink. Tous droits réservés.</p>
     </footer>
+    <div class="social-links">
+        <a href="https://www.garmin.com" target="_blank">
+            <img src="{{ url_for('static', filename='images/garmin.png') }}" alt="Garmin" class="social-icon">
+        </a>
+        <a href="https://www.facebook.com" target="_blank">
+            <img src="{{ url_for('static', filename='images/facebook.png') }}" alt="Facebook" class="social-icon">
+        </a>
+        <a href="https://www.strava.com" target="_blank">
+            <img src="{{ url_for('static', filename='images/strava.png') }}" alt="Strava" class="social-icon">
+        </a>
+        <a href="https://www.zwift.com" target="_blank">
+            <img src="{{ url_for('static', filename='images/zwift.png') }}" alt="Zwift" class="social-icon">
+        </a>
+    </div>    
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

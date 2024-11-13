@@ -6,64 +6,29 @@
 <div class="home-container">
     <section class="home-banner">
         <div class="banner-content">
-            <h1>Bienvenue sur SportLink</h1>
-            <p>Connectez-vous, engagez-vous, exercez-vous, réservez et rencontrez des partenaires sportifs similaires !</p>
-            <a href="{{ url_for('auth.register') }}" class="btn-primary">Commencer</a>
+            <h1 class="main-title">Bienvenue sur SportLink</h1>
+            <p class="subtitle">SportLink est votre plateforme ultime pour suivre vos performances sportives, trouver des partenaires et réserver du matériel ou des terrains de sport.</p>
+            <h2 class="why-join-title">Pourquoi s'inscrire ?</h2>
+            <ul class="features-list">
+                <li>★ <strong>Suivi des performances</strong> : Gardez une trace de vos activités sportives et améliorez vos performances.</li>
+                <li>★ <strong>Réseau de partenaires</strong> : Trouvez des partenaires sportifs avec des intérêts similaires.</li>
+                <li>★ <strong>Réservations faciles</strong> : Réservez du matériel et des terrains de sport en quelques clics.</li>
+                <li>★ <strong>Communauté active</strong> : Rejoignez une communauté de sportifs passionnés.</li>
+                <li>★ <strong>Messagerie intégrée</strong> : Communiquez en temps réel avec vos partenaires.</li>
+            </ul>
+            <!-- Bouton "Commencer" -->
+            <a href="{{ url_for('auth.register') }}" class="btn-primary" id="get-started-btn">Commencer</a>
         </div>
-    </section>
-
-    <!-- Sections d'informations avec descriptions détaillées -->
-    <section id="features" class="section features-section">
-        <h2>Pourquoi choisir SportLink ?</h2>
-        <div class="features-grid">
-            <!-- Exemple de fonctionnalité -->
-            <div class="feature-item">
-                <img src="{{ url_for('static', filename='images/feature1.png') }}" alt="Suivi des performances">
-                <h3>Suivi des performances</h3>
-                <p>Gardez une trace détaillée de vos activités sportives, analysez vos progrès et atteignez vos objectifs plus rapidement.</p>
-            </div>
-            <!-- Autres fonctionnalités similaires -->
-            <div class="feature-item">
-                <img src="{{ url_for('static', filename='images/feature2.png') }}" alt="Réseau de partenaires">
-                <h3>Réseau de partenaires</h3>
-                <p>Trouvez des partenaires sportifs partageant vos intérêts et niveaux de compétence.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section Équipe avec descriptions -->
-    <section id="team" class="section team-section">
-        <h2>Notre Équipe</h2>
-        <div class="team-member">
-            <img src="{{ url_for('static', filename='images/team_member1.png') }}" alt="Jonathan Huybrechts">
-            <h3>Jonathan Huybrechts</h3>
-            <p>Développeur Full Stack, Chef de projet, Designer</p>
-            <p>Passionné par le sport et la technologie, je mets mon expertise au service de la communauté sportive pour créer une plateforme innovante et conviviale.</p>
-        </div>
-    </section>
-
-
-    <!-- Section Technologies -->
-    <section id="technologies" class="section technologies-section">
-        <h2>Technologies Utilisées</h2>
-        <ul class="technologies-list">
-            <li><strong>Langages :</strong> Python, JavaScript</li>
-            <!-- Autres technologies -->
-        </ul>
     </section>
 
     <!-- Section Contact -->
     <section id="contact" class="section contact-section">
-        <h2>Contactez-nous</h2>
-        <p>Pour toute question ou suggestion, n'hésitez pas à nous contacter à l'adresse suivante :</p>
-        <p><a href="mailto:contact@sportlink.com" class="contact-email">contact@sportlink.com</a></p>
+        <h2 class="text-adapt">Contactez-nous</h2>
+        <p class="text-adapt">Pour toute question ou suggestion, n'hésitez pas à nous contacter à l'adresse suivante :</p>
+        <p><a href="mailto:contact@sportlink.com" class="contact-email text-adapt">contact@sportlink.com</a></p>
     </section>
 </div>
 
-<!-- Script pour le bouton "Commencer" -->
-<script>
-    document.getElementById('get-started-btn').addEventListener('click', function() {
-        document.getElementById('open-auth-modal').click();
-    });
-</script>
+<!-- Lien vers le fichier JavaScript -->
+<script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 {% endblock %}
