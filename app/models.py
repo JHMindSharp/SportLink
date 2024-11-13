@@ -1,18 +1,36 @@
+# Importing datetime and date classes for handling timestamps and date-related data
+# Importation des classes datetime et date pour gérer les horodatages et les données de date
 from datetime import datetime, date
+# Importing UserMixin for integrating Flask-Login's user management functionality
+# Importation de UserMixin pour intégrer les fonctionnalités de gestion des utilisateurs de Flask-Login
 from flask_login import UserMixin
+# Importing database (db) instance and bcrypt for password hashing
+# Importation de l'instance de base de données (db) et bcrypt pour le hachage des mots de passe
 from app.extensions import db, bcrypt
 from sqlalchemy import UniqueConstraint
 
+# Creating an association table for managing 'many-to-many' relationships between users
+# Création d'une table d'association pour gérer les relations 'plusieurs-à-plusieurs' entre utilisateurs
 friends = db.Table('friends',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
     db.Column('friend_id', db.Integer, db.ForeignKey('user.id'))
 )
 
+# Defining the Sport model to represent different types of sports with unique names
+# Définition du modèle Sport pour représenter différents types de sports avec des noms uniques
 class Sport(db.Model):
+# Primary key for the Sport model
+# Clé primaire pour le modèle Sport
     id = db.Column(db.Integer, primary_key=True)
+# Name field that must be unique and non-nullable
+# Champ de nom qui doit être unique et non-null
     name = db.Column(db.String(50), nullable=False, unique=True)
+# Relationship indicating that a sport can be linked to multiple UserSport entries
+# Relation indiquant qu'un sport peut être lié à plusieurs entrées UserSport
     user_sports = db.relationship('UserSport', back_populates='sport', lazy='dynamic', overlaps='user_sports')
 
+# Associative model to map users to their practiced sports and skill levels
+# Modèle associatif pour mapper les utilisateurs à leurs sports pratiqués et niveaux de compétence
 class UserSport(db.Model):
     __tablename__ = 'user_sport'
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
@@ -23,17 +41,23 @@ class UserSport(db.Model):
 
 class Rating(db.Model):
     """Model representing a rating between users."""
+# Primary key for the Sport model
+# Clé primaire pour le modèle Sport
     id = db.Column(db.Integer, primary_key=True)
     rater_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     rated_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+# Method to provide a string representation of the object, useful for debugging
+# Méthode pour fournir une représentation en chaîne de l'objet, utile pour le débogage
     def __repr__(self):
         return f'<Rating {self.rating} from User {self.rater_id} to User {self.rated_id}>'
 
 class Post(db.Model):
     """Model representing a post."""
+# Primary key for the Sport model
+# Clé primaire pour le modèle Sport
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     content_type = db.Column(db.String(20), nullable=False, default='free')
@@ -48,11 +72,15 @@ class Post(db.Model):
 
     author = db.relationship('User', back_populates='posts')
 
+# Method to provide a string representation of the object, useful for debugging
+# Méthode pour fournir une représentation en chaîne de l'objet, utile pour le débogage
     def __repr__(self):
         return f'<Post {self.id} - User {self.user_id}>'
 
 class Notification(db.Model):
     """Model representing a notification."""
+# Primary key for the Sport model
+# Clé primaire pour le modèle Sport
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     message = db.Column(db.String(255), nullable=False)
@@ -61,11 +89,15 @@ class Notification(db.Model):
 
     user = db.relationship('User', back_populates='notifications')
 
+# Method to provide a string representation of the object, useful for debugging
+# Méthode pour fournir une représentation en chaîne de l'objet, utile pour le débogage
     def __repr__(self):
         return f'<Notification {self.id} for User {self.user_id}>'
 
 class Message(db.Model):
     """Model representing a message between users."""
+# Primary key for the Sport model
+# Clé primaire pour le modèle Sport
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -75,6 +107,8 @@ class Message(db.Model):
     sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_messages')
     recipient = db.relationship('User', foreign_keys=[recipient_id], backref='received_messages')
 
+# Method to provide a string representation of the object, useful for debugging
+# Méthode pour fournir une représentation en chaîne de l'objet, utile pour le débogage
     def __repr__(self):
         return f'<Message {self.id}>'
 
@@ -82,11 +116,19 @@ class User(db.Model, UserMixin):
     """Model representing a user."""
     __tablename__ = 'user'
 
+# Primary key for the Sport model
+# Clé primaire pour le modèle Sport
     id = db.Column(db.Integer, primary_key=True)
+# Name field that must be unique and non-nullable
+# Champ de nom qui doit être unique et non-null
     username = db.Column(db.String(64), index=True, unique=True, nullable=False)
     email = db.Column(db.String(120), index=True, unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
+# Name field that must be unique and non-nullable
+# Champ de nom qui doit être unique et non-null
     first_name = db.Column(db.String(64))
+# Name field that must be unique and non-nullable
+# Champ de nom qui doit être unique et non-null
     last_name = db.Column(db.String(64))
     birth_date = db.Column(db.Date)
     gender = db.Column(db.String(10))
@@ -123,7 +165,7 @@ class User(db.Model, UserMixin):
         db.UniqueConstraint('strava_id', name='uq_user_strava_id'),
         db.UniqueConstraint('facebook_id', name='uq_user_facebook_id'),
     )
-    # Relationships
+
     notifications = db.relationship('Notification', back_populates='user', lazy='dynamic')
     sports = db.relationship('UserSport', back_populates='user', lazy='dynamic', overlaps='user_sports')
     posts = db.relationship('Post', back_populates='author', cascade="all, delete-orphan", lazy='dynamic')
@@ -137,15 +179,23 @@ class User(db.Model, UserMixin):
         backref=db.backref('friend_of', lazy='dynamic'),
         lazy='dynamic'
     )
+# Relationship indicating that a sport can be linked to multiple UserSport entries
+# Relation indiquant qu'un sport peut être lié à plusieurs entrées UserSport
     user_sports = db.relationship('UserSport', back_populates='user', lazy='dynamic', overlaps='sports')
 
+# Method to check if the current user has another user as a friend
+# Méthode pour vérifier si l'utilisateur actuel a un autre utilisateur comme ami
     def is_friend(self, user):
         return self.friends.filter(friends.c.friend_id == user.id).count() > 0
 
+# Method to hash and store the user's password securely
+# Méthode pour hacher et stocker le mot de passe de l'utilisateur de manière sécurisée
     def set_password(self, password):
         """Generate a password hash using bcrypt."""
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
 
+# Method to check if a provided password matches the stored hashed password
+# Méthode pour vérifier si un mot de passe fourni correspond au mot de passe haché stocké
     def check_password(self, password):
         """Check the password hash against the provided password."""
         return bcrypt.check_password_hash(self.password_hash, password)
@@ -179,5 +229,7 @@ class User(db.Model, UserMixin):
         else:
             return None
 
+# Method to provide a string representation of the object, useful for debugging
+# Méthode pour fournir une représentation en chaîne de l'objet, utile pour le débogage
     def __repr__(self):
         return f'<User {self.username}>'

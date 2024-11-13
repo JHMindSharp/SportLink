@@ -2,67 +2,63 @@ import logging
 from logging.config import fileConfig
 
 from flask import current_app
-
 from alembic import context
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+# Alembic configuration object to access the .ini file values.
+# Objet de configuration Alembic pour accéder aux valeurs du fichier .ini.
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
+# Setup logging from the config file.
+# Configure les logs à partir du fichier de configuration.
 fileConfig(config.config_file_name)
 logger = logging.getLogger('alembic.env')
 
-
+# Function to get the engine used by Flask-Migrate
+# Fonction pour obtenir l'engine utilisé par Flask-Migrate
 def get_engine():
     try:
-        # this works with Flask-SQLAlchemy<3 and Alchemical
+        # Works for Flask-SQLAlchemy versions < 3
+        # Fonctionne pour Flask-SQLAlchemy versions < 3
         return current_app.extensions['migrate'].db.get_engine()
     except (TypeError, AttributeError):
-        # this works with Flask-SQLAlchemy>=3
+        # Works for Flask-SQLAlchemy versions >= 3
+        # Fonctionne pour Flask-SQLAlchemy versions >= 3
         return current_app.extensions['migrate'].db.engine
 
-
+# Function to get the URL of the engine
+# Fonction pour obtenir l'URL de l'engine
 def get_engine_url():
     try:
-        return get_engine().url.render_as_string(hide_password=False).replace(
-            '%', '%%')
+        # Returns the URL, hiding the password.
+        # Retourne l'URL, masquant le mot de passe.
+        return get_engine().url.render_as_string(hide_password=False).replace('%', '%%')
     except AttributeError:
+        # Fallback to string conversion.
+        # Conversion en chaîne de caractères par défaut.
         return str(get_engine().url).replace('%', '%%')
 
-
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
+# Setting the main option for the SQLAlchemy URL in Alembic.
+# Configuration de l'option principale pour l'URL SQLAlchemy dans Alembic.
 config.set_main_option('sqlalchemy.url', get_engine_url())
 target_db = current_app.extensions['migrate'].db
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
-
-
+# Function to get the metadata of the target database
+# Fonction pour obtenir les métadonnées de la base de données cible
 def get_metadata():
     if hasattr(target_db, 'metadatas'):
         return target_db.metadatas[None]
     return target_db.metadata
 
-
+# Function to run migrations in offline mode
+# Fonction pour exécuter les migrations en mode hors ligne
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
 
-    This configures the context with just a URL
-    and not an Engine, though an Engine is acceptable
-    here as well.  By skipping the Engine creation
-    we don't even need a DBAPI to be available.
-
-    Calls to context.execute() here emit the given string to the
-    script output.
-
+    Configures the context with a URL without creating an Engine.
+    Useful when DBAPI is not required.
+    Configures the context and runs migrations in script output.
     """
+    # Configuration du contexte avec l'URL sans créer un Engine.
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url, target_metadata=get_metadata(), literal_binds=True
@@ -71,31 +67,32 @@ def run_migrations_offline():
     with context.begin_transaction():
         context.run_migrations()
 
-
+# Function to run migrations in online mode
+# Fonction pour exécuter les migrations en mode en ligne
 def run_migrations_online():
     """Run migrations in 'online' mode.
 
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
+    Creates an Engine and associates a connection with the context.
     """
-
-    # this callback is used to prevent an auto-migration from being generated
-    # when there are no changes to the schema
-    # reference: http://alembic.zzzcomputing.com/en/latest/cookbook.html
+    # Callback to prevent auto-migration generation if no schema changes.
+    # Callback pour empêcher la génération de migrations automatiques s'il n'y a pas de modifications.
     def process_revision_directives(context, revision, directives):
         if getattr(config.cmd_opts, 'autogenerate', False):
             script = directives[0]
             if script.upgrade_ops.is_empty():
-                directives[:] = []
+                directives[:] = []  # Prevents migration creation
                 logger.info('No changes in schema detected.')
 
+    # Adding the callback to the configuration if not already present.
+    # Ajout du callback à la configuration s'il n'est pas déjà présent.
     conf_args = current_app.extensions['migrate'].configure_args
     if conf_args.get("process_revision_directives") is None:
         conf_args["process_revision_directives"] = process_revision_directives
 
     connectable = get_engine()
 
+    # Establishing a connection and running the migration.
+    # Établissement d'une connexion et exécution de la migration.
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
@@ -106,7 +103,8 @@ def run_migrations_online():
         with context.begin_transaction():
             context.run_migrations()
 
-
+# Determine the mode (offline/online) and run the appropriate function.
+# Détermine le mode (hors ligne/en ligne) et exécute la fonction appropriée.
 if context.is_offline_mode():
     run_migrations_offline()
 else:
