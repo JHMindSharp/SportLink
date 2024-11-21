@@ -1,3 +1,9 @@
+"""
+app/__init__.py
+
+This module initializes the Flask application and configures its extensions, blueprints, and other components.
+"""
+
 from flask import Flask
 from flask_dance.contrib.facebook import make_facebook_blueprint
 from flask_dance.contrib.strava import make_strava_blueprint
@@ -5,17 +11,22 @@ from app.extensions import db, migrate, bcrypt, jwt, mail, login_manager
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from dotenv import load_dotenv
 
-# Charger les variables d'environnement
+# Load environment variables from .env file
 load_dotenv()
 
-# Initialiser CSRFProtect
+# Initialize CSRF protection
 csrf = CSRFProtect()
 
 def create_app():
+    """
+    Create and configure the Flask application.
+    Returns:
+        app (Flask): The configured Flask app.
+    """
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_pyfile('config.py')
     
-    # Initialisation des extensions
+    # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
     bcrypt.init_app(app)
@@ -23,14 +34,14 @@ def create_app():
     mail.init_app(app)
     login_manager.init_app(app)
     
-    # Activer CSRF pour l'application
+    # Enable CSRF protection for the app
     csrf.init_app(app)
 
-    # Configurer le login manager
+    # Configure Flask-Login
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'info'
     
-    # Enregistrer les blueprints
+    # Register blueprints for modular routing
     from app.auth.routes import auth_bp
     from app.profile.routes import profile_bp
     from app.posts.routes import posts_bp
@@ -49,7 +60,7 @@ def create_app():
     app.register_blueprint(notifications_bp, url_prefix='/notifications')
     app.register_blueprint(events_bp, url_prefix='/events')
     
-    # OAuth Facebook
+    # Configure OAuth for Facebook
     facebook_bp = make_facebook_blueprint(
         client_id=app.config['FACEBOOK_OAUTH_CLIENT_ID'],
         client_secret=app.config['FACEBOOK_OAUTH_CLIENT_SECRET'],
@@ -57,7 +68,7 @@ def create_app():
     )
     app.register_blueprint(facebook_bp, url_prefix='/facebook_login')
     
-    # OAuth Strava
+    # Configure OAuth for Strava
     strava_bp = make_strava_blueprint(
         client_id=app.config['STRAVA_OAUTH_CLIENT_ID'],
         client_secret=app.config['STRAVA_OAUTH_CLIENT_SECRET'],
@@ -66,19 +77,31 @@ def create_app():
     )
     app.register_blueprint(strava_bp, url_prefix='/strava_login')
     
-    # Charger l'utilisateur pour le login manager
+    # Configure user loader for Flask-Login
     with app.app_context():
         from app.models import User
         
         @login_manager.user_loader
         def load_user(user_id):
+            """
+            Load a user by ID for Flask-Login.
+            Args:
+                user_id (int): The ID of the user.
+            Returns:
+                User: The user instance.
+            """
             return User.query.get(int(user_id))
 
-    # Ajouter le context processor pour injecter les formulaires et le csrf_token
+    # Inject global variables such as forms and CSRF tokens into templates
     from app.auth.forms import LoginForm, RegistrationForm
     
     @app.context_processor
     def inject_globals():
+        """
+        Inject global variables into templates.
+        Returns:
+            dict: A dictionary of global variables.
+        """
         return dict(
             login_form=LoginForm(),
             register_form=RegistrationForm(),

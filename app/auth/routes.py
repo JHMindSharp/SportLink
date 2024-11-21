@@ -1,3 +1,16 @@
+"""
+app/auth/routes.py
+
+This module contains all the authentication-related routes for the SportLink application.
+It handles user registration, login, logout, OAuth integration (Strava and Facebook),
+password reset, and email confirmation functionalities.
+
+Components:
+- OAuth Authentication (Strava, Facebook)
+- Traditional user authentication (register, login, logout)
+- Password reset and email confirmation features
+"""
+
 from flask import Blueprint, request, render_template, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User
@@ -6,12 +19,21 @@ from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Message
 from app.auth.forms import RegistrationForm, LoginForm, ResetPasswordRequestForm, ResetPasswordForm
 from flask_dance.contrib.strava import strava
-from flask_dance.contrib.facebook import facebook  # Import du blueprint Facebook
+from flask_dance.contrib.facebook import facebook
 
+# Define the authentication blueprint
 auth_bp = Blueprint('auth', __name__)
+
+# ============================
+# OAuth Authentication Routes
+# ============================
 
 @auth_bp.route('/oauth_strava')
 def oauth_strava():
+    """
+    Handles OAuth authentication with Strava.
+    Redirects to login if the user is not authorized or retrieves user info from the Strava API.
+    """
     if not strava.authorized:
         current_app.logger.warning("Utilisateur non autorisé, redirection vers la connexion.")
         return redirect(url_for('auth.login'))
@@ -40,6 +62,9 @@ def oauth_strava():
     return create_or_get_user_from_strava(info)
 
 def create_or_get_user_from_strava(info):
+    """
+    Creates or retrieves a user account based on Strava OAuth data.
+    """
     email = info.get('email')
     first_name = info.get('firstname')
     last_name = info.get('lastname')
@@ -73,6 +98,10 @@ def create_or_get_user_from_strava(info):
 
 @auth_bp.route('/oauth_facebook')
 def oauth_facebook():
+    """
+    Handles OAuth authentication with Facebook.
+    Redirects to login if the user is not authorized or retrieves user info from the Facebook API.
+    """
     if not facebook.authorized:
         current_app.logger.warning("Utilisateur non autorisé, redirection vers la connexion.")
         return redirect(url_for('auth.login'))
@@ -97,6 +126,9 @@ def oauth_facebook():
     return create_or_get_user_from_facebook(info)
 
 def create_or_get_user_from_facebook(info):
+    """
+    Creates or retrieves a user account based on Facebook OAuth data.
+    """
     email = info.get('email')
     first_name = info.get('first_name')
     last_name = info.get('last_name')
@@ -128,8 +160,15 @@ def create_or_get_user_from_facebook(info):
         flash('Connexion réussie via Facebook.', 'success')
         return redirect(url_for('profile.profile'))
 
+# ============================
+# User Authentication Routes
+# ============================
+
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
+    """
+    Handles user registration with form validation and email confirmation.
+    """
     if current_user.is_authenticated:
         return redirect(url_for('profile.profile'))
     
@@ -158,6 +197,9 @@ def register():
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    Handles user login with form validation.
+    """
     if current_user.is_authenticated:
         return redirect(url_for('profile.profile'))
     
@@ -187,11 +229,21 @@ def login():
 @auth_bp.route('/logout')
 @login_required
 def logout():
+    """
+    Logs the user out and redirects to the home page.
+    """
     logout_user()
     flash("Vous avez été déconnecté.", "info")
     return redirect(url_for('main.index'))
 
+# ============================
+# Email and Password Management
+# ============================
+
 def send_confirmation_email(user_email):
+    """
+    Sends an email confirmation link to the user.
+    """
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     token = s.dumps(user_email, salt='email-confirm-salt')
     confirm_url = url_for('auth.confirm_email', token=token, _external=True)
@@ -200,6 +252,9 @@ def send_confirmation_email(user_email):
 
 @auth_bp.route('/confirm/<token>')
 def confirm_email(token):
+    """
+    Confirms the user's email based on the provided token.
+    """
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     try:
         email = s.loads(token, salt='email-confirm-salt', max_age=3600)
@@ -214,12 +269,18 @@ def confirm_email(token):
     return redirect(url_for('profile.profile'))
 
 def send_email(subject, recipients, html_body):
+    """
+    Sends an email with the specified subject and HTML body.
+    """
     msg = Message(subject, recipients=recipients)
     msg.html = html_body
     mail.send(msg)
 
 @auth_bp.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():
+    """
+    Handles password reset request by sending a reset link to the user's email.
+    """
     if current_user.is_authenticated:
         return redirect(url_for('profile.profile'))
     form = ResetPasswordRequestForm()
@@ -232,6 +293,9 @@ def reset_password_request():
     return render_template('auth/reset_password_request.html', form=form)
 
 def send_password_reset_email(user):
+    """
+    Sends a password reset email to the user.
+    """
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     token = s.dumps(user.email, salt='password-reset-salt')
     reset_url = url_for('auth.reset_password', token=token, _external=True)
@@ -240,8 +304,11 @@ def send_password_reset_email(user):
 
 @auth_bp.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
+    """
+    Resets the user's password based on the provided token.
+    """
     if current_user.is_authenticated:
-        logout_user()  # Assurez-vous que l'utilisateur est déconnecté
+        logout_user()
 
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     try:
@@ -254,7 +321,7 @@ def reset_password(token):
     if form.validate_on_submit():
         user = User.query.filter_by(email=email).first_or_404()
         user.set_password(form.password.data)
-        db.session.commit()  # Enregistrer le nouveau mot de passe
+        db.session.commit()
         flash('Votre mot de passe a été mis à jour. Veuillez vous reconnecter.', 'success')
         return redirect(url_for('auth.login'))
 

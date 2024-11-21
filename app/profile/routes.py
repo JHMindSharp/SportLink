@@ -1,3 +1,9 @@
+"""
+app/profile/routes.py
+
+This file contains all routes and logic related to user profile management.
+"""
+
 from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, current_app
 from flask_wtf import FlaskForm
 from flask_login import login_required, current_user, logout_user
