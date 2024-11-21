@@ -1,4 +1,4 @@
-
+![SportLink](https://image.noelshack.com/fichiers/2024/47/4/1732214090-sportlink.jpg "SportLink")
 # SportLink
 
 ## Introduction
@@ -66,25 +66,17 @@ To run this project locally, follow these steps:
 
 ## Screenshots
 ### Accueil SportLink
-![Accueil SportLink](images/screenshots/accueilsportlink.png "Accueil SportLink")
-
-### Connexion SportLink
-![Connexion SportLink](images/screenshots/connexionsportlink.png "Connexion SportLink")
+![Accueil SportLink](https://image.noelshack.com/fichiers/2024/47/4/1732213862-accueilsportlink.jpg "Accueil SportLink")
 
 ### Fil d'actualité SportLink
-![Fil d'actualité SportLink](images/screenshots/fildactusportlink.png "Fil d'actualité SportLink")
+![Fil d'actualité SportLink](https://image.noelshack.com/fichiers/2024/47/4/1732213858-fildactusportlink.jpg "Fil d'actualité SportLink")
 
 ### Inscription SportLink
-![Inscription SportLink](images/screenshots/inscriptionsportlink.png "Inscription SportLink")
-
-### Options du compte SportLink
-![Options du compte SportLink](images/screenshots/optioncomptessportlink.png "Options du compte SportLink")
+![Inscription SportLink](https://image.noelshack.com/fichiers/2024/47/4/1732213862-inscriptionsportlink.jpg "Inscription SportLink")
 
 ### Profil SportLink
-![Profil SportLink](images/screenshots/profilsportlink.png "Profil SportLink")
+![Profil SportLink](https://image.noelshack.com/fichiers/2024/47/4/1732213862-profilsportlink.jpg "Profil SportLink")
 
-### Publications SportLink
-![Publications SportLink](images/screenshots/publicationsportlink.png "Publications SportLink")
 
 ---
 
