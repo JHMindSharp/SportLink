@@ -1,16 +1,3 @@
-"""
-app/auth/routes.py
-
-This module contains all the authentication-related routes for the SportLink application.
-It handles user registration, login, logout, OAuth integration (Strava and Facebook),
-password reset, and email confirmation functionalities.
-
-Components:
-- OAuth Authentication (Strava, Facebook)
-- Traditional user authentication (register, login, logout)
-- Password reset and email confirmation features
-"""
-
 from flask import Blueprint, request, render_template, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User
@@ -20,6 +7,7 @@ from flask_mail import Message
 from app.auth.forms import RegistrationForm, LoginForm, ResetPasswordRequestForm, ResetPasswordForm
 from flask_dance.contrib.strava import strava
 from flask_dance.contrib.facebook import facebook
+from app.utils.uploads_utils import allowed_file, save_file
 
 # Define the authentication blueprint
 auth_bp = Blueprint('auth', __name__)
@@ -30,15 +18,10 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/oauth_strava')
 def oauth_strava():
-    """
-    Handles OAuth authentication with Strava.
-    Redirects to login if the user is not authorized or retrieves user info from the Strava API.
-    """
     if not strava.authorized:
         current_app.logger.warning("Utilisateur non autorisé, redirection vers la connexion.")
         return redirect(url_for('auth.login'))
 
-    # Vérifier le token
     token = strava.token
     current_app.logger.debug(f"Token Strava : {token}")
 
@@ -62,9 +45,6 @@ def oauth_strava():
     return create_or_get_user_from_strava(info)
 
 def create_or_get_user_from_strava(info):
-    """
-    Creates or retrieves a user account based on Strava OAuth data.
-    """
     email = info.get('email')
     first_name = info.get('firstname')
     last_name = info.get('lastname')
@@ -98,10 +78,6 @@ def create_or_get_user_from_strava(info):
 
 @auth_bp.route('/oauth_facebook')
 def oauth_facebook():
-    """
-    Handles OAuth authentication with Facebook.
-    Redirects to login if the user is not authorized or retrieves user info from the Facebook API.
-    """
     if not facebook.authorized:
         current_app.logger.warning("Utilisateur non autorisé, redirection vers la connexion.")
         return redirect(url_for('auth.login'))
@@ -126,9 +102,6 @@ def oauth_facebook():
     return create_or_get_user_from_facebook(info)
 
 def create_or_get_user_from_facebook(info):
-    """
-    Creates or retrieves a user account based on Facebook OAuth data.
-    """
     email = info.get('email')
     first_name = info.get('first_name')
     last_name = info.get('last_name')
@@ -166,58 +139,56 @@ def create_or_get_user_from_facebook(info):
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    """
-    Handles user registration with form validation and email confirmation.
-    """
     if current_user.is_authenticated:
         return redirect(url_for('profile.profile'))
-    
+
     form = RegistrationForm()
+
     if form.validate_on_submit():
+        email = form.email.data.strip().lower()
+        existing_user = User.query.filter_by(email=email).first()
+
+        if existing_user:
+            flash("L'adresse email est déjà utilisée. Connectez-vous ou utilisez une autre adresse email.", "warning")
+            return redirect(url_for('auth.login'))
+
         user = User(
-            username=form.username.data,
-            email=form.email.data,
-            first_name=form.first_name.data,
-            last_name=form.last_name.data,
+            email=email,
+            first_name=form.first_name.data.strip().capitalize(),
+            last_name=form.last_name.data.strip().capitalize(),
             birth_date=form.birth_date.data,
-            gender=form.gender.data
+            phone=form.phone.data.strip(),
+            password_hash=User.generate_password_hash(form.password.data)
         )
-        user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
-        send_confirmation_email(user.email)
+
         flash("Inscription réussie ! Vérifiez votre email pour confirmer votre inscription.", "success")
         login_user(user)
         return redirect(url_for('profile.profile'))
-    
+
     if form.errors:
         current_app.logger.debug(f"Erreurs de validation : {form.errors}")
-    
+
     return render_template('auth/register.html', form=form)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """
-    Handles user login with form validation.
-    """
     if current_user.is_authenticated:
         return redirect(url_for('profile.profile'))
-    
-    form = LoginForm()
-    if form.validate_on_submit():
-        current_app.logger.debug("Formulaire de connexion validé.")
-        email = form.email.data
-        password = form.password.data
 
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        email = form.email.data.strip().lower()
         user = User.query.filter_by(email=email).first()
-        if user is None or not user.check_password(password):
-            current_app.logger.warning(f"Échec de connexion pour l'email : {email}")
+
+        if user is None or not user.check_password(form.password.data):
             flash("Email ou mot de passe invalide.", "danger")
             return redirect(url_for('auth.login'))
 
         login_user(user)
         flash("Connexion réussie.", "success")
-        current_app.logger.info(f"Utilisateur {email} connecté avec succès.")
         next_page = request.args.get('next')
         return redirect(next_page or url_for('profile.profile'))
 
@@ -229,9 +200,6 @@ def login():
 @auth_bp.route('/logout')
 @login_required
 def logout():
-    """
-    Logs the user out and redirects to the home page.
-    """
     logout_user()
     flash("Vous avez été déconnecté.", "info")
     return redirect(url_for('main.index'))
@@ -241,9 +209,6 @@ def logout():
 # ============================
 
 def send_confirmation_email(user_email):
-    """
-    Sends an email confirmation link to the user.
-    """
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     token = s.dumps(user_email, salt='email-confirm-salt')
     confirm_url = url_for('auth.confirm_email', token=token, _external=True)
@@ -252,9 +217,6 @@ def send_confirmation_email(user_email):
 
 @auth_bp.route('/confirm/<token>')
 def confirm_email(token):
-    """
-    Confirms the user's email based on the provided token.
-    """
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     try:
         email = s.loads(token, salt='email-confirm-salt', max_age=3600)
@@ -269,18 +231,12 @@ def confirm_email(token):
     return redirect(url_for('profile.profile'))
 
 def send_email(subject, recipients, html_body):
-    """
-    Sends an email with the specified subject and HTML body.
-    """
     msg = Message(subject, recipients=recipients)
     msg.html = html_body
     mail.send(msg)
 
 @auth_bp.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():
-    """
-    Handles password reset request by sending a reset link to the user's email.
-    """
     if current_user.is_authenticated:
         return redirect(url_for('profile.profile'))
     form = ResetPasswordRequestForm()
@@ -293,9 +249,6 @@ def reset_password_request():
     return render_template('auth/reset_password_request.html', form=form)
 
 def send_password_reset_email(user):
-    """
-    Sends a password reset email to the user.
-    """
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     token = s.dumps(user.email, salt='password-reset-salt')
     reset_url = url_for('auth.reset_password', token=token, _external=True)
@@ -304,9 +257,6 @@ def send_password_reset_email(user):
 
 @auth_bp.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
-    """
-    Resets the user's password based on the provided token.
-    """
     if current_user.is_authenticated:
         logout_user()
 
@@ -326,3 +276,23 @@ def reset_password(token):
         return redirect(url_for('auth.login'))
 
     return render_template('auth/reset_password.html', form=form, token=token)
+
+@auth_bp.route('/upload/profile', methods=['POST'])
+def upload_profile():
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(url_for('profile.complete_profile'))
+
+    file = request.files['file']
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(url_for('profile.complete_profile'))
+
+    if allowed_file(file.filename):
+        folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'profiles')
+        file_path = save_file(file, folder)
+        flash(f'File uploaded successfully: {file_path}')
+        return redirect(url_for('profile.view_profile'))
+    else:
+        flash('File type not allowed')
+        return redirect(url_for('profile.complete_profile'))
