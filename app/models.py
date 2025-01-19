@@ -83,15 +83,14 @@ class User(db.Model, UserMixin):
     __tablename__ = 'user'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), index=True, unique=True, nullable=False)
     email = db.Column(db.String(120), index=True, unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     first_name = db.Column(db.String(64))
     last_name = db.Column(db.String(64))
     birth_date = db.Column(db.Date)
     gender = db.Column(db.String(10))
-    profile_image = db.Column(db.String(255), nullable=True)
-    cover_image = db.Column(db.String(255), nullable=True)
+    profile_image = db.Column(db.String(255), nullable=True, default='default_profile.jpg')
+    cover_image = db.Column(db.String(255), nullable=True, default='default_cover.jpg')
     profile_image_zoom = db.Column(db.Float, default=1.0)
     profile_image_pos_x = db.Column(db.Float, default=0.0)
     profile_image_pos_y = db.Column(db.Float, default=0.0)

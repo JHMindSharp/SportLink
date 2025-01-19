@@ -1,16 +1,10 @@
-"""
-app/profile/routes.py
-
-This file contains all routes and logic related to user profile management.
-"""
-
 from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, current_app
-from flask_wtf import FlaskForm
 from flask_login import login_required, current_user, logout_user
 from app.models import User, Sport, Rating, Post, UserSport
 from app.extensions import db
 from datetime import datetime
 import os
+import uuid
 from werkzeug.utils import secure_filename
 from app.profile.forms import (
     EditProfileForm,
@@ -20,12 +14,26 @@ from app.profile.forms import (
     CompleteProfileForm
 )
 from app.auth.forms import RegistrationForm, LoginForm
-from werkzeug.security import generate_password_hash
+from flask_wtf import FlaskForm
+
 
 profile_bp = Blueprint('profile', __name__)
 
 class EmptyForm(FlaskForm):
     pass
+
+# Helper function to save images in user-specific folders
+def save_image(image_file, folder_name, user_id):
+    filename = secure_filename(image_file.filename)
+    unique_prefix = str(uuid.uuid4())
+    final_filename = f"{unique_prefix}_{filename}"
+
+    user_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], folder_name, str(user_id))
+    os.makedirs(user_folder, exist_ok=True)
+
+    file_path = os.path.join(user_folder, final_filename)
+    image_file.save(file_path)
+    return f"{user_id}/{final_filename}"
 
 @profile_bp.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -55,7 +63,7 @@ def change_password():
         current_user.set_password(form.new_password.data)
         db.session.commit()
         flash("Votre mot de passe a été mis à jour. Veuillez vous reconnecter.", "success")
-        logout_user()  # Déconnecte l'utilisateur après la mise à jour du mot de passe
+        logout_user()
         return redirect(url_for('auth.login'))
     else:
         flash("Erreur lors de la mise à jour du mot de passe.", "danger")
@@ -66,11 +74,11 @@ def change_password():
 def delete_account():
     form = DeleteAccountForm()
     if form.validate_on_submit():
-        user = current_user._get_current_object()  # Obtenir l'instance réelle de l'utilisateur
-        if isinstance(user, User):  # Vérification que l'utilisateur est bien de la classe User
+        user = current_user._get_current_object()
+        if isinstance(user, User):
             db.session.delete(user)
             db.session.commit()
-            logout_user()  # Déconnexion après la suppression de l'utilisateur
+            logout_user()
             flash("Votre compte a été supprimé.", "success")
             return redirect(url_for('main.index'))
         else:
@@ -88,6 +96,7 @@ def profile():
     posts = user.posts.order_by(Post.created_at.desc()).all()
     sports = Sport.query.all()
     form = EmptyForm()
+
     return render_template(
         'profile/profile.html',
         user=user,
@@ -95,7 +104,9 @@ def profile():
         total_ratings=total_ratings,
         posts=posts,
         sports=sports,
-        form=form
+        form=form,
+        profile_image=user.profile_image or 'default_profile.jpg',
+        cover_image=user.cover_image or 'default_cover.jpg'
     )
 
 @profile_bp.route('/edit_profile', methods=['GET', 'POST'])
@@ -123,19 +134,12 @@ def edit_profile():
 
         if form.profile_image.data:
             profile_image = form.profile_image.data
-            filename = secure_filename(profile_image.filename)
-            profile_image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'profiles', filename)
-            profile_image.save(profile_image_path)
-            user.profile_image = filename
+            user.profile_image = save_image(profile_image, 'profiles', user.id)
 
         if form.cover_image.data:
             cover_image = form.cover_image.data
-            filename = secure_filename(cover_image.filename)
-            cover_image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'covers', filename)
-            cover_image.save(cover_image_path)
-            user.cover_image = filename
+            user.cover_image = save_image(cover_image, 'covers', user.id)
 
-        # Update sports and levels
         for sport in Sport.query.all():
             level = request.form.get(f'sport_{sport.id}')
             if level:
@@ -151,7 +155,6 @@ def edit_profile():
         flash("Profil mis à jour avec succès.", "success")
         return redirect(url_for('profile.profile'))
 
-    # Pre-fill the form with existing data
     form.username.data = user.username
     form.email.data = user.email
     form.first_name.data = user.first_name
@@ -169,7 +172,12 @@ def edit_profile():
     form.longitude.data = user.longitude
 
     sports = Sport.query.all()
-    return render_template('profile/edit_profile.html', user=user, form=form, sports=sports)
+    return render_template(
+        'profile/edit_profile.html',
+        user=user,
+        sports=sports,
+        form=form
+    )
 
 @profile_bp.route('/add_friend/<int:user_id>', methods=['POST'])
 @login_required
@@ -204,71 +212,34 @@ def photos(user_id):
     cover_images = [user.cover_image] if user.cover_image else []
     images = profile_images + cover_images + [post.image for post in posts]
 
-    # Formulaire vide si nécessaire (pour utiliser hidden_tag())
     form = EmptyForm()
 
     if not images:
         flash("Aucune image disponible à afficher.", "info")
-    
-    # Passer l'instance de formulaire au template
+
     return render_template('profile/photos.html', user=user, images=images, form=form)
-
-@profile_bp.route('/set_profile_photo/<string:photo_id>', methods=['GET', 'POST'])
-@login_required
-def set_profile_photo(photo_id):
-    post = Post.query.get_or_404(photo_id)
-    if post.user_id == current_user.id:
-        current_user.profile_image = post.image
-        db.session.commit()
-        flash("Votre photo de profil a été mise à jour.", "success")
-    return redirect(url_for('profile.photos', user_id=current_user.id))
-
-@profile_bp.route('/set_cover_photo/<string:photo_id>', methods=['GET', 'POST'])
-@login_required
-def set_cover_photo(photo_id):
-    post = Post.query.get_or_404(photo_id)
-    if post.user_id == current_user.id:
-        current_user.cover_image = post.image
-        db.session.commit()
-        flash("Votre photo de couverture a été mise à jour.", "success")
-    return redirect(url_for('profile.photos', user_id=current_user.id))
 
 @profile_bp.route('/complete_profile', methods=['GET', 'POST'])
 @login_required
 def complete_profile():
     form = CompleteProfileForm()
-    # Populate the sports choices
     form.sports.choices = [(str(sport.id), sport.name) for sport in Sport.query.all()]
     form.levels.choices = [(str(i), f'{i} étoiles') for i in range(1, 6)]
-    
+
     if form.validate_on_submit():
-        # Update user's birth date and sex
         current_user.birth_date = form.birth_date.data
         current_user.sex = form.sex.data
 
-        # Handle profile image upload
         if form.profile_image.data:
-            profile_image_filename = save_image(form.profile_image.data, 'profiles')
+            profile_image_filename = save_image(form.profile_image.data, 'profiles', current_user.id)
             current_user.profile_image = profile_image_filename
-
-        # Handle cover image upload
         if form.cover_image.data:
-            cover_image_filename = save_image(form.cover_image.data, 'covers')
+            cover_image_filename = save_image(form.cover_image.data, 'covers', current_user.id)
             current_user.cover_image = cover_image_filename
 
-        # Save image positions and zoom levels
-        current_user.profile_image_zoom = float(request.form.get('profile_image_zoom', 1.0))
-        current_user.profile_image_pos_x = float(request.form.get('profile_image_pos_x', 0.0))
-        current_user.profile_image_pos_y = float(request.form.get('profile_image_pos_y', 0.0))
-        current_user.cover_image_zoom = float(request.form.get('cover_image_zoom', 1.0))
-        current_user.cover_image_pos_x = float(request.form.get('cover_image_pos_x', 0.0))
-        current_user.cover_image_pos_y = float(request.form.get('cover_image_pos_y', 0.0))
-
-        # Clear existing sports
         UserSport.query.filter_by(user_id=current_user.id).delete()
-        # Add selected sports and levels
-        selected_sports = form.sports.data  # List of sport IDs as strings
-        selected_levels = form.levels.data  # List of levels as strings
+        selected_sports = form.sports.data
+        selected_levels = form.levels.data
         for sport_id, level in zip(selected_sports, selected_levels):
             user_sport = UserSport(user_id=current_user.id, sport_id=int(sport_id), level=int(level))
             db.session.add(user_sport)
@@ -279,90 +250,57 @@ def complete_profile():
 
     return render_template('profile/complete_profile.html', form=form)
 
-def save_image(image_file, folder_name):
-    filename = secure_filename(image_file.filename)
-    path = os.path.join(current_app.root_path, 'static', 'uploads', folder_name, filename)
-    image_file.save(path)
-    return filename
-
-@profile_bp.route('/friends')
-@login_required
-def friends():
-    if current_user.friends.count() == 0:
-        # Find users in the same city with similar sports
-        similar_users = User.query.filter(
-            User.city == current_user.city,
-            User.id != current_user.id
-        ).all()
-
-        # Filter users based on shared sports and similar levels
-        user_sports = {us.sport_id: us.level for us in current_user.sports}
-        suggestions = []
-        for user in similar_users:
-            common_sports = []
-            for us in user.sports:
-                if us.sport_id in user_sports:
-                    level_diff = abs(us.level - user_sports[us.sport_id])
-                    if level_diff <= 1:  # Similar level
-                        common_sports.append(us.sport.name)
-            if common_sports:
-                suggestions.append((user, common_sports))
-
-        return render_template('profile/friends.html', suggestions=suggestions)
-    else:
-        friends = current_user.friends.all()
-        return render_template('profile/friends.html', friends=friends)
-
-@profile_bp.route('/add_photo', methods=['POST'])
-@login_required
-def add_photo():
-    if 'photoUpload' in request.files:
-        photos = request.files.getlist('photoUpload')
-        for photo in photos:
-            filename = secure_filename(photo.filename)
-            photo.save(os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', filename))
-            new_post = Post(
-                user_id=current_user.id,
-                image=filename,
-                created_at=datetime.utcnow(),
-                content='Photo ajoutée',  # Ajouter un contenu par défaut
-                content_type='free',  # Exemple de type de contenu
-                visibility='public'  # Exemple de visibilité par défaut
-            )
-            db.session.add(new_post)
-        db.session.commit()
-        flash("Photos ajoutées avec succès.", "success")
-    else:
-        flash("Aucune photo n'a été sélectionnée.", "danger")
-    return redirect(url_for('profile.photos', user_id=current_user.id))
-
-@profile_bp.route('/create_album', methods=['POST'])
-@login_required
-def create_album():
-    album_name = request.form.get('albumName')
-    # Logic to create an album can be added here (e.g., storing album info in the database)
-    flash(f"Album '{album_name}' créé avec succès.", "success")
-    return redirect(url_for('profile.photos', user_id=current_user.id))
-
-def save_image(image_file, folder_name):
-    filename = secure_filename(image_file.filename)
-    path = os.path.join(current_app.root_path, 'static', 'uploads', folder_name, filename)
-    image_file.save(path)
-    return filename
-
-@profile_bp.route('/search_users')
+@profile_bp.route('/search_users', methods=['GET'])
 @login_required
 def search_users():
-    query = request.args.get('query', '')
+    query = request.args.get('query', '').strip().lower()
+    suggestions = []
     results = []
+
     if query:
         results = User.query.filter(
             (User.first_name.ilike(f'%{query}%')) | (User.last_name.ilike(f'%{query}%'))
         ).all()
-    return render_template('profile/search_results.html', results=results, query=query)
+    else:
+        suggestions = User.query.filter(
+            User.city.ilike(current_user.city),
+            User.id != current_user.id
+        ).limit(10).all()
 
-@profile_bp.route('/view_profile/<int:user_id>')
+    return render_template('profile/search_results.html', results=results, suggestions=suggestions, query=query)
+
+@profile_bp.route('/add_contact/<int:user_id>', methods=['POST'])
 @login_required
-def view_profile(user_id):
-    user = User.query.get_or_404(user_id)
-    return render_template('profile/view_profile.html', user=user)
+def add_contact(user_id):
+    user_to_add = User.query.get_or_404(user_id)
+    if user_to_add == current_user:
+        flash("Vous ne pouvez pas vous ajouter vous-même.", "danger")
+        return redirect(url_for('profile.list_contacts'))
+
+    if current_user.is_friend(user_to_add):
+        flash("Cette personne est déjà dans vos contacts.", "info")
+    else:
+        current_user.friends.append(user_to_add)
+        db.session.commit()
+        flash(f"{user_to_add.first_name} {user_to_add.last_name} a été ajouté à vos contacts.", "success")
+
+    return redirect(url_for('profile.list_contacts'))
+
+@profile_bp.route('/contacts', methods=['GET'])
+@login_required
+def list_contacts():
+    contacts = current_user.friends.all()
+    return render_template('profile/contacts.html', contacts=contacts)
+
+@profile_bp.route('/remove_contact/<int:user_id>', methods=['POST'])
+@login_required
+def remove_contact(user_id):
+    user_to_remove = User.query.get_or_404(user_id)
+    if current_user.is_friend(user_to_remove):
+        current_user.friends.remove(user_to_remove)
+        db.session.commit()
+        flash(f"{user_to_remove.first_name} {user_to_remove.last_name} a été retiré de vos contacts.", "success")
+    else:
+        flash("Cette personne n'est pas dans vos contacts.", "info")
+
+    return redirect(url_for('profile.list_contacts'))

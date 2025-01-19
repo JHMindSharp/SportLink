@@ -1,11 +1,12 @@
+# app/news_feed/routes.py
+
 """
 app/news_feed/routes.py
 
-This module defines routes related to the news feed functionality in the SportLink application.
-The news feed allows users to view posts from their friends and public posts.
-
-Components:
-- `news_feed`: Displays the news feed with posts from friends, the current user, and public posts.
+Ce module définit les routes liées à la fonctionnalité de fil d'actualité
+dans l'application SportLink. Il permet à l'utilisateur connecté de
+voir les publications pertinentes (les siennes, celles de ses amis,
+ainsi que tout post déclaré 'public').
 """
 
 from flask import Blueprint, render_template, request
@@ -13,39 +14,43 @@ from flask_login import login_required, current_user
 from app.models import Post
 from app.extensions import db
 
-# Define the Blueprint for news feed-related routes
+# Définition du Blueprint pour les routes du fil d'actualité
 news_feed_bp = Blueprint('news_feed', __name__, template_folder='templates/news_feed')
 
 @news_feed_bp.route('/', methods=['GET'])
 @login_required
 def news_feed():
     """
-    Displays the news feed for the logged-in user.
+    Affiche le fil d'actualité pour l'utilisateur connecté.
 
-    - Retrieves posts created by the current user, their friends, and public posts.
-    - Orders posts by creation date in descending order.
+    Logique adoptée pour la visibilité des posts :
+    1. Les publications créées par l'utilisateur (sans tenir compte de la visibilité).
+    2. Les publications de ses amis (quelle que soit leur visibilité *ou* seulement public, 
+       selon votre logique).
+    3. Toutes les publications marquées 'public' (donc accessibles à tous).
 
-    Process:
-    - Fetch the IDs of the current user's friends.
-    - Include the current user's ID in the list.
-    - Query posts that are either:
-      1. Created by the current user or their friends, and
-      2. Visible as public posts or specific to the current user.
+    Remarque :
+    - Si vous voulez que l'utilisateur ne voie que les posts "public" de ses amis (mais pas 
+      leurs posts "private"), il suffit d'ajuster le filtre.
 
-    Returns:
-    - Rendered 'news_feed.html' template with the list of posts.
+    Retourne :
+    - Le template 'news_feed.html' avec la liste des posts à afficher.
     """
-    # Get IDs of the current user's friends
+    # Récupérer la liste des IDs d'amis
     friends_ids = [friend.id for friend in current_user.friends]
 
-    # Include the current user's ID in the list of post sources
+    # Inclure l'ID du user courant pour afficher ses propres posts
     friends_ids.append(current_user.id)
 
-    # Query the database for posts from the current user, their friends, and public posts
+    # Ici, on fusionne la logique de "posts/routes.py" et "news_feed/routes.py" 
+    # pour n'avoir qu'une seule route de fil d'actualité.
+
+    # On veut récupérer tous les posts qui proviennent de l'utilisateur courant 
+    # ou de ses amis, + tous les posts 'public' de n'importe qui.
+    # => Condition : (user_id dans friends_ids) OU (visibility == 'public')
     posts = Post.query.filter(
-        (Post.user_id.in_(friends_ids)) &  # Posts from the current user and friends
-        ((Post.visibility == 'public') | (Post.user_id == current_user.id))  # Public or specific to the user
+        (Post.user_id.in_(friends_ids)) | (Post.visibility == 'public')
     ).order_by(Post.created_at.desc()).all()
 
-    # Render the news feed template with the retrieved posts
+    # Rendre le template avec la liste des posts
     return render_template('news_feed/news_feed.html', posts=posts)

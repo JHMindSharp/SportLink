@@ -1,0 +1,59 @@
+/* Container spécifique pour la page d'inscription */
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 20px;
+    background: none;
+}
+
+.register-form {
+    max-width: 500px;
+    width: 100%;
+    padding: 30px;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 4px 15px rgba(0, 255, 0, 0.3);
+    text-align: center;
+}
+
+/* Titre de la page */
+.register-form h2 {
+    text-align: center;
+    color: #00FF00;
+    margin-bottom: 20px;
+}
+
+/* Champs de formulaire */
+.register-form .form-group {
+    margin-bottom: 20px;
+}
+
+.register-form .form-group input {
+    width: 100%;
+}
+
+.register-form .form-group label {
+    color: #00FF00;
+    font-weight: bold;
+}
+
+/* Bouton spécifique à la page */
+.register-form .btn-primary {
+    width: 100%;
+    font-size: 1.2rem;
+}
+
+/* Lien pour la connexion */
+.register-form a {
+    color: #00FF00;
+    text-decoration: none;
+}
+
+.register-form a:hover {
+    color: #000000;
+    background-color: #00FF00;
+    padding: 3px;
+    border-radius: 5px;
+}

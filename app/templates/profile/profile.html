@@ -1,52 +1,68 @@
 {% extends 'base.html' %}
 
-{% block title %}Profil de {{ user.username }} - SportLink{% endblock %}
+{% block title %}Profil de {{ user.first_name }} {{ user.last_name }} - SportLink{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}
 
 {% block content %}
 <div class="profile-container">
-    <!-- Couverture et photo de profil -->
+    <!-- En-tête du profil avec photo de couverture et photo de profil -->
     <div class="profile-header">
-        <div class="cover-photo" style="
-            background-image: url('{{ url_for('main.uploaded_file', filename='covers/' ~ user.cover_image) if user.cover_image else url_for('static', filename='images/default_cover.jpg') }}');
-        "></div>
-        <div class="user-info">
-            <h1 id="user-name">{{ user.first_name }} {{ user.last_name }}</h1>
+        <!-- Photo de couverture -->
+        <div class="cover-photo" 
+             style="background-image: url('{{ url_for('static', filename='uploads/covers/' + (user.cover_image or 'default_cover.jpg')) }}');">
         </div>
-        <div class="profile-photo" style="
-            background-image: url('{{ url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) if user.profile_image else url_for('static', filename='images/default_profile.jpg') }}');
-        "></div>
+
+        <!-- Photo de profil -->
+        <div class="profile-photo" 
+             style="background-image: url('{{ url_for('static', filename='uploads/profiles/' + (user.profile_image or 'default_profile.jpg')) }}');">
+        </div>
+    </div>
+
+    <!-- Informations utilisateur -->
+    <div class="profile-info">
+        <h1>{{ user.first_name }} {{ user.last_name }}</h1>
+        <p>{{ user.email }}</p>
     </div>
 
     <!-- Navigation du profil -->
     <nav class="profile-nav">
-        <ul class="left-nav">
+        <ul class="nav-left">
             <li><a href="{{ url_for('profile.profile', user_id=user.id) }}" class="active">Publications</a></li>
-            <li><a href="{{ url_for('profile.profile', user_id=user.id) }}">Profil</a></li>
-            <li><a href="{{ url_for('profile.friends', user_id=user.id) }}">Amis</a></li>
+            <li><a href="{{ url_for('profile.list_friends') }}">Amis</a></li>
         </ul>
-        <ul class="right-nav">
+        <ul class="nav-right">
             <li><a href="{{ url_for('profile.photos', user_id=user.id) }}">Photos</a></li>
             <li><a href="{{ url_for('profile.settings') }}">Paramètres</a></li>
             {% if current_user == user %}
-                <li><a href="{{ url_for('profile.edit_profile') }}">Mise à jour de mon profil</a></li>
+                <li><a href="{{ url_for('profile.edit_profile') }}">Modifier le profil</a></li>
             {% endif %}
         </ul>
     </nav>
 
-    <!-- Section des publications -->
-    <div class="main-content">
+    <!-- Contenu principal : publications et informations personnelles -->
+    <div class="profile-main">
+        <!-- Section des publications -->
         <div class="posts-section">
             {% if current_user == user %}
                 <div class="create-post" onclick="window.location.href='{{ url_for('posts.create_post') }}'">
-                    <p>Quoi de neuf, {{ user.username }} ?</p>
+                    <p>Quoi de neuf, {{ user.first_name }} ?</p>
                 </div>
             {% endif %}
+
             {% for post in posts %}
                 <div class="post">
                     <div class="post-header">
-                        <img src="{{ url_for('main.uploaded_file', filename='profiles/' ~ post.author.profile_image) if post.author.profile_image else url_for('static', filename='images/default_profile.jpg') }}" alt="{{ post.author.username }}">
+                        <img src="{{ url_for('static', filename='uploads/profiles/' + (post.author.profile_image or 'default_profile.jpg')) }}" 
+                             alt="{{ post.author.first_name }}">
                         <div>
-                            <span class="author-name">{{ post.author.username }}</span>
+                            <span class="author-name">{{ post.author.first_name }} {{ post.author.last_name }}</span>
                             <span class="post-date">{{ post.created_at.strftime('%d %B %Y à %H:%M') }}</span>
                         </div>
                     </div>
@@ -56,32 +72,19 @@
                         {% endif %}
                         <p>{{ post.content }}</p>
                         {% if post.image %}
-                            <img src="{{ url_for('main.uploaded_file', filename=post.image) }}" alt="Image de la publication">
+                            <img src="{{ url_for('static', filename='uploads/posts/' + post.image) }}" alt="Image de la publication">
                         {% endif %}
                         {% if post.video %}
-                            <video controls class="post-video">
-                                <source src="{{ url_for('main.uploaded_file', filename=post.video) }}" type="video/mp4">
+                            <video controls>
+                                <source src="{{ url_for('static', filename='uploads/posts/' + post.video) }}" type="video/mp4">
                                 Votre navigateur ne supporte pas la lecture vidéo.
                             </video>
                         {% endif %}
                         {% if post.music %}
-                            <audio controls class="post-audio">
-                                <source src="{{ url_for('main.uploaded_file', filename=post.music) }}" type="audio/mpeg">
+                            <audio controls>
+                                <source src="{{ url_for('static', filename='uploads/posts/' + post.music) }}" type="audio/mpeg">
                                 Votre navigateur ne supporte pas la lecture audio.
                             </audio>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="post-actions">
-                        <button class="like-btn" onclick="likePost({{ post.id }})">J'aime</button>
-                        <button class="dislike-btn" onclick="dislikePost({{ post.id }})">Je n'aime pas</button>
-                        <button class="emoji-btn" onclick="addEmoji({{ post.id }})">😊</button>
-                        <button class="comment-btn" onclick="commentPost({{ post.id }})">Commenter</button>
-                        {% if current_user == post.author %}
-                            <form action="{{ url_for('posts.delete_post', post_id=post.id) }}" method="POST">
-                                {{ form.hidden_tag() }}
-                                <button type="submit" class="delete-btn">Supprimer</button>
-                            </form>
                         {% endif %}
                     </div>
                 </div>
@@ -93,17 +96,13 @@
             <div class="info-card">
                 <h3>Informations</h3>
                 <ul>
-                    <li><strong>Nom d'utilisateur :</strong> {{ user.username }}</li>
                     <li><strong>Email :</strong> {% if current_user == user %}{{ user.email }}{% else %}Privé{% endif %}</li>
                     <li><strong>Prénom :</strong> {{ user.first_name }}</li>
-                    <li><strong>Nom de famille :</strong> {{ user.last_name }}</li>
-                    <li><strong>Pays :</strong> {{ user.country }}</li>
-                    <li><strong>Ville :</strong> {{ user.city }}</li>
-                    <li><strong>Adresse :</strong> {% if current_user == user %}{{ user.address }}{% else %}Privé{% endif %}</li>
-                    <li><strong>Code Postal :</strong> {% if current_user == user %}{{ user.postal_code }}{% else %}Privé{% endif %}</li>
-                    <li><strong>Sexe :</strong> {{ user.sex }}</li>
-                    <li><strong>Date de Naissance :</strong> {% if current_user == user %}{{ user.birth_date }}{% else %}Privé{% endif %}</li>
-                    <li><strong>Numéro de Téléphone :</strong> {% if current_user == user %}{{ user.phone }}{% else %}Privé{% endif %}</li>
+                    <li><strong>Nom :</strong> {{ user.last_name }}</li>
+                    <li><strong>Pays :</strong> {{ user.country or 'Non renseigné' }}</li>
+                    <li><strong>Ville :</strong> {{ user.city or 'Non renseigné' }}</li>
+                    <li><strong>Sexe :</strong> {{ user.sex or 'Non renseigné' }}</li>
+                    <li><strong>Date de naissance :</strong> {% if user.birth_date %}{{ user.birth_date.strftime('%d/%m/%Y') }}{% else %}Non renseigné{% endif %}</li>
                 </ul>
             </div>
         </aside>

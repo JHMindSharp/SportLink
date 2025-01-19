@@ -1,8 +1,8 @@
-"""Initial migration to create user table
+"""Ajout des valeurs par défaut pour les images
 
-Revision ID: e1273befde59
+Revision ID: c1542325366b
 Revises: 
-Create Date: 2024-11-03 22:10:26.257890
+Create Date: 2025-01-17 14:54:34.977883
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e1273befde59'
+revision = 'c1542325366b'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -26,17 +26,25 @@ def upgrade():
     )
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('username', sa.String(length=64), nullable=False),
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password_hash', sa.String(length=128), nullable=False),
+    sa.Column('first_name', sa.String(length=64), nullable=True),
+    sa.Column('last_name', sa.String(length=64), nullable=True),
+    sa.Column('birth_date', sa.Date(), nullable=True),
+    sa.Column('gender', sa.String(length=10), nullable=True),
     sa.Column('profile_image', sa.String(length=255), nullable=True),
     sa.Column('cover_image', sa.String(length=255), nullable=True),
+    sa.Column('profile_image_zoom', sa.Float(), nullable=True),
+    sa.Column('profile_image_pos_x', sa.Float(), nullable=True),
+    sa.Column('profile_image_pos_y', sa.Float(), nullable=True),
+    sa.Column('cover_image_zoom', sa.Float(), nullable=True),
+    sa.Column('cover_image_pos_x', sa.Float(), nullable=True),
+    sa.Column('cover_image_pos_y', sa.Float(), nullable=True),
     sa.Column('country', sa.String(length=100), nullable=True),
     sa.Column('city', sa.String(length=100), nullable=True),
     sa.Column('address', sa.String(length=200), nullable=True),
     sa.Column('postal_code', sa.String(length=20), nullable=True),
     sa.Column('sex', sa.String(length=10), nullable=True),
-    sa.Column('birth_date', sa.Date(), nullable=True),
     sa.Column('phone', sa.String(length=20), nullable=True),
     sa.Column('display_phone', sa.Boolean(), nullable=True),
     sa.Column('display_email', sa.Boolean(), nullable=True),
@@ -46,13 +54,26 @@ def upgrade():
     sa.Column('email_confirmed', sa.Boolean(), nullable=True),
     sa.Column('provider', sa.String(length=50), nullable=True),
     sa.Column('provider_id', sa.String(length=100), nullable=True),
+    sa.Column('latitude', sa.Float(), nullable=True),
+    sa.Column('longitude', sa.Float(), nullable=True),
+    sa.Column('sport', sa.String(length=50), nullable=True),
+    sa.Column('level', sa.String(length=50), nullable=True),
+    sa.Column('strava_id', sa.String(length=64), nullable=True),
+    sa.Column('facebook_id', sa.String(length=64), nullable=True),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('provider_id')
+    sa.UniqueConstraint('facebook_id', name='uq_user_facebook_id'),
+    sa.UniqueConstraint('provider_id'),
+    sa.UniqueConstraint('strava_id', name='uq_user_strava_id')
     )
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_user_email'), ['email'], unique=True)
-        batch_op.create_index(batch_op.f('ix_user_username'), ['username'], unique=True)
 
+    op.create_table('friends',
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('friend_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['friend_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], )
+    )
     op.create_table('message',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('sender_id', sa.Integer(), nullable=False),
@@ -66,6 +87,15 @@ def upgrade():
     with op.batch_alter_table('message', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_message_timestamp'), ['timestamp'], unique=False)
 
+    op.create_table('notification',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('message', sa.String(length=255), nullable=False),
+    sa.Column('timestamp', sa.DateTime(), nullable=True),
+    sa.Column('is_read', sa.Boolean(), nullable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('post',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -77,6 +107,7 @@ def upgrade():
     sa.Column('video', sa.String(length=255), nullable=True),
     sa.Column('music', sa.String(length=255), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('visibility', sa.String(length=10), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -90,9 +121,10 @@ def upgrade():
     sa.ForeignKeyConstraint(['rater_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('user_sports',
+    op.create_table('user_sport',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('sport_id', sa.Integer(), nullable=False),
+    sa.Column('level', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['sport_id'], ['sport.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('user_id', 'sport_id')
@@ -102,15 +134,16 @@ def upgrade():
 
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_table('user_sports')
+    op.drop_table('user_sport')
     op.drop_table('rating')
     op.drop_table('post')
+    op.drop_table('notification')
     with op.batch_alter_table('message', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_message_timestamp'))
 
     op.drop_table('message')
+    op.drop_table('friends')
     with op.batch_alter_table('user', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_user_username'))
         batch_op.drop_index(batch_op.f('ix_user_email'))
 
     op.drop_table('user')

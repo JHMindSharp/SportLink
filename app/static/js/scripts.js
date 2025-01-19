@@ -214,3 +214,41 @@ document.addEventListener("DOMContentLoaded", function() {
         userName.style.color = (brightness > 125) ? 'black' : '#00FF00';
     };
 });
+
+// Gestion des messages flash
+document.addEventListener("DOMContentLoaded", () => {
+    const flashMessages = document.querySelectorAll('.flash-messages .alert');
+
+    // Supprimer automatiquement les messages après 5 secondes
+    flashMessages.forEach((message) => {
+        setTimeout(() => {
+            message.style.opacity = '0';
+            message.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                if (message.parentElement) {
+                    message.parentElement.removeChild(message);
+                }
+            }, 500); // Attendre la fin de la transition avant de supprimer l'élément
+        }, 5000); // 5 secondes avant de commencer à disparaître
+
+        // Permettre la fermeture au clic
+        message.addEventListener('click', () => {
+            message.style.opacity = '0';
+            message.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                if (message.parentElement) {
+                    message.parentElement.removeChild(message);
+                }
+            }, 500);
+        });
+
+        // Faire disparaître au survol
+        message.addEventListener('mouseenter', () => {
+            message.style.opacity = '0.6';
+        });
+
+        message.addEventListener('mouseleave', () => {
+            message.style.opacity = '1';
+        });
+    });
+});

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Recherche - SportLink{% endblock %}
+
+{% block content %}
+<div class="search-container">
+    <h1>Recherche d'utilisateurs</h1>
+    <form method="GET" action="{{ url_for('profile.search_users') }}">
+        <input type="text" name="query" placeholder="Recherchez par prénom ou nom" value="{{ query }}" class="search-bar">
+        <button type="submit" class="btn-primary">Rechercher</button>
+    </form>
+
+    {% if query %}
+        <h2>Résultats pour "{{ query }}"</h2>
+        {% if results %}
+            <ul class="user-list">
+                {% for user in results %}
+                    <li>
+                        <img src="{{ url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) if user.profile_image else url_for('static', filename='images/default_profile.jpg') }}" alt="{{ user.first_name }} {{ user.last_name }}">
+                        <span>{{ user.first_name }} {{ user.last_name }}</span>
+                        <form method="POST" action="{{ url_for('profile.add_contact', user_id=user.id) }}">
+                            <button type="submit" class="btn-add">Ajouter en contact</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Aucun utilisateur trouvé pour cette recherche.</p>
+        {% endif %}
+    {% else %}
+        <h2>Suggestions d'utilisateurs</h2>
+        {% if suggestions %}
+            <ul class="user-list">
+                {% for user in suggestions %}
+                    <li>
+                        <img src="{{ url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) if user.profile_image else url_for('static', filename='images/default_profile.jpg') }}" alt="{{ user.first_name }} {{ user.last_name }}">
+                        <span>{{ user.first_name }} {{ user.last_name }}</span>
+                        <form method="POST" action="{{ url_for('profile.add_contact', user_id=user.id) }}">
+                            <button type="submit" class="btn-add">Ajouter en contact</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Aucune suggestion d'utilisateur disponible.</p>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

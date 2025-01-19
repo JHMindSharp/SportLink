@@ -146,26 +146,37 @@ def register():
 
     if form.validate_on_submit():
         email = form.email.data.strip().lower()
-        existing_user = User.query.filter_by(email=email).first()
+        phone = form.phone.data.strip()
 
-        if existing_user:
-            flash("L'adresse email est déjà utilisée. Connectez-vous ou utilisez une autre adresse email.", "warning")
+        # Vérification si l'email ou le téléphone existent déjà
+        existing_email = User.query.filter_by(email=email).first()
+        existing_phone = User.query.filter_by(phone=phone).first()
+
+        if existing_email:
+            flash("Cette adresse email est déjà utilisée. Veuillez vous connecter ou en utiliser une autre.", "warning")
             return redirect(url_for('auth.login'))
 
-        user = User(
-            email=email,
-            first_name=form.first_name.data.strip().capitalize(),
-            last_name=form.last_name.data.strip().capitalize(),
-            birth_date=form.birth_date.data,
-            phone=form.phone.data.strip(),
-            password_hash=User.generate_password_hash(form.password.data)
-        )
-        db.session.add(user)
-        db.session.commit()
+        if existing_phone:
+            flash("Ce numéro de téléphone est déjà utilisé. Veuillez vous connecter ou en utiliser un autre.", "warning")
+            return redirect(url_for('auth.login'))
 
-        flash("Inscription réussie ! Vérifiez votre email pour confirmer votre inscription.", "success")
-        login_user(user)
-        return redirect(url_for('profile.profile'))
+        try:
+            user = User(
+                email=email,
+                first_name=form.first_name.data.strip().capitalize(),
+                last_name=form.last_name.data.strip().capitalize(),
+                birth_date=form.birth_date.data,
+                phone=phone
+            )
+            user.set_password(form.password.data)
+            db.session.add(user)
+            db.session.commit()
+            flash("Inscription réussie !", "success")
+            login_user(user)
+            return redirect(url_for('profile.profile'))
+        except Exception as e:
+            flash("Une erreur s'est produite lors de l'inscription. Veuillez réessayer.", "danger")
+            current_app.logger.error(f"Erreur lors de l'inscription : {e}")
 
     if form.errors:
         current_app.logger.debug(f"Erreurs de validation : {form.errors}")

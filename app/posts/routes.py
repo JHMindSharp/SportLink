@@ -1,13 +1,12 @@
+# app/posts/routes.py
+
 """
 app/posts/routes.py
 
-This module defines routes related to managing posts in the SportLink application.
-It includes features for creating, deleting, and viewing posts in the news feed.
-
-Components:
-- `create_post`: Allows users to create a new post with multimedia and visibility settings.
-- `delete_post`: Allows users to delete their own posts.
-- `news_feed`: Displays posts from friends and public posts in a news feed format.
+Ce module définit les routes liées à la gestion des publications (posts)
+dans l'application SportLink. Il inclut les fonctionnalités de création
+et de suppression de publications, tandis que l'affichage global
+du fil d'actualité est géré dans app/news_feed/routes.py.
 """
 
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
@@ -17,28 +16,26 @@ from app.extensions import db
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
-from app.posts.forms import CreatePostForm  # Import du formulaire
+from app.posts.forms import CreatePostForm
 
-# Define the Blueprint for post-related routes
+# Définition du Blueprint pour les routes liées aux posts
 posts_bp = Blueprint('posts', __name__, template_folder='templates/posts')
+
 
 @posts_bp.route('/create_post', methods=['GET', 'POST'])
 @login_required
 def create_post():
     """
-    Handles the creation of a new post.
+    Gère la création d'une nouvelle publication.
 
     GET:
-    - Renders the post creation form.
-
+      - Affiche le formulaire de création de post (CreatePostForm).
+    
     POST:
-    - Validates the form submission.
-    - Processes uploaded files (image, video, music) and saves them.
-    - Creates a new post in the database with the provided details.
-
-    Returns:
-    - Redirects to the user's profile after successful post creation.
-    - Renders the 'create_post.html' template on form validation failure.
+      - Valide la soumission du formulaire.
+      - Traite les fichiers uploadés (image, vidéo, musique) et les enregistre.
+      - Crée une nouvelle entrée Post dans la base de données.
+      - Redirige vers la page de profil de l'utilisateur en cas de succès.
     """
     form = CreatePostForm()
     if form.validate_on_submit():
@@ -48,7 +45,7 @@ def create_post():
         content = form.content.data
         visibility = form.visibility.data
 
-        # Handle uploaded files
+        # Gestion des fichiers uploadés
         image_file = form.image.data
         video_file = form.video.data
         music_file = form.music.data
@@ -75,7 +72,7 @@ def create_post():
             music_file.save(music_path)
             music_filename = 'posts/music/' + music_filename
 
-        # Create a new post
+        # Création de l'objet Post
         new_post = Post(
             user_id=current_user.id,
             content_type=content_type,
@@ -95,21 +92,16 @@ def create_post():
 
     return render_template('posts/create_post.html', form=form)
 
+
 @posts_bp.route('/delete_post/<int:post_id>', methods=['POST'])
 @login_required
 def delete_post(post_id):
     """
-    Handles the deletion of a user's post.
+    Gère la suppression d'un post par son auteur.
 
-    - Checks if the post exists and belongs to the current user.
-    - Deletes the post from the database.
-
-    Parameters:
-    - `post_id`: ID of the post to be deleted.
-
-    Returns:
-    - Redirects to the user's profile after successful deletion.
-    - Displays an error message if the post cannot be deleted.
+    - Vérifie que le post existe et qu'il appartient bien à l'utilisateur connecté.
+    - Supprime le post de la base de données.
+    - Redirige vers la page de profil de l'utilisateur, avec un message de succès ou d'erreur.
     """
     post = Post.query.get(post_id)
     if not post or post.user_id != current_user.id:
@@ -126,26 +118,7 @@ def delete_post(post_id):
 
     return redirect(url_for('profile.profile'))
 
-@posts_bp.route('/news_feed', methods=['GET'])
-@login_required
-def news_feed():
-    """
-    Displays the news feed for the current user.
-
-    - Retrieves posts from the user's friends and public posts.
-    - Orders posts by their creation date in descending order.
-
-    Returns:
-    - Rendered 'news_feed.html' template with the list of posts.
-    """
-    # Get IDs of the current user's friends
-    friends_ids = [friend.id for friend in current_user.friends]
-
-    # Query the database for posts from friends and public posts
-    posts = Post.query.filter(
-        (Post.user_id.in_(friends_ids)) |
-        (Post.visibility == 'public')
-    ).order_by(Post.created_at.desc()).all()
-
-    # Render the news feed template with the retrieved posts
-    return render_template('posts/news_feed.html', posts=posts)
+# -----------------------------------------------------------
+# NOTE : la route news_feed a été supprimée d'ici car
+# elle est désormais gérée dans app/news_feed/routes.py
+# -----------------------------------------------------------

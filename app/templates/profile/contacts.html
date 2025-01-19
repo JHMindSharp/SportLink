@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Contacts - SportLink{% endblock %}
+
+{% block content %}
+<div class="contacts-container">
+    <h1>Mes Contacts</h1>
+    {% if contacts %}
+        <ul class="user-list">
+            {% for user in contacts %}
+                <li>
+                    <img src="{{ url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) if user.profile_image else url_for('static', filename='images/default_profile.jpg') }}" alt="{{ user.first_name }} {{ user.last_name }}">
+                    <span>{{ user.first_name }} {{ user.last_name }}</span>
+                    <form method="POST" action="{{ url_for('profile.remove_contact', user_id=user.id) }}">
+                        <button type="submit" class="btn-remove">Retirer</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Vous n'avez pas encore ajouté de contacts.</p>
+    {% endif %}
+</div>
+{% endblock %}
