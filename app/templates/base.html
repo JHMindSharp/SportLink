@@ -1,116 +1,96 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>{% block title %}SportLink{% endblock %}</title>
-  <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
-  <meta name="csrf-token" content="{{ csrf_token() }}">
-  <!-- Respecter le viewport pour l’accessibilité mobile -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
-
-  {% block extra_head %}{% endblock %}
+    <meta charset="UTF-8">
+    <title>{% block title %}SportLink{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
-<header class="header" role="banner">
-  <div class="header-container">
-    <!-- Logo -->
-    <a href="{{ url_for('main.index') }}" class="logo-container" aria-label="Retour à l'accueil">
-      <img src="{{ url_for('static', filename='images/logo.png') }}"
-           alt="Logo SportLink"
-           aria-hidden="false">
-    </a>
-    <!-- Navigation principale -->
-    <nav class="nav" role="navigation" aria-label="Navigation principale">
-      <ul class="menu" role="menubar">
-        {% if current_user.is_authenticated %}
-          <!-- Fil d'actualité -->
-          <li role="none">
-            <a href="{{ url_for('news_feed.news_feed') }}" role="menuitem">Fil d'actualité</a>
-          </li>
-          <!-- Profil -->
-          <li role="none">
-            <a href="{{ url_for('profile.profile') }}" role="menuitem">
-              Mon Profil
+
+{% if not current_user.is_authenticated %}
+    <!-- NAVBAR standard (non connecté) -->
+    <header class="header">
+        <div class="header-container">
+            <!-- Titre centré dans la navbar -->
+            <div class="nav-title">SportLink</div>
+            <!-- On peut ajouter des liens si besoin (ex: Connexion / Inscription) -->
+        </div>
+    </header>
+
+{% else %}
+    <!-- NAVBAR pour utilisateur connecté
+         On la place ici, toujours en haut de la page,
+         ou alors on pourrait faire en sorte qu'elle soit "en bas de la couverture".
+         Dans ce snippet, on la laisse en haut mais
+         on pourrait ajuster en jouant avec margin ou position: absolute.
+    -->
+    <header class="header">
+        <div class="header-container">
+            <!-- Logo à gauche, si souhaité -->
+            <a href="{{ url_for('news_feed.news_feed') }}" class="logo-container">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo SportLink">
             </a>
-          </li>
-          <!-- Dropdown -->
-          <li class="nav-item dropdown" role="none" aria-haspopup="true" aria-expanded="false">
-            <a href="#" role="menuitem" onclick="toggleDropdown('main-dropdown')">
-              Menu <i class="fas fa-caret-down"></i>
-            </a>
-            <ul class="dropdown-menu" id="main-dropdown" role="menu">
-              <li role="none"><a href="{{ url_for('profile.list_friends') }}" role="menuitem">Mes Amis</a></li>
-              <li role="none"><a href="{{ url_for('messages.inbox') }}" role="menuitem">Messages</a></li>
-              <li role="none"><a href="{{ url_for('notifications.list_notifications') }}" role="menuitem">Notifications</a></li>
-              <li role="none"><a href="{{ url_for('events.organize') }}" role="menuitem">Organiser</a></li>
-              <li role="none"><a href="{{ url_for('profile.settings') }}" role="menuitem">Paramètres</a></li>
-              <li role="none"><a href="{{ url_for('auth.logout') }}" role="menuitem">Déconnexion</a></li>
-            </ul>
-          </li>
-        {% else %}
-          <li class="nav-title">SportLink</li>
-          <li role="none">
-            <a href="{{ url_for('auth.login') }}" role="menuitem">Connexion</a>
-          </li>
-          <li role="none">
-            <a href="{{ url_for('auth.register') }}" role="menuitem">Inscription</a>
-          </li>
+            <!-- Menu -->
+            <nav class="nav">
+                <ul class="menu">
+                    <li><a href="{{ url_for('news_feed.news_feed') }}">Fil d'actualité</a></li>
+                    <li><a href="{{ url_for('profile.profile') }}">Mon Profil</a></li>
+                    <!-- 
+                       On place la photo de profil par-dessus la navbar 
+                       via z-index plus tard sur la page Profile 
+                       On laisse juste la place ici 
+                    -->
+                    <li><a href="{{ url_for('messages.inbox') }}">Messages</a></li>
+                    <li><a href="{{ url_for('notifications.list_notifications') }}">Notifications</a></li>
+                    <li><a href="{{ url_for('events.organize') }}">Organiser</a></li>
+                    <li><a href="{{ url_for('profile.list_friends') }}">Amis</a></li>
+                    <li><a href="{{ url_for('auth.logout') }}">Déconnexion</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+{% endif %}
+
+<main class="main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
         {% endif %}
-      </ul>
-    </nav>
-  </div>
-</header>
+    {% endwith %}
 
-<main class="main-content" role="main">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="flash-messages" aria-live="polite">
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}" role="alert">
-            {{ message }}
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
-
-  {% block content %}{% endblock %}
+    {% block content %}{% endblock %}
 </main>
 
-<footer role="contentinfo">
-  <p>&copy; 2025 SportLink. Tous droits réservés.</p>
+<footer>
+    <p>&copy; 2025 SportLink. Tous droits réservés.</p>
 </footer>
 
 <div class="social-links">
-  <a href="https://www.garmin.com" target="_blank" aria-label="Aller sur le site Garmin">
-    <img src="{{ url_for('static', filename='images/garmin.png') }}" alt="Garmin" class="social-icon">
-  </a>
-  <a href="https://www.facebook.com" target="_blank" aria-label="Aller sur le site Facebook">
-    <img src="{{ url_for('static', filename='images/facebook.png') }}" alt="Facebook" class="social-icon">
-  </a>
-  <a href="https://www.strava.com" target="_blank" aria-label="Aller sur le site Strava">
-    <img src="{{ url_for('static', filename='images/strava.png') }}" alt="Strava" class="social-icon">
-  </a>
-  <a href="https://www.zwift.com" target="_blank" aria-label="Aller sur le site Zwift">
-    <img src="{{ url_for('static', filename='images/zwift.png') }}" alt="Zwift" class="social-icon">
-  </a>
+    <a href="https://www.garmin.com" target="_blank">
+        <img src="{{ url_for('static', filename='images/garmin.png') }}" alt="Garmin" class="social-icon">
+    </a>
+    <a href="https://www.facebook.com" target="_blank">
+        <img src="{{ url_for('static', filename='images/facebook.png') }}" alt="Facebook" class="social-icon">
+    </a>
+    <a href="https://www.strava.com" target="_blank">
+        <img src="{{ url_for('static', filename='images/strava.png') }}" alt="Strava" class="social-icon">
+    </a>
+    <a href="https://www.zwift.com" target="_blank">
+        <img src="{{ url_for('static', filename='images/zwift.png') }}" alt="Zwift" class="social-icon">
+    </a>
 </div>
 
-<!-- Scripts -->
-<script>
-function toggleDropdown(id) {
-  const menu = document.getElementById(id);
-  if (menu.style.display === 'block') {
-    menu.style.display = 'none';
-  } else {
-    menu.style.display = 'block';
-  }
-}
-</script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

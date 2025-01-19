@@ -215,11 +215,12 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 });
 
-// Gestion des messages flash
+// app/static/js/scripts.js
+
 document.addEventListener("DOMContentLoaded", () => {
     const flashMessages = document.querySelectorAll('.flash-messages .alert');
 
-    // Supprimer automatiquement les messages après 5 secondes
+    // On réduit à 2 secondes
     flashMessages.forEach((message) => {
         setTimeout(() => {
             message.style.opacity = '0';
@@ -228,10 +229,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (message.parentElement) {
                     message.parentElement.removeChild(message);
                 }
-            }, 500); // Attendre la fin de la transition avant de supprimer l'élément
-        }, 5000); // 5 secondes avant de commencer à disparaître
+            }, 500); // Attendre la fin de la transition (0.5s)
+        }, 2000); // <-- 2 secondes avant de commencer à disparaître
 
-        // Permettre la fermeture au clic
+        // On conserve la possibilité de fermer le message au clic
         message.addEventListener('click', () => {
             message.style.opacity = '0';
             message.style.transform = 'translateY(-20px)';
@@ -240,15 +241,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     message.parentElement.removeChild(message);
                 }
             }, 500);
-        });
-
-        // Faire disparaître au survol
-        message.addEventListener('mouseenter', () => {
-            message.style.opacity = '0.6';
-        });
-
-        message.addEventListener('mouseleave', () => {
-            message.style.opacity = '1';
         });
     });
 });
