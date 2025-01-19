@@ -1,76 +1,66 @@
 {% extends 'base.html' %}
+{% block title %}Recherche d'Utilisateurs - SportLink{% endblock %}
 
-{% block title %}Recherche d'utilisateurs - SportLink{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
 
 {% block content %}
-<div class="search-container">
-    <h1>Recherche d'utilisateurs</h1>
-    
-    <!-- Formulaire de recherche -->
-    <form method="GET" action="{{ url_for('profile.search_users') }}">
-        <input type="text" name="query" placeholder="Recherchez par prénom ou nom" value="{{ query }}" class="search-bar">
-        <button type="submit" class="btn-primary">Rechercher</button>
-    </form>
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
 
-    <!-- Résultats de recherche -->
-    {% if query %}
-        <h2>Résultats pour "{{ query }}"</h2>
+<div class="profile-main">
+    <div class="search-results-container">
+        <h2>Résultats de recherche</h2>
+        {% if query %}
+            <p>Recherche pour "<strong>{{ query }}</strong>":</p>
+        {% endif %}
+
         {% if results %}
-            <ul class="user-list">
+            <div class="user-list">
                 {% for user in results %}
-                    <li>
-                        <img 
-                          src="{{ 
-                            url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) 
-                            if user.profile_image 
-                            else url_for('static', filename='images/default_profile.jpg') 
-                          }}" 
-                          alt="{{ user.first_name }} {{ user.last_name }}"
-                        >
-                        <span>{{ user.first_name }} {{ user.last_name }}</span>
-                        
-                        <form method="POST" 
-                              action="{{ url_for('profile.add_contact', user_id=user.id) }}"
-                              style="display:inline;">
-                            {{ csrf_token() }}
-                            <button type="submit" class="btn-add">Ajouter en contact</button>
-                        </form>
-                    </li>
+                <div class="user-card">
+                    <img src="{{ url_for('main.uploaded_file', filename=user.profile_image or 'profiles/default_profile.jpg') }}"
+                         alt="{{ user.first_name }}" width="60" height="60" style="border-radius: 50%;">
+                    <div class="user-info">
+                        <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+                        <p>{{ user.city or 'Ville inconnue' }}, {{ user.country or 'Pays inconnu' }}</p>
+                    </div>
+                    <form method="POST" action="{{ url_for('profile.add_contact', user_id=user.id) }}">
+                        {{ form.hidden_tag() }}
+                        <button type="submit" class="btn-add">Ajouter en contact</button>
+                    </form>                    
+                </div>
                 {% endfor %}
-            </ul>
+            </div>
         {% else %}
-            <p>Aucun utilisateur trouvé pour cette recherche.</p>
+            <p>Aucun utilisateur trouvé.</p>
         {% endif %}
-        
-    {% else %}
-        <!-- Suggestions d'utilisateurs (aucun query) -->
-        <h2>Suggestions d'utilisateurs</h2>
-        {% if suggestions %}
-            <ul class="user-list">
-                {% for user in suggestions %}
-                    <li>
-                        <img 
-                          src="{{ 
-                            url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) 
-                            if user.profile_image 
-                            else url_for('static', filename='images/default_profile.jpg') 
-                          }}" 
-                          alt="{{ user.first_name }} {{ user.last_name }}"
-                        >
-                        <span>{{ user.first_name }} {{ user.last_name }}</span>
-                        
-                        <form method="POST" 
-                              action="{{ url_for('profile.add_contact', user_id=user.id) }}"
-                              style="display:inline;">
-                            {{ csrf_token() }}
-                            <button type="submit" class="btn-add">Ajouter en contact</button>
+
+        {% if not query %}
+            <!-- Suggestions (ex. 10 random users) -->
+            {% if suggestions %}
+                <h3>Suggestions</h3>
+                <div class="user-list">
+                    {% for user in suggestions %}
+                    <div class="user-card">
+                        <img src="{{ url_for('main.uploaded_file', filename=user.profile_image or 'profiles/default_profile.jpg') }}"
+                             alt="{{ user.first_name }}" width="60" height="60" style="border-radius: 50%;">
+                        <div class="user-info">
+                            <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+                            <p>{{ user.city or 'Ville inconnue' }}, {{ user.country or 'Pays inconnu' }}</p>
+                        </div>
+                        <form method="POST" action="{{ url_for('profile.add_contact', user_id=user.id) }}">
+                            <button type="submit" class="btn-primary">Ajouter en contact</button>
                         </form>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>Aucune suggestion d'utilisateur pour le moment.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>Aucune suggestion d'utilisateur disponible.</p>
+            {% endif %}
         {% endif %}
-    {% endif %}
+    </div>
 </div>
 {% endblock %}

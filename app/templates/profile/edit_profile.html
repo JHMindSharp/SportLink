@@ -1,77 +1,81 @@
 {% extends 'base.html' %}
 
-{% block title %}Modifier le Profil - SportLink{% endblock %}
+{% block title %}Modifier Mon Profil - SportLink{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
 
 {% block content %}
-<div class="profile-edit-container">
-    <h1 class="main-title">Modifier Votre Profil</h1>
-    <form method="POST" action="{{ url_for('profile.edit_profile') }}" enctype="multipart/form-data">
-        {{ form.hidden_tag() }}
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
 
-        <div class="form-group">
-            {{ form.username.label }} {{ form.username(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.email.label }} {{ form.email(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.first_name.label }} {{ form.first_name(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.last_name.label }} {{ form.last_name(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.country.label }} {{ form.country(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.city.label }} {{ form.city(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.address.label }} {{ form.address(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.postal_code.label }} {{ form.postal_code(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.sex.label }} {{ form.sex(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.birth_date.label }} {{ form.birth_date(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.phone.label }} {{ form.phone(class="form-control") }}
-        </div>
-        <div class="form-check">
-            {{ form.display_phone }} {{ form.display_phone.label|safe }}
-        </div>
-        <div class="form-check">
-            {{ form.display_email }} {{ form.display_email.label|safe }}
-        </div>
-        <div class="form-group">
-            {{ form.profile_image.label }} {{ form.profile_image(class="form-control-file") }}
-        </div>
-        <div class="form-group">
-            {{ form.cover_image.label }} {{ form.cover_image(class="form-control-file") }}
-        </div>
+<div class="profile-container">
 
-        <h3 class="section-title">Niveaux dans les sports</h3>
-        <div class="sports-levels">
-            {% for sport in sports %}
-                <div class="form-group">
-                    <label>{{ sport.name }} :</label>
-                    <select name="sport_{{ sport.id }}" class="form-control">
-                        <option value="">Sélectionnez</option>
-                        {% for i in range(1, 6) %}
-                        <option value="{{ i }}" {% if user.get_sport_level(sport.id) == i %}selected{% endif %}>{{ i }} étoile(s)</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            {% endfor %}
+    <nav class="profile-nav-bar">
+        <div class="nav-inner">
+            <ul class="nav-left">
+                <li><a href="{{ url_for('news_feed.news_feed') }}">Fil d'actualité</a></li>
+                <li><a href="{{ url_for('profile.profile') }}">Mon Profil</a></li>
+                <li><a href="{{ url_for('messages.inbox') }}">Messages</a></li>
+            </ul>
+            <ul class="nav-right">
+                <li><a href="{{ url_for('events.organize') }}">Activités</a></li>
+                <li><a href="{{ url_for('profile.list_friends') }}">Amis</a></li>
+                <li><a href="{{ url_for('auth.logout') }}">Déconnexion</a></li>
+            </ul>
         </div>
+    </nav>
 
-        <div class="form-group">
-            {{ form.submit(class="btn-primary") }}
-        </div>
-    </form>
+    <div class="edit-profile-container">
+        <h1>Modifier Mon Profil</h1>
+
+        <form method="POST" action="{{ url_for('profile.edit_profile') }}" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.first_name.label }}
+                {{ form.first_name(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.last_name.label }}
+                {{ form.last_name(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.city.label }}
+                {{ form.city(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.country.label }}
+                {{ form.country(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.phone.label }}
+                {{ form.phone(class="form-control") }}
+            </div>
+            <div class="form-check">
+                {{ form.display_phone }} {{ form.display_phone.label|safe }}
+            </div>
+            <div class="form-check">
+                {{ form.display_email }} {{ form.display_email.label|safe }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.profile_image.label }}
+                {{ form.profile_image(class="form-control-file") }}
+            </div>
+            <div class="form-group">
+                {{ form.cover_image.label }}
+                {{ form.cover_image(class="form-control-file") }}
+            </div>
+
+            <button type="submit" class="btn-publish">Enregistrer</button>
+        </form>
+    </div>
 </div>
 {% endblock %}

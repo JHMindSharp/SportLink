@@ -1,19 +1,28 @@
 // app/static/js/profile_view.js
 
-document.addEventListener("DOMContentLoaded", function() {
-    const coverPhotoElem = document.querySelector('.cover-photo');
-    if (coverPhotoElem) {
-        const coverUrl = coverPhotoElem.getAttribute('data-cover-img');
-        if (coverUrl) {
-            coverPhotoElem.style.backgroundImage = `url('${coverUrl}')`;
+document.addEventListener('DOMContentLoaded', () => {
+    const whatsNewBubble = document.getElementById('whatsNewBubble');
+    const placeholderText = document.getElementById('placeholder-text');
+    const createPostForm = document.getElementById('createPostForm');
+    const cancelPostBtn = document.getElementById('cancelPostBtn');
+  
+    // Au clic sur la bulle "Quoi de neuf"
+    if (whatsNewBubble && placeholderText && createPostForm) {
+      whatsNewBubble.addEventListener('click', () => {
+        if (!createPostForm.style.display || createPostForm.style.display === 'none') {
+          createPostForm.style.display = 'block';
+          placeholderText.style.display = 'none';
         }
+      });
     }
-
-    const profilePhotoElem = document.querySelector('.profile-photo');
-    if (profilePhotoElem) {
-        const profileUrl = profilePhotoElem.getAttribute('data-profile-img');
-        if (profileUrl) {
-            profilePhotoElem.style.backgroundImage = `url('${profileUrl}')`;
-        }
+  
+    // Bouton annuler
+    if (cancelPostBtn) {
+      cancelPostBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        createPostForm.style.display = 'none';
+        placeholderText.style.display = 'block';
+      });
     }
-});
+  });
+  

@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 
 {% block content %}
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
 <h2>Mes Amis</h2>
 <form method="GET" action="{{ url_for('profile.search_users') }}">
     <input type="text" name="query" placeholder="Rechercher par nom ou prénom">

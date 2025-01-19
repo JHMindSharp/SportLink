@@ -1,24 +1,45 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Mes Contacts - SportLink{% endblock %}
+{% block title %}
+    {% if user %}
+        Profil de {{ user.first_name }} - SportLink
+    {% else %}
+        SportLink
+    {% endif %}
+{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="{{ url_for('static', filename='js/profile_view.js') }}"></script>
+{% endblock %}
 
 {% block content %}
-<div class="contacts-container">
-    <h1>Mes Contacts</h1>
-    {% if contacts %}
-        <ul class="user-list">
-            {% for user in contacts %}
-                <li>
-                    <img src="{{ url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) if user.profile_image else url_for('static', filename='images/default_profile.jpg') }}" alt="{{ user.first_name }} {{ user.last_name }}">
-                    <span>{{ user.first_name }} {{ user.last_name }}</span>
-                    <form method="POST" action="{{ url_for('profile.remove_contact', user_id=user.id) }}">
-                        <button type="submit" class="btn-remove">Retirer</button>
-                    </form>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>Vous n'avez pas encore ajouté de contacts.</p>
+
+    <!-- Section du haut pour les utilisateurs connectés -->
+    {% if current_user.is_authenticated %}
+        {% include '_layout/logged_in_top.html' %}
     {% endif %}
-</div>
+
+    <div class="contacts-container">
+        <h1>Mes Contacts</h1>
+        {% if contacts %}
+            <ul class="user-list">
+                {% for user in contacts %}
+                    <li>
+                        <img src="{{ url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) if user.profile_image else url_for('static', filename='images/default_profile.jpg') }}" alt="{{ user.first_name }} {{ user.last_name }}">
+                        <span>{{ user.first_name }} {{ user.last_name }}</span>
+                        <form method="POST" action="{{ url_for('profile.remove_contact', user_id=user.id) }}">
+                            <button type="submit" class="btn-remove">Retirer</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Vous n'avez pas encore ajouté de contacts.</p>
+        {% endif %}
+    </div>
+
 {% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Changer la photo{% endblock %}
+
+{% block content %}
+{% include '_layout/logged_in_top.html' %}
+<div class="page-container">
+    <h2>Changer la photo {{ 'de couverture' if photo_type == 'cover' else 'de profil' }}</h2>
+    <form method="POST" enctype="multipart/form-data" action="{{ url_for('profile.change_photo', type=photo_type) }}">
+        <label for="new_photo">Nouvelle photo :</label>
+        <input type="file" name="new_photo" accept="image/*" required>
+        <button type="submit">Enregistrer</button>
+    </form>
+</div>
+{% endblock %}

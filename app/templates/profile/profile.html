@@ -1,9 +1,9 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Profil de {{ user.first_name }} {{ user.last_name }} - SportLink{% endblock %}
+{% block title %}Profil de {{ user.first_name }} - SportLink{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile/profile_view.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
 {% endblock %}
 
 {% block extra_scripts %}
@@ -11,116 +11,141 @@
 {% endblock %}
 
 {% block content %}
-<div class="profile-container">
-    <!-- En-tête du profil (photo de couverture + photo de profil) -->
-    <div class="profile-header">
-        <!-- Photo de couverture (remplacement du style inline par un data-cover-img) -->
-        <div class="cover-photo"
-             data-cover-img="{{ 
-                 url_for('static', filename='uploads/covers/' + (user.cover_image or 'default_cover.jpg')) 
-             }}">
+
+<!-- Inclure la “structure du haut” si connecté -->
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
+<!-- Corps de la page profil -->
+<div class="profile-main">
+    
+    <!-- Colonne gauche : Quoi de neuf + publications -->
+    <div class="left-column">
+        <!-- Bulle “Quoi de neuf” -->
+        <div class="whats-new-container">
+            <div class="whats-new-bubble" id="whatsNewBubble">
+                <p id="placeholder-text">Quoi de neuf, {{ user.first_name }} ?</p>
+                <form id="createPostForm" class="create-post-form" style="display: none;"
+                      method="POST" action="{{ url_for('posts.create_post_inline') }}"
+                      enctype="multipart/form-data">
+                    <!-- champ caché CSRF -->
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <label for="post_type">Type de publication :</label>
+                    <select id="post_type" name="content_type">
+                        <option value="free">Libre</option>
+                        <option value="sport">Sportive</option>
+                    </select>
+                    
+                    <label for="post_title">Titre :</label>
+                    <input type="text" id="post_title" name="title" placeholder="Titre (optionnel)">
+
+                    <label for="post_content">Contenu :</label>
+                    <textarea id="post_content" name="content" rows="3" placeholder="Exprimez-vous..."></textarea>
+                    
+                    <div class="upload-icons">
+                        <label for="post_image"><i class="fas fa-image"></i></label>
+                        <input type="file" id="post_image" name="image" accept="image/*" style="display: none;">
+                        
+                        <label for="post_video"><i class="fas fa-video"></i></label>
+                        <input type="file" id="post_video" name="video" accept="video/*" style="display: none;">
+                        
+                        <label for="post_music"><i class="fas fa-music"></i></label>
+                        <input type="file" id="post_music" name="music" accept="audio/*" style="display: none;">
+                    </div>
+
+                    <label for="visibility">Visibilité :</label>
+                    <select id="visibility" name="visibility">
+                        <option value="public">Public</option>
+                        <option value="friends">Amis</option>
+                        <option value="private">Privé</option>
+                    </select>
+
+                    <button type="submit" class="btn-publish">Publier</button>
+                    <button type="button" class="btn-cancel" id="cancelPostBtn">Annuler</button>
+                </form>
+            </div>
         </div>
-
-        <!-- Photo de profil (idem, usage de data-profile-img) -->
-        <div class="profile-photo"
-             data-profile-img="{{
-                 url_for('static', filename='uploads/profiles/' + (user.profile_image or 'default_profile.jpg'))
-             }}">
-        </div>
-    </div>
-
-    <!-- Infos utilisateur -->
-    <div class="profile-info">
-        <h1>{{ user.first_name }} {{ user.last_name }}</h1>
-        <p>{{ user.email }}</p>
-    </div>
-
-    <!-- Navigation du profil -->
-    <nav class="profile-nav">
-        <ul class="nav-left">
-            <li><a href="{{ url_for('profile.profile', user_id=user.id) }}" class="active">Publications</a></li>
-            <li><a href="{{ url_for('profile.list_friends') }}">Amis</a></li>
-        </ul>
-        <ul class="nav-right">
-            <li><a href="{{ url_for('profile.photos', user_id=user.id) }}">Photos</a></li>
-            <li><a href="{{ url_for('profile.settings') }}">Paramètres</a></li>
-            {% if current_user == user %}
-                <li><a href="{{ url_for('profile.edit_profile') }}">Modifier le profil</a></li>
-            {% endif %}
-        </ul>
-    </nav>
-
-    <!-- Contenu principal : publications + infos perso -->
-    <div class="profile-main">
-        <!-- Section des publications -->
-        <div class="posts-section">
-            {% if current_user == user %}
-                <div class="create-post" onclick="window.location.href='{{ url_for('posts.create_post') }}'">
-                    <p>Quoi de neuf, {{ user.first_name }} ?</p>
-                </div>
-            {% endif %}
-
+        
+        <!-- Liste des publications -->
+        <div class="posts-list">
             {% for post in posts %}
-                <div class="post">
-                    <div class="post-header">
-                        <img src="{{ 
-                            url_for('static', filename='uploads/profiles/' + (post.author.profile_image or 'default_profile.jpg')) 
-                        }}" alt="{{ post.author.first_name }}">
-                        <div>
-                            <span class="author-name">{{ post.author.first_name }} {{ post.author.last_name }}</span>
-                            <span class="post-date">
-                                {{ post.created_at.strftime('%d %B %Y à %H:%M') }}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="post-content">
-                        {% if post.title %}
-                            <h3>{{ post.title }}</h3>
-                        {% endif %}
-                        <p>{{ post.content }}</p>
-                        {% if post.image %}
-                            <img src="{{ url_for('static', filename='uploads/posts/' + post.image) }}" alt="Image de la publication">
-                        {% endif %}
-                        {% if post.video %}
-                            <video controls>
-                                <source src="{{ url_for('static', filename='uploads/posts/' + post.video) }}" type="video/mp4">
-                                Votre navigateur ne supporte pas la lecture vidéo.
-                            </video>
-                        {% endif %}
-                        {% if post.music %}
-                            <audio controls>
-                                <source src="{{ url_for('static', filename='uploads/posts/' + post.music) }}" type="audio/mpeg">
-                                Votre navigateur ne supporte pas la lecture audio.
-                            </audio>
-                        {% endif %}
+            <div class="post-card">
+                <div class="post-header">
+                    <img src="{{ 
+                        url_for('main.uploaded_file', filename=post.author.profile_image or 'profiles/default_profile.jpg')
+                    }}" alt="Profil">
+                    <div>
+                        <strong>{{ post.author.first_name }} {{ post.author.last_name }}</strong>
+                        <span class="timestamp">
+                            {{ post.created_at.strftime('%d %B %Y à %H:%M') }}
+                        </span>
                     </div>
                 </div>
+                <div class="post-content">
+                    {% if post.title %}
+                    <h3>{{ post.title }}</h3>
+                    {% endif %}
+                    <p>{{ post.content }}</p>
+                    
+                    {% if post.image %}
+                    <img src="{{ url_for('main.uploaded_file', filename=post.image) }}" alt="image publication">
+                    {% endif %}
+                    
+                    {% if post.video %}
+                    <video controls>
+                        <source src="{{ url_for('main.uploaded_file', filename=post.video) }}">
+                    </video>
+                    {% endif %}
+                    
+                    {% if post.music %}
+                    <audio controls>
+                        <source src="{{ url_for('main.uploaded_file', filename=post.music) }}">
+                    </audio>
+                    {% endif %}
+                </div>
+            </div>
             {% endfor %}
         </div>
+    </div>
+    
+    <!-- Colonne droite : user details + amis + recherche contact -->
+    <div class="right-column">
+        <div class="user-details-card">
+            <h3>Mes Informations</h3>
+            <ul>
+                <li><strong>Email :</strong> {{ user.email }}</li>
+                <li><strong>Ville :</strong> {{ user.city or 'Non renseigné' }}</li>
+                <li><strong>Pays :</strong> {{ user.country or 'Non renseigné' }}</li>
+                <li><strong>Téléphone :</strong> {{ user.phone if user.display_phone else 'Privé' }}</li>
+            </ul>
+            <a href="{{ url_for('profile.edit_profile') }}">Modifier</a>
+        </div>
 
-        <!-- Section des informations personnelles -->
-        <aside class="sidebar">
-            <div class="info-card">
-                <h3>Informations</h3>
-                <ul>
-                    <li><strong>Email :</strong> 
-                        {% if current_user == user %}{{ user.email }}{% else %}Privé{% endif %}
-                    </li>
-                    <li><strong>Prénom :</strong> {{ user.first_name }}</li>
-                    <li><strong>Nom :</strong> {{ user.last_name }}</li>
-                    <li><strong>Pays :</strong> {{ user.country or 'Non renseigné' }}</li>
-                    <li><strong>Ville :</strong> {{ user.city or 'Non renseigné' }}</li>
-                    <li><strong>Sexe :</strong> {{ user.sex or 'Non renseigné' }}</li>
-                    <li><strong>Date de naissance :</strong> 
-                        {% if user.birth_date %}
-                            {{ user.birth_date.strftime('%d/%m/%Y') }}
-                        {% else %}
-                            Non renseigné
-                        {% endif %}
-                    </li>
-                </ul>
+        <div class="friends-card">
+            <h3>Mes Amis</h3>
+            <div class="friends-thumbs">
+                {% for friend in user.friends.limit(4) %}
+                <a href="{{ url_for('profile.profile', user_id=friend.id) }}" class="friend-thumb">
+                    <img src="{{ 
+                        url_for('main.uploaded_file', filename=friend.profile_image or 'profiles/default_profile.jpg')
+                    }}" alt="{{ friend.first_name }}">
+                    <span>{{ friend.first_name }}</span>
+                </a>
+                {% endfor %}
             </div>
-        </aside>
+            <a href="{{ url_for('profile.list_contacts') }}">Tous mes contacts</a>
+        </div>
+
+        <div class="search-contact-card">
+            <h3>Rechercher un utilisateur</h3>
+            <form method="GET" action="{{ url_for('profile.search_users') }}">
+                <input type="text" name="query" placeholder="Nom ou prénom">
+                <button type="submit">Rechercher</button>
+            </form>
+        </div>
     </div>
 </div>
+
 {% endblock %}

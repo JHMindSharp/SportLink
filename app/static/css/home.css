@@ -1,0 +1,163 @@
+/* app/static/css/home.css */
+
+/* Container global de la home */
+.home-welcome-container {
+    margin-top: 80px; /* Laisse un espace si la navbar non-co n'est pas absolue */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    color: #ccffcc;
+}
+
+/* Bannière d'accueil */
+.home-banner {
+    background: rgba(0,0,0,0.7);
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 900px;
+    width: 100%;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.main-title {
+    font-size: 2.2rem;
+    margin-bottom: 20px;
+    color: #0f0;
+    text-shadow: 0 0 4px #0f0;
+}
+
+.subtitle {
+    color: #fff;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.why-join-title {
+    font-size: 1.5rem;
+    color: #00ff00;
+    margin-top: 30px;
+}
+
+.features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+
+.features-list li {
+    margin: 10px 0;
+    color: #ccffcc;
+    font-size: 1rem;
+}
+
+/* Boutons CTA */
+.cta-buttons {
+    margin-top: 30px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+/* Section features 3D cards */
+.section.features-section {
+    margin-top: 40px;
+    max-width: 1000px;
+    width: 100%;
+    text-align: center;
+}
+
+.section.features-section .text-adapt {
+    color: #fff;
+    margin-bottom: 15px;
+}
+
+.feature-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    justify-items: center;
+    margin-top: 20px;
+}
+
+.card3D {
+    perspective: 1000px;
+    width: 180px;
+    height: 180px;
+    position: relative;
+    border-radius: 8px;
+    overflow: visible;
+}
+
+.card3D-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform-style: preserve-3d;
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.6);
+    box-shadow: 0 0 8px rgba(0,255,0,0.3);
+}
+
+.card3D:hover .card3D-inner {
+    transform: rotateY(180deg);
+}
+
+.card3D-front, .card3D-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    text-align: center;
+    padding: 10px;
+}
+
+.card3D-front {
+    color: #fff;
+    font-size: 1.3rem;
+    font-weight: bold;
+    text-shadow: 0 0 4px #0f0;
+}
+
+.card3D-back {
+    transform: rotateY(180deg);
+    color: #e0ffe0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Section contact */
+.section.contact-section {
+    margin-top: 40px;
+    max-width: 800px;
+    text-align: center;
+}
+
+.contact-email {
+    color: #00ff00;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Responsiveness */
+@media (max-width: 600px) {
+    .home-banner {
+        margin-bottom: 20px;
+    }
+    .features-list li {
+        font-size: 0.9rem;
+    }
+    .card3D {
+        width: 150px;
+        height: 150px;
+    }
+}

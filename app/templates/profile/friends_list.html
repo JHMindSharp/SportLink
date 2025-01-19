@@ -1,42 +1,41 @@
 {% extends 'base.html' %}
-
 {% block title %}Liste des Amis - SportLink{% endblock %}
 
 {% block extra_head %}
-    <!-- Ajout du fichier CSS dédié pour friends_list -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile/friends_list.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="profile-header">
-    <h2>Amis de {{ user.username }}</h2>
-    <p>Voici la liste des amis que vous avez ajoutés.</p>
-</div>
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
 
-<div class="friends-list">
-    {% if friends %}
-        <div class="friends-grid">
-            {% for friend in friends %}
+<div class="profile-main">
+    <div class="friends-list">
+        <h2>Amis de {{ current_user.first_name }}</h2>
+        {% if friends %}
+            <p>Voici la liste des amis que vous avez ajoutés :</p>
+            <div class="friends-grid">
+                {% for friend in friends %}
                 <div class="friend-card">
-                    <div class="friend-photo" 
-                         style="background-image: url('{{ 
-                             url_for('main.uploaded_file', filename='profiles/' ~ friend.profile_image) 
-                             if friend.profile_image 
-                             else url_for('static', filename='images/default_profile.jpg') 
+                    <div class="friend-photo"
+                         style="background-image: url('{{
+                            url_for('main.uploaded_file', filename=friend.profile_image or 'profiles/default_profile.jpg')
                          }}');">
                     </div>
                     <div class="friend-info">
-                        <h3>{{ friend.username }}</h3>
-                        <p>{{ friend.city }}, {{ friend.country }}</p>
+                        <h3>{{ friend.first_name }} {{ friend.last_name }}</h3>
+                        <p>{{ friend.city or 'Ville inconnue' }}, {{ friend.country or 'Pays inconnu' }}</p>
                         <a href="{{ url_for('profile.profile', user_id=friend.id) }}" class="btn">
                             Voir le profil
                         </a>
                     </div>
                 </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p>Vous n'avez pas encore d'amis ajoutés.</p>
-    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Vous n'avez pas encore d'amis ajoutés.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

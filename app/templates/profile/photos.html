@@ -1,10 +1,18 @@
 {% extends 'base.html' %}
 
-{% block title %}Photos de {{ user.username }} - SportLink{% endblock %}
+{% block title %}Photos de {{ user.first_name }} - SportLink{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
 
 {% block content %}
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
 <div class="photos-container">
-    <h1 class="main-title">Photos de {{ user.username }}</h1>
+    <h1 class="main-title">Photos de {{ user.first_name }} {{ user.last_name }}</h1>
 
     <div class="user-photos-section">
         <h3 class="section-title">Galerie de Photos</h3>
@@ -12,12 +20,22 @@
             {% if images %}
                 {% for image in images %}
                     <div class="photo-item">
-                        <a href="{{ url_for('static', filename=image) }}" target="_blank">
-                            <img src="{{ url_for('static', filename=image) }}" alt="Photo">
+                        <!-- On suppose que 'image' = "uploads/...??" 
+                             ou qu'on doit passer par main.uploaded_file ? 
+                             Tout dépend de votre code existant.
+                             Ici, on suppose que 'image' est un chemin relatif
+                             type: "profiles/xxx.jpg" ou "myfolder/pic.png" 
+                        -->
+                        <a href="{{ url_for('main.uploaded_file', filename=image) }}" target="_blank">
+                            <img src="{{ url_for('main.uploaded_file', filename=image) }}" alt="Photo">
                         </a>
                         {% if current_user == user %}
-                        <button onclick="window.location.href='{{ url_for('profile.set_profile_photo', photo_id=image) }}'" class="btn-secondary">Utiliser comme photo de profil</button>
-                        <button onclick="window.location.href='{{ url_for('profile.set_cover_photo', photo_id=image) }}'" class="btn-secondary">Utiliser comme photo de couverture</button>
+                        <button onclick="window.location.href='{{ url_for('profile.set_profile_photo', photo_id=image) }}'" class="btn-secondary">
+                            Utiliser comme photo de profil
+                        </button>
+                        <button onclick="window.location.href='{{ url_for('profile.set_cover_photo', photo_id=image) }}'" class="btn-secondary">
+                            Utiliser comme photo de couverture
+                        </button>
                         {% endif %}
                     </div>
                 {% endfor %}
@@ -31,7 +49,9 @@
     <div class="add-photo-section">
         <h3 class="section-title">Ajouter des Photos</h3>
         <div class="upload-container">
-            <button class="btn-primary" onclick="document.getElementById('photoUploadForm').style.display='block'">Ajouter des photos</button>
+            <button class="btn-primary" onclick="document.getElementById('photoUploadForm').style.display='block'">
+                Ajouter des photos
+            </button>
             <form id="photoUploadForm" action="{{ url_for('profile.add_photo') }}" method="POST" enctype="multipart/form-data" style="display: none;">
                 {{ form.hidden_tag() }}
                 <input type="file" name="photoUpload" multiple class="file-input">
@@ -40,10 +60,12 @@
         </div>
 
         <div class="create-album-section">
-            <button class="btn-primary" onclick="document.getElementById('albumForm').style.display='block'">Créer un nouvel album</button>
-            <form id="albumForm" action="{{ url_for('profile.create_album') }}" method="POST" style="display: none;">
+            <button class="btn-primary" onclick="document.getElementById('albumForm').style.display='block'">
+                Créer un nouvel album
+            </button>
+            <form id="albumForm" action="{{ url_for('profile.create_album') }}" method="POST" style="display: none;" enctype="multipart/form-data">
                 <input type="text" name="albumName" placeholder="Nom de l'album" class="form-control" required>
-                <input type="file" name="albumPhotos" multiple class="file-input" accept="image/*" max="10">
+                <input type="file" name="albumPhotos" multiple class="file-input" accept="image/*">
                 <button type="submit" class="btn-primary">Télécharger</button>
             </form>
         </div>

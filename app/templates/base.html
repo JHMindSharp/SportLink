@@ -13,43 +13,14 @@
 <body>
 
 {% if not current_user.is_authenticated %}
-    <!-- NAVBAR standard (non connecté) -->
+    <!-- VISITEUR NON CONNECTÉ : Affiche la navbar minimaliste -->
     <header class="header">
-        <div class="header-container">
-            <!-- Titre centré dans la navbar -->
-            <div class="nav-title">SportLink</div>
-            <!-- On peut ajouter des liens si besoin (ex: Connexion / Inscription) -->
-        </div>
-    </header>
-
-{% else %}
-    <!-- NAVBAR pour utilisateur connecté
-         On la place ici, toujours en haut de la page,
-         ou alors on pourrait faire en sorte qu'elle soit "en bas de la couverture".
-         Dans ce snippet, on la laisse en haut mais
-         on pourrait ajuster en jouant avec margin ou position: absolute.
-    -->
-    <header class="header">
-        <div class="header-container">
-            <!-- Logo à gauche, si souhaité -->
-            <a href="{{ url_for('news_feed.news_feed') }}" class="logo-container">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo SportLink">
-            </a>
-            <!-- Menu -->
+        <div class="header-container not-logged-in">
+            <div class="nav-title nav-title-big">Bienvenue sur SportLink</div>
             <nav class="nav">
                 <ul class="menu">
-                    <li><a href="{{ url_for('news_feed.news_feed') }}">Fil d'actualité</a></li>
-                    <li><a href="{{ url_for('profile.profile') }}">Mon Profil</a></li>
-                    <!-- 
-                       On place la photo de profil par-dessus la navbar 
-                       via z-index plus tard sur la page Profile 
-                       On laisse juste la place ici 
-                    -->
-                    <li><a href="{{ url_for('messages.inbox') }}">Messages</a></li>
-                    <li><a href="{{ url_for('notifications.list_notifications') }}">Notifications</a></li>
-                    <li><a href="{{ url_for('events.organize') }}">Organiser</a></li>
-                    <li><a href="{{ url_for('profile.list_friends') }}">Amis</a></li>
-                    <li><a href="{{ url_for('auth.logout') }}">Déconnexion</a></li>
+                    <li><a href="{{ url_for('auth.login') }}">Se connecter</a></li>
+                    <li><a href="{{ url_for('auth.register') }}">Commencer l'aventure</a></li>
                 </ul>
             </nav>
         </div>
