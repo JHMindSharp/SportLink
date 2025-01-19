@@ -3,29 +3,33 @@
 {% block title %}Profil de {{ user.first_name }} {{ user.last_name }} - SportLink{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile/profile_view.css') }}">
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+<script src="{{ url_for('static', filename='js/profile_view.js') }}"></script>
 {% endblock %}
 
 {% block content %}
 <div class="profile-container">
-    <!-- En-tête du profil avec photo de couverture et photo de profil -->
+    <!-- En-tête du profil (photo de couverture + photo de profil) -->
     <div class="profile-header">
-        <!-- Photo de couverture -->
-        <div class="cover-photo" 
-             style="background-image: url('{{ url_for('static', filename='uploads/covers/' + (user.cover_image or 'default_cover.jpg')) }}');">
+        <!-- Photo de couverture (remplacement du style inline par un data-cover-img) -->
+        <div class="cover-photo"
+             data-cover-img="{{ 
+                 url_for('static', filename='uploads/covers/' + (user.cover_image or 'default_cover.jpg')) 
+             }}">
         </div>
 
-        <!-- Photo de profil -->
-        <div class="profile-photo" 
-             style="background-image: url('{{ url_for('static', filename='uploads/profiles/' + (user.profile_image or 'default_profile.jpg')) }}');">
+        <!-- Photo de profil (idem, usage de data-profile-img) -->
+        <div class="profile-photo"
+             data-profile-img="{{
+                 url_for('static', filename='uploads/profiles/' + (user.profile_image or 'default_profile.jpg'))
+             }}">
         </div>
     </div>
 
-    <!-- Informations utilisateur -->
+    <!-- Infos utilisateur -->
     <div class="profile-info">
         <h1>{{ user.first_name }} {{ user.last_name }}</h1>
         <p>{{ user.email }}</p>
@@ -46,7 +50,7 @@
         </ul>
     </nav>
 
-    <!-- Contenu principal : publications et informations personnelles -->
+    <!-- Contenu principal : publications + infos perso -->
     <div class="profile-main">
         <!-- Section des publications -->
         <div class="posts-section">
@@ -59,11 +63,14 @@
             {% for post in posts %}
                 <div class="post">
                     <div class="post-header">
-                        <img src="{{ url_for('static', filename='uploads/profiles/' + (post.author.profile_image or 'default_profile.jpg')) }}" 
-                             alt="{{ post.author.first_name }}">
+                        <img src="{{ 
+                            url_for('static', filename='uploads/profiles/' + (post.author.profile_image or 'default_profile.jpg')) 
+                        }}" alt="{{ post.author.first_name }}">
                         <div>
                             <span class="author-name">{{ post.author.first_name }} {{ post.author.last_name }}</span>
-                            <span class="post-date">{{ post.created_at.strftime('%d %B %Y à %H:%M') }}</span>
+                            <span class="post-date">
+                                {{ post.created_at.strftime('%d %B %Y à %H:%M') }}
+                            </span>
                         </div>
                     </div>
                     <div class="post-content">
@@ -96,13 +103,21 @@
             <div class="info-card">
                 <h3>Informations</h3>
                 <ul>
-                    <li><strong>Email :</strong> {% if current_user == user %}{{ user.email }}{% else %}Privé{% endif %}</li>
+                    <li><strong>Email :</strong> 
+                        {% if current_user == user %}{{ user.email }}{% else %}Privé{% endif %}
+                    </li>
                     <li><strong>Prénom :</strong> {{ user.first_name }}</li>
                     <li><strong>Nom :</strong> {{ user.last_name }}</li>
                     <li><strong>Pays :</strong> {{ user.country or 'Non renseigné' }}</li>
                     <li><strong>Ville :</strong> {{ user.city or 'Non renseigné' }}</li>
                     <li><strong>Sexe :</strong> {{ user.sex or 'Non renseigné' }}</li>
-                    <li><strong>Date de naissance :</strong> {% if user.birth_date %}{{ user.birth_date.strftime('%d/%m/%Y') }}{% else %}Non renseigné{% endif %}</li>
+                    <li><strong>Date de naissance :</strong> 
+                        {% if user.birth_date %}
+                            {{ user.birth_date.strftime('%d/%m/%Y') }}
+                        {% else %}
+                            Non renseigné
+                        {% endif %}
+                    </li>
                 </ul>
             </div>
         </aside>
