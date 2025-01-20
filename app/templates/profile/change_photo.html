@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Changer la photo{% endblock %}
+
+{% block content %}
+<div class="change-photo-container">
+    <h1>Changer la photo de {{ photo_type }}</h1>
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }} <!-- Ajout du token CSRF -->
+        <div class="form-group">
+            <label for="file">Sélectionnez une photo :</label>
+            <input type="file" name="file" id="file" accept=".png,.jpg,.jpeg,.gif" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">Envoyer</button>
+    </form>
+</div>
+{% endblock %}

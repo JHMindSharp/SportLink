@@ -162,3 +162,8 @@ class MultiCheckboxField(QuerySelectMultipleField):
     """
     widget = ListWidget(prefix_label=False)
     option_widget = CheckboxInput()
+
+class ChangePhotoForm(FlaskForm):
+    file = FileField('Sélectionnez une photo', validators=[DataRequired()])
+    submit = SubmitField('Changer la photo')
+    

@@ -1,6 +1,6 @@
 # app/profile/routes.py
 
-from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, current_app
+from flask import Blueprint, request, render_template, redirect, url_for, flash, abort, jsonify, current_app
 from flask_login import login_required, current_user, logout_user
 from datetime import datetime
 import os
@@ -14,7 +14,8 @@ from app.profile.forms import (
     ChangeEmailForm,
     ChangePasswordForm,
     DeleteAccountForm,
-    CompleteProfileForm
+    CompleteProfileForm,
+    ChangePhotoForm,
 )
 from app.auth.forms import RegistrationForm, LoginForm
 from flask_wtf import FlaskForm
@@ -296,3 +297,57 @@ def remove_contact(user_id):
         flash("Cette personne n'est pas dans vos contacts.", "info")
 
     return redirect(url_for('profile.list_contacts'))
+
+UPLOAD_FOLDER = 'app/static/uploads'
+COVER_FOLDER = os.path.join(UPLOAD_FOLDER, 'covers')
+PROFILE_FOLDER = os.path.join(UPLOAD_FOLDER, 'profiles')
+
+# Autoriser uniquement certains types de fichiers
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@profile_bp.route('/change_photo/<type>', methods=['GET', 'POST'])
+@login_required
+def change_photo(type):
+    # Vérification du type
+    if type not in ['cover', 'profile']:
+        abort(404)  # Renvoie une erreur 404 si le type est invalide
+
+    form = ChangePhotoForm()
+
+    if form.validate_on_submit():
+        # Gestion du fichier téléchargé
+        if 'file' not in request.files:
+            flash('Aucun fichier sélectionné.', 'danger')
+            return redirect(request.url)
+
+        file = request.files['file']
+        if file.filename == '':
+            flash('Aucun fichier sélectionné.', 'danger')
+            return redirect(request.url)
+
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            save_folder = COVER_FOLDER if type == 'cover' else PROFILE_FOLDER
+
+            os.makedirs(save_folder, exist_ok=True)
+            filepath = os.path.join(save_folder, filename)
+            file.save(filepath)
+
+            # Mise à jour de l'utilisateur
+            if type == 'cover':
+                current_user.cover_image = filename
+            elif type == 'profile':
+                current_user.profile_image = filename
+
+            db.session.commit()
+            flash('Photo mise à jour avec succès.', 'success')
+            return redirect(url_for('profile.profile'))
+
+        flash('Fichier non autorisé.', 'danger')
+        return redirect(request.url)
+
+    # Retourne toujours le template si aucune condition n'est remplie
+    return render_template('profile/change_photo.html', form=form, photo_type=type)
