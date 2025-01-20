@@ -242,6 +242,8 @@ def search_users():
     suggestions = []
     results = []
 
+    form = EmptyForm()
+
     if query:
         results = User.query.filter(
             (User.first_name.ilike(f'%{query}%')) | (User.last_name.ilike(f'%{query}%'))
@@ -252,7 +254,7 @@ def search_users():
             User.id != current_user.id
         ).limit(10).all()
 
-    return render_template('profile/search_results.html', results=results, suggestions=suggestions, query=query)
+    return render_template('profile/search_results.html', results=results, suggestions=suggestions, query=query, form=form)
 
 @profile_bp.route('/add_contact/<int:user_id>', methods=['POST'])
 @login_required

@@ -1,11 +1,13 @@
-// app/static/js/home.js
-
 document.addEventListener("DOMContentLoaded", function() {
     const cards = document.querySelectorAll('.card3D');
-    cards.forEach(card => {
-        card.addEventListener('click', () => {
-            // On toggle une classe .flipped
-            card.querySelector('.card3D-inner').classList.toggle('flipped');
+    if (cards.length > 0) {
+        cards.forEach(card => {
+            const cardInner = card.querySelector('.card3D-inner');
+            if (cardInner) {
+                card.addEventListener('click', () => {
+                    cardInner.classList.toggle('flipped');
+                });
+            }
         });
-    });
+    }
 });

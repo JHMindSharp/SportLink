@@ -30,7 +30,7 @@
                     <form method="POST" action="{{ url_for('profile.add_contact', user_id=user.id) }}">
                         {{ form.hidden_tag() }}
                         <button type="submit" class="btn-add">Ajouter en contact</button>
-                    </form>                    
+                    </form>                                      
                 </div>
                 {% endfor %}
             </div>

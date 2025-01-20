@@ -1,7 +1,3 @@
-
-
-========== ./app/utils/uploads_utils.py ==========
-
 import os
 from werkzeug.utils import secure_filename
 from flask import current_app
@@ -14,10 +10,6 @@ def save_file(file, folder):
     file_path = os.path.join(folder, filename)
     file.save(file_path)
     return file_path
-
-
-========== ./app/notifications/routes.py ==========
-
 """
 app/notifications/routes.py
 
@@ -52,18 +44,15 @@ def list_notifications():
 
     # Render the notifications template with the retrieved notifications
     return render_template('notifications/list.html', notifications=notifications)
-
-
-========== ./app/news_feed/routes.py ==========
+# app/news_feed/routes.py
 
 """
 app/news_feed/routes.py
 
-This module defines routes related to the news feed functionality in the SportLink application.
-The news feed allows users to view posts from their friends and public posts.
-
-Components:
-- `news_feed`: Displays the news feed with posts from friends, the current user, and public posts.
+Ce module définit les routes liées à la fonctionnalité de fil d'actualité
+dans l'application SportLink. Il permet à l'utilisateur connecté de
+voir les publications pertinentes (les siennes, celles de ses amis,
+ainsi que tout post déclaré 'public').
 """
 
 from flask import Blueprint, render_template, request
@@ -71,46 +60,46 @@ from flask_login import login_required, current_user
 from app.models import Post
 from app.extensions import db
 
-# Define the Blueprint for news feed-related routes
+# Définition du Blueprint pour les routes du fil d'actualité
 news_feed_bp = Blueprint('news_feed', __name__, template_folder='templates/news_feed')
 
 @news_feed_bp.route('/', methods=['GET'])
 @login_required
 def news_feed():
     """
-    Displays the news feed for the logged-in user.
+    Affiche le fil d'actualité pour l'utilisateur connecté.
 
-    - Retrieves posts created by the current user, their friends, and public posts.
-    - Orders posts by creation date in descending order.
+    Logique adoptée pour la visibilité des posts :
+    1. Les publications créées par l'utilisateur (sans tenir compte de la visibilité).
+    2. Les publications de ses amis (quelle que soit leur visibilité *ou* seulement public, 
+       selon votre logique).
+    3. Toutes les publications marquées 'public' (donc accessibles à tous).
 
-    Process:
-    - Fetch the IDs of the current user's friends.
-    - Include the current user's ID in the list.
-    - Query posts that are either:
-      1. Created by the current user or their friends, and
-      2. Visible as public posts or specific to the current user.
+    Remarque :
+    - Si vous voulez que l'utilisateur ne voie que les posts "public" de ses amis (mais pas 
+      leurs posts "private"), il suffit d'ajuster le filtre.
 
-    Returns:
-    - Rendered 'news_feed.html' template with the list of posts.
+    Retourne :
+    - Le template 'news_feed.html' avec la liste des posts à afficher.
     """
-    # Get IDs of the current user's friends
+    # Récupérer la liste des IDs d'amis
     friends_ids = [friend.id for friend in current_user.friends]
 
-    # Include the current user's ID in the list of post sources
+    # Inclure l'ID du user courant pour afficher ses propres posts
     friends_ids.append(current_user.id)
 
-    # Query the database for posts from the current user, their friends, and public posts
+    # Ici, on fusionne la logique de "posts/routes.py" et "news_feed/routes.py" 
+    # pour n'avoir qu'une seule route de fil d'actualité.
+
+    # On veut récupérer tous les posts qui proviennent de l'utilisateur courant 
+    # ou de ses amis, + tous les posts 'public' de n'importe qui.
+    # => Condition : (user_id dans friends_ids) OU (visibility == 'public')
     posts = Post.query.filter(
-        (Post.user_id.in_(friends_ids)) &  # Posts from the current user and friends
-        ((Post.visibility == 'public') | (Post.user_id == current_user.id))  # Public or specific to the user
+        (Post.user_id.in_(friends_ids)) | (Post.visibility == 'public')
     ).order_by(Post.created_at.desc()).all()
 
-    # Render the news feed template with the retrieved posts
+    # Rendre le template avec la liste des posts
     return render_template('news_feed/news_feed.html', posts=posts)
-
-
-========== ./app/news_feed/__init__.py ==========
-
 """
 app/news_feed/__init__.py
 
@@ -128,52 +117,24 @@ news_feed_bp = Blueprint('news_feed', __name__)
 
 # Import routes to register them with the Blueprint
 from app.news_feed import routes
-
-
-========== ./app/posts/routes.py ==========
-
-"""
-app/posts/routes.py
-
-This module defines routes related to managing posts in the SportLink application.
-It includes features for creating, deleting, and viewing posts in the news feed.
-
-Components:
-- `create_post`: Allows users to create a new post with multimedia and visibility settings.
-- `delete_post`: Allows users to delete their own posts.
-- `news_feed`: Displays posts from friends and public posts in a news feed format.
-"""
+# app/posts/routes.py
 
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
+from datetime import datetime
+import os
+from werkzeug.utils import secure_filename
+
 from app.models import Post, User
 from app.extensions import db
-from werkzeug.utils import secure_filename
-import os
-from datetime import datetime
-from app.posts.forms import CreatePostForm  # Import du formulaire
+from app.posts.forms import CreatePostForm
 
-# Define the Blueprint for post-related routes
 posts_bp = Blueprint('posts', __name__, template_folder='templates/posts')
 
 @posts_bp.route('/create_post', methods=['GET', 'POST'])
 @login_required
 def create_post():
-    """
-    Handles the creation of a new post.
-
-    GET:
-    - Renders the post creation form.
-
-    POST:
-    - Validates the form submission.
-    - Processes uploaded files (image, video, music) and saves them.
-    - Creates a new post in the database with the provided details.
-
-    Returns:
-    - Redirects to the user's profile after successful post creation.
-    - Renders the 'create_post.html' template on form validation failure.
-    """
+    """Version classique pour créer un post (séparée)."""
     form = CreatePostForm()
     if form.validate_on_submit():
         content_type = form.content_type.data
@@ -182,7 +143,6 @@ def create_post():
         content = form.content.data
         visibility = form.visibility.data
 
-        # Handle uploaded files
         image_file = form.image.data
         video_file = form.video.data
         music_file = form.music.data
@@ -191,25 +151,25 @@ def create_post():
         video_filename = None
         music_filename = None
 
+        # Gérer l'upload
         if image_file:
             image_filename = secure_filename(image_file.filename)
             image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', 'images', image_filename)
             image_file.save(image_path)
-            image_filename = 'posts/images/' + image_filename
+            image_filename = f'posts/images/{image_filename}'
 
         if video_file:
             video_filename = secure_filename(video_file.filename)
             video_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', 'videos', video_filename)
             video_file.save(video_path)
-            video_filename = 'posts/videos/' + video_filename
+            video_filename = f'posts/videos/{video_filename}'
 
         if music_file:
             music_filename = secure_filename(music_file.filename)
             music_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', 'music', music_filename)
             music_file.save(music_path)
-            music_filename = 'posts/music/' + music_filename
+            music_filename = f'posts/music/{music_filename}'
 
-        # Create a new post
         new_post = Post(
             user_id=current_user.id,
             content_type=content_type,
@@ -229,25 +189,66 @@ def create_post():
 
     return render_template('posts/create_post.html', form=form)
 
+@posts_bp.route('/create_post_inline', methods=['POST'])
+@login_required
+def create_post_inline():
+    """Création inline d'un post (ex. sur le profil)."""
+    content_type = request.form.get('content_type', 'free')
+    title = request.form.get('title', '')
+    content = request.form.get('content', '')
+    visibility = request.form.get('visibility', 'public')
+
+    image_file = request.files.get('image')
+    video_file = request.files.get('video')
+    music_file = request.files.get('music')
+
+    image_filename = None
+    video_filename = None
+    music_filename = None
+
+    # Gérer upload image
+    if image_file and image_file.filename:
+        img_filename = secure_filename(image_file.filename)
+        img_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', 'images', img_filename)
+        image_file.save(img_path)
+        image_filename = f'posts/images/{img_filename}'
+
+    if video_file and video_file.filename:
+        vid_filename = secure_filename(video_file.filename)
+        vid_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', 'videos', vid_filename)
+        video_file.save(vid_path)
+        video_filename = f'posts/videos/{vid_filename}'
+
+    if music_file and music_file.filename:
+        mus_filename = secure_filename(music_file.filename)
+        mus_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'posts', 'music', mus_filename)
+        music_file.save(mus_path)
+        music_filename = f'posts/music/{mus_filename}'
+
+    new_post = Post(
+        user_id=current_user.id,
+        content_type=content_type,
+        title=title,
+        subtitle='',
+        content=content,
+        image=image_filename,
+        video=video_filename,
+        music=music_filename,
+        visibility=visibility,
+        created_at=datetime.utcnow()
+    )
+    db.session.add(new_post)
+    db.session.commit()
+
+    flash("Publication créée avec succès (inline).", "success")
+    return redirect(url_for('profile.profile'))
+
 @posts_bp.route('/delete_post/<int:post_id>', methods=['POST'])
 @login_required
 def delete_post(post_id):
-    """
-    Handles the deletion of a user's post.
-
-    - Checks if the post exists and belongs to the current user.
-    - Deletes the post from the database.
-
-    Parameters:
-    - `post_id`: ID of the post to be deleted.
-
-    Returns:
-    - Redirects to the user's profile after successful deletion.
-    - Displays an error message if the post cannot be deleted.
-    """
     post = Post.query.get(post_id)
     if not post or post.user_id != current_user.id:
-        flash("Publication introuvable ou vous n'avez pas la permission de la supprimer.", "danger")
+        flash("Publication introuvable ou vous n'avez pas la permission.", "danger")
         return redirect(url_for('profile.profile'))
 
     try:
@@ -256,37 +257,23 @@ def delete_post(post_id):
         flash("Publication supprimée avec succès.", "success")
     except:
         db.session.rollback()
-        flash("Une erreur est survenue lors de la suppression de la publication.", "danger")
+        flash("Erreur lors de la suppression de la publication.", "danger")
 
     return redirect(url_for('profile.profile'))
 
 @posts_bp.route('/news_feed', methods=['GET'])
 @login_required
 def news_feed():
-    """
-    Displays the news feed for the current user.
-
-    - Retrieves posts from the user's friends and public posts.
-    - Orders posts by their creation date in descending order.
-
-    Returns:
-    - Rendered 'news_feed.html' template with the list of posts.
-    """
-    # Get IDs of the current user's friends
-    friends_ids = [friend.id for friend in current_user.friends]
-
-    # Query the database for posts from friends and public posts
+    """Route alternative si vous ne voulez pas /news_feed/. 
+       Mais on a aussi app/news_feed/routes.py. 
+       On peut la laisser ou la retirer selon l'architecture."""
+    # Exemple simplifié
+    friends_ids = [f.id for f in current_user.friends]
     posts = Post.query.filter(
-        (Post.user_id.in_(friends_ids)) |
-        (Post.visibility == 'public')
+        (Post.user_id.in_(friends_ids)) | (Post.visibility == 'public')
     ).order_by(Post.created_at.desc()).all()
 
-    # Render the news feed template with the retrieved posts
     return render_template('posts/news_feed.html', posts=posts)
-
-
-========== ./app/posts/forms.py ==========
-
 """
 app/posts/forms.py
 
@@ -352,10 +339,6 @@ class CreatePostForm(FlaskForm):
         validators=[DataRequired()]
     )
     submit = SubmitField('Publier')
-
-
-========== ./app/posts/__init__.py ==========
-
 """
 app/posts/__init__.py
 
@@ -373,26 +356,7 @@ posts_bp = Blueprint('posts', __name__)
 
 # Import routes to register them with the Blueprint
 from app.posts import routes
-
-
-========== ./app/main/routes.py ==========
-
-"""
-app/main/routes.py
-
-This module handles the main routes of the SportLink application, including:
-- The home page
-- Custom error handlers for 404 and 500 errors
-- Serving uploaded files
-- Displaying the privacy policy
-
-Components:
-- `index`: The home page route.
-- `not_found_error`: Custom handler for 404 errors.
-- `internal_error`: Custom handler for 500 errors.
-- `uploaded_file`: Route to serve uploaded files.
-- `privacy_policy`: Route to display the privacy policy.
-"""
+# app/main/routes.py
 
 import os
 from flask import Blueprint, render_template, jsonify, send_from_directory, current_app, redirect, url_for
@@ -400,20 +364,13 @@ from flask_login import current_user
 from app.extensions import db
 from app.auth.forms import RegistrationForm, LoginForm
 
-# Define the blueprint for main routes
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
     """
-    Handles the root URL ('/') of the application.
-
-    - If the user is authenticated, redirects to the profile page.
-    - If the user is not authenticated, renders the home page with login and registration forms.
-
-    Returns:
-    - Redirect to the profile page if authenticated.
-    - Render of 'home.html' with forms if not authenticated.
+    Si user est connecté => profil ou news_feed,
+    Sinon => home page
     """
     if current_user.is_authenticated:
         return redirect(url_for('profile.profile'))
@@ -423,35 +380,12 @@ def index():
 
 @main_bp.app_errorhandler(404)
 def not_found_error(error):
-    """
-    Custom handler for 404 (Not Found) errors.
-
-    - Renders a '404.html' template with login and registration forms.
-
-    Parameters:
-    - error: The error object for the 404 exception.
-
-    Returns:
-    - Rendered '404.html' with a 404 status code.
-    """
     register_form = RegistrationForm()
     login_form = LoginForm()
     return render_template('404.html', register_form=register_form, login_form=login_form), 404
 
 @main_bp.app_errorhandler(500)
 def internal_error(error):
-    """
-    Custom handler for 500 (Internal Server Error) errors.
-
-    - Rolls back the database session to avoid conflicts.
-    - Renders a '500.html' template with login and registration forms.
-
-    Parameters:
-    - error: The error object for the 500 exception.
-
-    Returns:
-    - Rendered '500.html' with a 500 status code.
-    """
     db.session.rollback()
     register_form = RegistrationForm()
     login_form = LoginForm()
@@ -460,29 +394,13 @@ def internal_error(error):
 @main_bp.route('/uploads/<path:filename>')
 def uploaded_file(filename):
     """
-    Serves uploaded files from the configured upload folder.
-
-    Parameters:
-    - filename: The name of the file to be served.
-
-    Returns:
-    - The requested file from the upload directory.
+    Sert les fichiers uploadés depuis le dossier UPLOAD_FOLDER.
     """
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
 
 @main_bp.route('/privacy_policy')
 def privacy_policy():
-    """
-    Displays the privacy policy of the application.
-
-    Returns:
-    - Rendered 'privacy_policy.html' template.
-    """
     return render_template('main/privacy_policy.html')
-
-
-========== ./app/__init__.py ==========
-
 """
 app/__init__.py
 
@@ -594,10 +512,6 @@ def create_app():
         )
     
     return app
-
-
-========== ./app/models.py ==========
-
 from datetime import datetime, date
 from flask_login import UserMixin
 from app.extensions import db, bcrypt
@@ -780,18 +694,17 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return f'<User {self.username}>'
-
-
-========== ./app/profile/routes.py ==========
+# app/profile/routes.py
 
 from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, current_app
 from flask_login import login_required, current_user, logout_user
-from app.models import User, Sport, Rating, Post, UserSport
-from app.extensions import db
 from datetime import datetime
 import os
 import uuid
 from werkzeug.utils import secure_filename
+
+from app.extensions import db
+from app.models import User, Sport, Rating, Post, UserSport
 from app.profile.forms import (
     EditProfileForm,
     ChangeEmailForm,
@@ -802,13 +715,12 @@ from app.profile.forms import (
 from app.auth.forms import RegistrationForm, LoginForm
 from flask_wtf import FlaskForm
 
-
 profile_bp = Blueprint('profile', __name__)
 
 class EmptyForm(FlaskForm):
+    # Ce formulaire ne contient que le token caché
     pass
 
-# Helper function to save images in user-specific folders
 def save_image(image_file, folder_name, user_id):
     filename = secure_filename(image_file.filename)
     unique_prefix = str(uuid.uuid4())
@@ -819,7 +731,7 @@ def save_image(image_file, folder_name, user_id):
 
     file_path = os.path.join(user_folder, final_filename)
     image_file.save(file_path)
-    return f"{user_id}/{final_filename}"
+    return f"{folder_name}/{user_id}/{final_filename}"
 
 @profile_bp.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -827,7 +739,12 @@ def settings():
     change_email_form = ChangeEmailForm()
     change_password_form = ChangePasswordForm()
     delete_account_form = DeleteAccountForm()
-    return render_template('profile/settings.html', change_email_form=change_email_form, change_password_form=change_password_form, delete_account_form=delete_account_form)
+    return render_template(
+        'profile/settings.html',
+        change_email_form=change_email_form,
+        change_password_form=change_password_form,
+        delete_account_form=delete_account_form
+    )
 
 @profile_bp.route('/change_email', methods=['POST'])
 @login_required
@@ -876,6 +793,7 @@ def delete_account():
 @profile_bp.route('/profile', methods=['GET'])
 @login_required
 def profile():
+    """Affiche la page de profil du current_user (ou param user_id si voulu)."""
     user = current_user
     average_rating = user.average_rating
     total_ratings = user.ratings_received.count()
@@ -890,10 +808,16 @@ def profile():
         total_ratings=total_ratings,
         posts=posts,
         sports=sports,
-        form=form,
-        profile_image=user.profile_image or 'default_profile.jpg',
-        cover_image=user.cover_image or 'default_cover.jpg'
+        form=form
     )
+
+@profile_bp.route('/profile/<int:user_id>', methods=['GET'])
+@login_required
+def profile_other(user_id):
+    """Affiche le profil d'un autre utilisateur, si on veut user_id différent."""
+    user = User.query.get_or_404(user_id)
+    posts = user.posts.order_by(Post.created_at.desc()).all()
+    return render_template('profile/profile.html', user=user, posts=posts)
 
 @profile_bp.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
@@ -902,69 +826,39 @@ def edit_profile():
     form = EditProfileForm()
 
     if form.validate_on_submit():
-        user.username = form.username.data
-        user.email = form.email.data
         user.first_name = form.first_name.data
         user.last_name = form.last_name.data
-        user.country = form.country.data
+        user.email = form.email.data
         user.city = form.city.data
-        user.address = form.address.data
-        user.postal_code = form.postal_code.data
-        user.sex = form.sex.data
-        user.birth_date = form.birth_date.data
+        user.country = form.country.data
         user.phone = form.phone.data
         user.display_phone = form.display_phone.data
         user.display_email = form.display_email.data
-        user.latitude = form.latitude.data
-        user.longitude = form.longitude.data
 
+        # S’il y a un fichier uploadé, on appelle save_image()
         if form.profile_image.data:
-            profile_image = form.profile_image.data
-            user.profile_image = save_image(profile_image, 'profiles', user.id)
+            user.profile_image = save_image(form.profile_image.data, 'profiles', user.id)
+        # Sinon, on NE change pas user.profile_image.
+        # S’il était None, il le reste.
 
         if form.cover_image.data:
-            cover_image = form.cover_image.data
-            user.cover_image = save_image(cover_image, 'covers', user.id)
-
-        for sport in Sport.query.all():
-            level = request.form.get(f'sport_{sport.id}')
-            if level:
-                level = int(level)
-                user_sport = UserSport.query.filter_by(user_id=user.id, sport_id=sport.id).first()
-                if user_sport:
-                    user_sport.level = level
-                else:
-                    new_user_sport = UserSport(user_id=user.id, sport_id=sport.id, level=level)
-                    db.session.add(new_user_sport)
+            user.cover_image = save_image(form.cover_image.data, 'covers', user.id)
 
         db.session.commit()
         flash("Profil mis à jour avec succès.", "success")
         return redirect(url_for('profile.profile'))
 
-    form.username.data = user.username
-    form.email.data = user.email
+    # Pré-remplir
     form.first_name.data = user.first_name
     form.last_name.data = user.last_name
-    form.country.data = user.country
+    form.email.data = user.email
     form.city.data = user.city
-    form.address.data = user.address
-    form.postal_code.data = user.postal_code
-    form.sex.data = user.sex
-    form.birth_date.data = user.birth_date
+    form.country.data = user.country
     form.phone.data = user.phone
     form.display_phone.data = user.display_phone
     form.display_email.data = user.display_email
-    form.latitude.data = user.latitude
-    form.longitude.data = user.longitude
 
-    sports = Sport.query.all()
-    return render_template(
-        'profile/edit_profile.html',
-        user=user,
-        sports=sports,
-        form=form
-    )
-
+    return render_template('profile/edit_profile.html', form=form)
 @profile_bp.route('/add_friend/<int:user_id>', methods=['POST'])
 @login_required
 def add_friend(user_id):
@@ -972,13 +866,12 @@ def add_friend(user_id):
     if user_to_add == current_user:
         flash("Vous ne pouvez pas vous ajouter vous-même.", "danger")
         return redirect(url_for('profile.profile'))
-
     if current_user.is_friend(user_to_add):
         flash("Vous êtes déjà amis.", "info")
     else:
         current_user.friends.append(user_to_add)
         db.session.commit()
-        flash(f"Vous êtes maintenant ami avec {user_to_add.username}.", "success")
+        flash(f"Vous êtes maintenant ami avec {user_to_add.first_name}.", "success")
 
     return redirect(url_for('profile.profile'))
 
@@ -993,10 +886,10 @@ def list_friends():
 @login_required
 def photos(user_id):
     user = User.query.get_or_404(user_id)
-    posts = Post.query.filter_by(user_id=user_id).filter(Post.image.isnot(None)).all()
+    posts = Post.query.filter_by(user_id=user.id).filter(Post.image.isnot(None)).all()
     profile_images = [user.profile_image] if user.profile_image else []
     cover_images = [user.cover_image] if user.cover_image else []
-    images = profile_images + cover_images + [post.image for post in posts]
+    images = profile_images + cover_images + [p.image for p in posts if p.image]
 
     form = EmptyForm()
 
@@ -1008,8 +901,9 @@ def photos(user_id):
 @profile_bp.route('/complete_profile', methods=['GET', 'POST'])
 @login_required
 def complete_profile():
+    """Exemple de formulaire WTForms plus poussé, si voulu."""
     form = CompleteProfileForm()
-    form.sports.choices = [(str(sport.id), sport.name) for sport in Sport.query.all()]
+    form.sports.choices = [(str(s.id), s.name) for s in Sport.query.all()]
     form.levels.choices = [(str(i), f'{i} étoiles') for i in range(1, 6)]
 
     if form.validate_on_submit():
@@ -1030,6 +924,7 @@ def complete_profile():
             user_sport = UserSport(user_id=current_user.id, sport_id=int(sport_id), level=int(level))
             db.session.add(user_sport)
 
+        current_user.profile_completed = True
         db.session.commit()
         flash('Profil complété avec succès!', 'success')
         return redirect(url_for('profile.profile'))
@@ -1039,7 +934,7 @@ def complete_profile():
 @profile_bp.route('/search_users', methods=['GET'])
 @login_required
 def search_users():
-    query = request.args.get('query', '').strip().lower()
+    query = request.args.get('query', '').strip()
     suggestions = []
     results = []
 
@@ -1048,8 +943,8 @@ def search_users():
             (User.first_name.ilike(f'%{query}%')) | (User.last_name.ilike(f'%{query}%'))
         ).all()
     else:
+        # Quelques suggestions. On peut filtrer par ville, etc.
         suggestions = User.query.filter(
-            User.city.ilike(current_user.city),
             User.id != current_user.id
         ).limit(10).all()
 
@@ -1058,6 +953,11 @@ def search_users():
 @profile_bp.route('/add_contact/<int:user_id>', methods=['POST'])
 @login_required
 def add_contact(user_id):
+    form = EmptyForm()
+    if not form.validate_on_submit():
+        flash("Erreur de soumission. Merci de réessayer.", "danger")
+        return redirect(url_for('profile.list_contacts'))
+
     user_to_add = User.query.get_or_404(user_id)
     if user_to_add == current_user:
         flash("Vous ne pouvez pas vous ajouter vous-même.", "danger")
@@ -1090,10 +990,6 @@ def remove_contact(user_id):
         flash("Cette personne n'est pas dans vos contacts.", "info")
 
     return redirect(url_for('profile.list_contacts'))
-
-
-========== ./app/profile/forms.py ==========
-
 """
 app/profile/forms.py
 
@@ -1258,10 +1154,6 @@ class MultiCheckboxField(QuerySelectMultipleField):
     """
     widget = ListWidget(prefix_label=False)
     option_widget = CheckboxInput()
-
-
-========== ./app/profile/__init__.py ==========
-
 """
 app/profile/__init__.py
 
@@ -1279,10 +1171,6 @@ profile_bp = Blueprint('profile', __name__)
 
 # Import routes to register them with the Blueprint
 from app.profile import routes
-
-
-========== ./app/auth/routes.py ==========
-
 from flask import Blueprint, request, render_template, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User
@@ -1592,10 +1480,6 @@ def upload_profile():
     else:
         flash('File type not allowed')
         return redirect(url_for('profile.complete_profile'))
-
-
-========== ./app/auth/forms.py ==========
-
 """
 app/auth/forms.py
 
@@ -1674,10 +1558,24 @@ class ResetPasswordForm(FlaskForm):
     password = PasswordField('Nouveau mot de passe', validators=[DataRequired()])
     confirm_password = PasswordField('Confirmez le mot de passe', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Réinitialiser le mot de passe')
+"""
+app/auth/__init__.py
 
+This module initializes the 'auth' Blueprint for the authentication-related routes in the application.
+The Blueprint allows for modular organization of the code and keeps all authentication routes grouped together.
 
-========== ./app/auth/utils.py ==========
+Components:
+- `auth_bp`: Blueprint instance for authentication.
+- `routes`: Imports the authentication routes to register them with the Blueprint.
+"""
 
+from flask import Blueprint
+
+# Define the 'auth' Blueprint to handle authentication-related routes
+auth_bp = Blueprint('auth', __name__)
+
+# Import the routes associated with the 'auth' Blueprint
+from app.auth import routes
 """
 app/auth/utils.py
 
@@ -1750,462 +1648,20 @@ def register_user_if_new(provider, provider_id, email=None, username=None):
         db.session.commit()
 
     return user
-
-
-========== ./app/static/css/global.css ==========
-
-/* Styles généraux */
-body {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-image: url('/static/images/background.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    color: #00FF00; /* Texte vert par défaut */
-}
-
-html, body {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.main-content {
-    flex-grow: 1;
-    min-height: calc(100vh - 80px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0 20px;
-}
-
-/* Header */
-.header {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    height: 80px;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    border-bottom: 1px solid #e4e6eb;
-    z-index: 1000;
-}
-
-.header-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 20px;
-}
-
-.logo-container img {
-    height: 40px;
-}
-
-.nav .menu {
-    list-style: none;
-    display: flex;
-    gap: 20px;
-}
-
-.nav .menu li a {
-    text-decoration: none;
-    color: white;
-    font-weight: 500;
-    transition: color 0.3s ease;
-}
-
-.nav .menu li a:hover {
-    color: #00FF00;
-}
-
-.nav-title {
-    flex-grow: 1;
-    text-align: center;
-    font-size: 2rem;
-    font-weight: bold;
-    color: white;
-}
-
-/* Boutons */
-.btn-primary {
-    display: inline-block;
-    padding: 10px 20px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 255, 0, 0.2);
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.3s, background-color 0.3s;
-    background: linear-gradient(90deg, #00FF00, #000000);
-}
-
-.btn-primary:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 15px rgba(0, 255, 0, 0.4);
-    background: #000000;
-    color: #00FF00;
-}
-
-/* Champs de formulaire globaux */
-input, textarea, select {
-    background: rgba(0, 0, 0, 0.8);
-    border: 1px solid #00FF00;
-    color: white;
-    border-radius: 5px;
-    padding: 10px;
-    transition: box-shadow 0.3s ease-in-out, transform 0.2s;
-}
-
-input:focus, textarea:focus, select:focus {
-    box-shadow: 0 0 10px #00FF00;
-    transform: scale(1.02);
-    outline: none;
-}
-
-input::placeholder, textarea::placeholder {
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.flash-messages {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    max-width: 300px;
-}
-
-.flash-messages .alert {
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    font-weight: bold;
-    text-align: center;
-    cursor: pointer;
-    animation: fadeInOut 5s ease-in-out;
-    transition: opacity 0.5s ease, transform 0.3s ease;
-}
-
-.alert-success {
-    background-color: #28a745;
-    color: white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.alert-warning {
-    background-color: #ffc107;
-    color: black;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.alert-danger {
-    background-color: #dc3545;
-    color: white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* Animation */
-@keyframes fadeInOut {
-    0% {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    10% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    90% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-}
-
-/* Fermer le message lorsqu'on passe la souris */
-.flash-messages .alert:hover {
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-}
-
-
-========== ./app/static/css/profile/profile.css ==========
-
-/* Container principal */
-.profile-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    width: 95%;
-}
-
-/* Header du profil */
-.profile-header {
-    position: relative;
-    margin-bottom: 20px;
-}
-
-/* Photo de couverture */
-.cover-photo {
-    height: 300px;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-    margin-top: 80px; /* Ajuste pour éviter que la navbar masque la photo */
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-/* Photo de profil */
-.profile-photo {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background-size: cover;
-    background-position: center;
-    border: 3px solid white;
-    margin: -75px auto 10px auto; /* Position centrée */
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* Texte sur le profil */
-.profile-text {
-    color: white !important; /* Couleur blanche pour tout le texte */
-    text-align: center;
-}
-
-/* Section des publications */
-.posts-section {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-/* Publication individuelle */
-.post {
-    background: #fff;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Header d'une publication */
-.post-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.post-header img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-}
-
-/* Navigation */
-.profile-nav ul {
-    display: flex;
-    gap: 15px;
-    padding: 0;
-    list-style: none;
-    margin: 20px 0;
-}
-
-.profile-nav a {
-    text-decoration: none;
-    color: #555;
-}
-
-.profile-nav a:hover {
-    text-decoration: underline;
-}
-
-/* Informations */
-.info-card {
-    background: #f9f9f9;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.info-card h3 {
-    margin-bottom: 10px;
-}
-
-.info-card ul {
-    list-style: none;
-    padding: 0;
-}
-
-
-========== ./app/static/css/profile.css ==========
-
-.search-container, .contacts-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
-    font-size: 24px;
-    margin-bottom: 20px;
-    color: #333;
-}
-
-.user-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.user-list li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 15px;
-    padding: 10px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.user-list li img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin-right: 15px;
-}
-
-.user-list li span {
-    flex-grow: 1;
-    font-size: 18px;
-    color: #555;
-}
-
-.user-list li .btn-add,
-.user-list li .btn-remove {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.user-list li .btn-add {
-    background-color: #28a745;
-    color: #fff;
-}
-
-.user-list li .btn-remove {
-    background-color: #dc3545;
-    color: #fff;
-}
-
-
-========== ./app/static/css/auth/register.css ==========
-
-/* Container spécifique pour la page d'inscription */
-.register-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    padding: 20px;
-    background: none;
-}
-
-.register-form {
-    max-width: 500px;
-    width: 100%;
-    padding: 30px;
-    border-radius: 10px;
-    background-color: rgba(0, 0, 0, 0.8);
-    box-shadow: 0 4px 15px rgba(0, 255, 0, 0.3);
-    text-align: center;
-}
-
-/* Titre de la page */
-.register-form h2 {
-    text-align: center;
-    color: #00FF00;
-    margin-bottom: 20px;
-}
-
-/* Champs de formulaire */
-.register-form .form-group {
-    margin-bottom: 20px;
-}
-
-.register-form .form-group input {
-    width: 100%;
-}
-
-.register-form .form-group label {
-    color: #00FF00;
-    font-weight: bold;
-}
-
-/* Bouton spécifique à la page */
-.register-form .btn-primary {
-    width: 100%;
-    font-size: 1.2rem;
-}
-
-/* Lien pour la connexion */
-.register-form a {
-    color: #00FF00;
-    text-decoration: none;
-}
-
-.register-form a:hover {
-    color: #000000;
-    background-color: #00FF00;
-    padding: 3px;
-    border-radius: 5px;
-}
-
-
-========== ./app/messages/routes.py ==========
-
-"""
-app/messages/routes.py
-
-This module defines routes for messaging functionalities in the SportLink application.
-It includes features such as viewing the inbox and sending messages between users.
-
-Components:
-- `inbox`: Route for viewing received messages.
-- `send_message`: Route for sending a message to another user.
-"""
+# app/messages/routes.py
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.models import Message, User
 from app.extensions import db
 
-# Define the Blueprint for messaging-related routes
 messages_bp = Blueprint('messages', __name__, template_folder='templates/messages')
 
 @messages_bp.route('/inbox', methods=['GET'])
 @login_required
 def inbox():
     """
-    Displays the inbox with all messages received by the current user.
-
-    - Retrieves all messages where the recipient is the current user.
-    - Orders messages by timestamp in descending order.
-
-    Returns:
-    - Rendered 'inbox.html' template with the user's messages.
+    Affiche la boîte de réception (messages reçus).
     """
     messages = Message.query.filter_by(recipient_id=current_user.id).order_by(Message.timestamp.desc()).all()
     return render_template('messages/inbox.html', messages=messages)
@@ -2214,34 +1670,16 @@ def inbox():
 @login_required
 def send_message(user_id):
     """
-    Handles sending a message to another user.
-
-    GET:
-    - Renders the message form for composing a new message.
-
-    POST:
-    - Sends the message if the form submission is valid.
-    - Validates that the message body is not empty.
-    - Saves the message to the database.
-
-    Parameters:
-    - user_id: ID of the recipient user.
-
-    Returns:
-    - On GET: Rendered 'send_message.html' template with the recipient's details.
-    - On POST: Redirects to the inbox after the message is successfully sent.
+    Envoie un message à un utilisateur donné.
     """
-    # Retrieve the recipient user by their ID
     recipient = User.query.get_or_404(user_id)
 
     if request.method == 'POST':
         body = request.form.get('body')
-        # Check if the message body is empty
         if not body:
             flash("Le message ne peut pas être vide.", "danger")
             return redirect(url_for('messages.send_message', user_id=user_id))
         
-        # Create and save the new message
         message = Message(sender_id=current_user.id, recipient_id=recipient.id, body=body)
         db.session.add(message)
         db.session.commit()
@@ -2250,3 +1688,150 @@ def send_message(user_id):
         return redirect(url_for('messages.inbox'))
 
     return render_template('messages/send_message.html', recipient=recipient)
+"""
+app/messages/__init__.py
+
+This module initializes the 'messages' Blueprint for handling messaging-related functionalities in the application.
+
+Components:
+- `messages_bp`: Blueprint instance for messaging-related routes.
+- Import of `routes`: Registers the routes related to messaging.
+"""
+
+from flask import Blueprint
+
+# Define the Blueprint for messaging-related functionalities
+messages_bp = Blueprint('messages', __name__)
+
+# Import routes to register them with the Blueprint
+from app.messages import routes
+# app/events/routes.py
+
+from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask_login import login_required, current_user
+from app.events.form import EventForm
+from app.extensions import db
+from app.models import User
+
+events_bp = Blueprint('events', __name__)
+
+@events_bp.route('/organize', methods=['GET', 'POST'])
+@login_required
+def organize():
+    """
+    Permet de créer/rechercher une activité sportive 
+    et d'afficher des partenaires potentiels.
+    """
+    form = EventForm()
+    partners = []
+
+    if form.validate_on_submit():
+        # Exemple de matching
+        # On suppose que user.sport/level existent ou qu'on matche autrement
+        # Filtrage simplifié
+        partners = User.query.filter(
+            User.city == current_user.city
+        ).all()
+        
+        if partners:
+            flash("Recherche effectuée avec succès. Partenaires trouvés.", "success")
+        else:
+            flash("Aucun partenaire trouvé pour ces critères.", "warning")
+
+    return render_template('events/organize.html', form=form, partners=partners)
+"""
+app/events/forms.py
+
+This module defines the forms used for creating or searching events in the SportLink application.
+It leverages Flask-WTF for form handling and WTForms for validation.
+
+Components:
+- `EventForm`: A form for users to specify event details when searching for sports partners.
+"""
+
+from flask_wtf import FlaskForm
+from wtforms import StringField, IntegerField, DateField, SelectField, SubmitField
+from wtforms.validators import DataRequired
+
+class EventForm(FlaskForm):
+    """
+    Form for searching for sports partners based on activity preferences.
+
+    Fields:
+    - sport: Dropdown for selecting the type of sport.
+    - level: Dropdown for selecting the skill level.
+    - distance: Integer input for the maximum distance in kilometers.
+    - date: Date picker for specifying the event date.
+    - submit: Submit button to trigger the search action.
+    """
+    sport = SelectField(
+        'Sport', 
+        choices=[
+            ('running', 'Course à pied'), 
+            ('cycling', 'Cyclisme')
+        ], 
+        validators=[DataRequired()]
+    )
+    level = SelectField(
+        'Niveau', 
+        choices=[
+            ('beginner', 'Débutant'), 
+            ('intermediate', 'Intermédiaire'), 
+            ('advanced', 'Avancé')
+        ], 
+        validators=[DataRequired()]
+    )
+    distance = IntegerField(
+        'Distance maximale (km)', 
+        validators=[DataRequired()]
+    )
+    date = DateField(
+        'Date', 
+        format='%Y-%m-%d', 
+        validators=[DataRequired()]
+    )
+    submit = SubmitField('Rechercher des Partenaires')
+"""
+app/extensions.py
+
+This module initializes and manages the extensions used throughout the SportLink application.
+These extensions provide key functionalities such as database management, user authentication, 
+password encryption, email handling, and JWT (JSON Web Token) support.
+
+Components:
+- `db`: SQLAlchemy for database operations.
+- `migrate`: Flask-Migrate for database migrations.
+- `bcrypt`: Flask-Bcrypt for password hashing.
+- `jwt`: Flask-JWT-Extended for JSON Web Token authentication.
+- `mail`: Flask-Mail for email sending.
+- `login_manager`: Flask-Login for user session management.
+"""
+
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager
+from flask_mail import Mail
+from flask_login import LoginManager
+
+# ======================
+# Extension Initialization
+# ======================
+
+# SQLAlchemy: Handles interactions with the database
+db = SQLAlchemy()
+
+# Flask-Migrate: Provides database schema migration tools
+migrate = Migrate()
+
+# Flask-Bcrypt: Used for hashing passwords
+bcrypt = Bcrypt()
+
+# Flask-JWT-Extended: Enables JSON Web Token authentication
+jwt = JWTManager()
+
+# Flask-Mail: Provides email-sending capabilities
+mail = Mail()
+
+# Flask-Login: Manages user sessions and authentication
+login_manager = LoginManager()
