@@ -1,57 +1,92 @@
 {% extends "base.html" %}
 
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth/register.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="register-container">
     <div class="register-form">
         <h2>Inscription</h2>
         <form action="{{ url_for('auth.register') }}" method="POST">
             {{ form.hidden_tag() }}
+
+            <!-- Email -->
             <div class="form-group">
-                {{ form.username.label }}
-                {{ form.username(class="form-control") }}
-            </div>
-            <div class="form-group">
-                {{ form.email.label }}
+                {{ form.email.label(class="form-label") }}
                 {{ form.email(class="form-control") }}
             </div>
+            <!-- Phone -->
             <div class="form-group">
-                {{ form.first_name.label }}
+                {{ form.phone.label(class="form-label") }}
+                {{ form.phone(class="form-control") }}
+                {% if form.phone.errors %}
+                    <span class="text-danger">{{ form.phone.errors[0] }}</span>
+                {% endif %}
+            </div>
+            
+            <!-- Prénom -->
+            <div class="form-group">
+                {{ form.first_name.label(class="form-label") }}
                 {{ form.first_name(class="form-control") }}
             </div>
+
+            <!-- Nom de famille -->
             <div class="form-group">
-                {{ form.last_name.label }}
+                {{ form.last_name.label(class="form-label") }}
                 {{ form.last_name(class="form-control") }}
             </div>
+
+            <!-- Date de naissance -->
             <div class="form-group">
-                {{ form.birth_date.label }}
+                {{ form.birth_date.label(class="form-label") }}
                 {{ form.birth_date(class="form-control") }}
             </div>
+
+            <!-- Genre -->
             <div class="form-group">
-                {{ form.gender.label }}
+                {{ form.gender.label(class="form-label") }}
                 {{ form.gender(class="form-control") }}
             </div>
+
+            <!-- Mot de passe -->
             <div class="form-group">
-                {{ form.password.label }}
+                {{ form.password.label(class="form-label") }}
                 {{ form.password(class="form-control") }}
             </div>
+
+            <!-- Confirmation du mot de passe -->
             <div class="form-group">
-                {{ form.confirm_password.label }}
+                {{ form.confirm_password.label(class="form-label") }}
                 {{ form.confirm_password(class="form-control") }}
             </div>
-            <div class="form-group">
+
+            <!-- Conditions d'utilisation -->
+            <div class="form-group form-accept-terms">
                 {{ form.accept_terms() }}
                 {{ form.accept_terms.label|safe }}
             </div>
+
+            <!-- Bouton d'inscription -->
             <button type="submit" class="btn-primary">{{ form.submit.label }}</button>
         </form>
+
+        <!-- Inscription via OAuth -->
         <p>Ou inscrivez-vous avec :</p>
         <div class="social-login">
-            <a href="{{ url_for('facebook.login') }}" class="btn-social facebook"><i class="fab fa-facebook-f"></i> Facebook</a>
-            <a href="{{ url_for('strava.login') }}" class="btn-social strava"><i class="fas fa-bicycle"></i> Strava</a>
+            <a href="{{ url_for('facebook.login') }}" class="btn-social facebook">
+                <i class="fab fa-facebook-f"></i> Facebook
+            </a>
+            <a href="{{ url_for('strava.login') }}" class="btn-social strava">
+                <i class="fas fa-bicycle"></i> Strava
+            </a>
         </div>
+
+        <!-- Redirection vers la connexion -->
         <p>Vous avez déjà un compte ? <a href="{{ url_for('auth.login') }}">Connectez-vous ici</a></p>
     </div>
 
+    <!-- Affichage des messages flash -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}

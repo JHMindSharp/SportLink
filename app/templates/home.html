@@ -1,34 +1,136 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block title %}Accueil - SportLink{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="home-container">
+<!-- Si connecté, on inclut le layout du haut : couverture, navbar, photo de profil -->
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
+<div class="home-welcome-container">
     <section class="home-banner">
         <div class="banner-content">
             <h1 class="main-title">Bienvenue sur SportLink</h1>
-            <p class="subtitle">SportLink est votre plateforme ultime pour suivre vos performances sportives, trouver des partenaires et réserver du matériel ou des terrains de sport.</p>
-            <h2 class="why-join-title">Pourquoi s'inscrire ?</h2>
+            <p class="subtitle">
+                SportLink est votre plateforme ultime pour suivre vos performances sportives, 
+                trouver des partenaires, réserver du matériel ou des terrains, et partager vos exploits 
+                avec vos proches. 
+            </p>
+            <h2 class="why-join-title">Pourquoi nous rejoindre ?</h2>
             <ul class="features-list">
-                <li>★ <strong>Suivi des performances</strong> : Gardez une trace de vos activités sportives et améliorez vos performances.</li>
-                <li>★ <strong>Réseau de partenaires</strong> : Trouvez des partenaires sportifs avec des intérêts similaires.</li>
-                <li>★ <strong>Réservations faciles</strong> : Réservez du matériel et des terrains de sport en quelques clics.</li>
-                <li>★ <strong>Communauté active</strong> : Rejoignez une communauté de sportifs passionnés.</li>
-                <li>★ <strong>Messagerie intégrée</strong> : Communiquez en temps réel avec vos partenaires.</li>
+                <li>★ <strong>Suivi des activités</strong> : Gardez une trace de vos performances sportives.</li>
+                <li>★ <strong>Réseau social</strong> : Trouvez et ajoutez des amis, communiquez librement.</li>
+                <li>★ <strong>Organisateur d’événements</strong> : Créez ou rejoignez des activités près de chez vous.</li>
+                <li>★ <strong>Réservations en ligne</strong> : Réservez du matériel ou des terrains en quelques clics.</li>
+                <li>★ <strong>Mode famille</strong> : Un espace adapté pour partager en toute sécurité avec vos enfants.</li>
             </ul>
-            <!-- Bouton "Commencer" -->
-            <a href="{{ url_for('auth.register') }}" class="btn-primary" id="get-started-btn">Commencer</a>
+            <!-- Boutons d’appel à l’action -->
+            <div class="cta-buttons">
+                <a href="{{ url_for('auth.register') }}" class="btn-primary" id="get-started-btn">Commencer</a>
+                <a href="{{ url_for('auth.login') }}" class="btn-primary" style="background: linear-gradient(90deg, #000, #00FF00);">
+                    Se connecter
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section supplémentaire "fonctionnalités" -->
+    <section class="section features-section">
+        <h2 class="text-adapt">Nos Points Forts</h2>
+        <p class="text-adapt">
+            Découvrez nos fonctionnalités clés : un suivi sportif précis, 
+            un réseau social complet, un organisateur d’événements, 
+            un système de réservation et un mode spécial famille.
+        </p>
+
+        <!-- Par exemple, vous pouvez afficher des "cartes flip" -->
+        <div class="feature-cards">
+            <!-- Carte #1 -->
+            <div class="card3D">
+                <div class="card3D-inner">
+                    <div class="card3D-front">
+                        <h3>Réseau Social</h3>
+                    </div>
+                    <div class="card3D-back">
+                        <p>
+                            Publiez, commentez, échangez avec vos amis ou votre famille. 
+                            Tout un écosystème social pour partager vos exploits sportifs et plus encore.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- Carte #2 -->
+            <div class="card3D">
+                <div class="card3D-inner">
+                    <div class="card3D-front">
+                        <h3>Suivi Sportif</h3>
+                    </div>
+                    <div class="card3D-back">
+                        <p>
+                            Connectez vos appareils, importez vos séances automatiquement, 
+                            visualisez des statistiques précises et atteignez vos objectifs.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- Carte #3 -->
+            <div class="card3D">
+                <div class="card3D-inner">
+                    <div class="card3D-front">
+                        <h3>Organisation</h3>
+                    </div>
+                    <div class="card3D-back">
+                        <p>
+                            Planifiez ou rejoignez des activités sportives. 
+                            Notre algorithme trouve des partenaires ayant un niveau et une localisation compatibles.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- Carte #4 -->
+            <div class="card3D">
+                <div class="card3D-inner">
+                    <div class="card3D-front">
+                        <h3>Réservations</h3>
+                    </div>
+                    <div class="card3D-back">
+                        <p>
+                            Louez du matériel, réservez un terrain ou un coach, 
+                            et payez directement via SportLink. 
+                            Simplifiez votre logistique.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- Carte #5 -->
+            <div class="card3D">
+                <div class="card3D-inner">
+                    <div class="card3D-front">
+                        <h3>Mode Famille</h3>
+                    </div>
+                    <div class="card3D-back">
+                        <p>
+                            Les enfants profitent d’un réseau social adapté et sécurisé, 
+                            sous la supervision de leurs parents, pour partager l’amour du sport en famille.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- Section Contact -->
     <section id="contact" class="section contact-section">
         <h2 class="text-adapt">Contactez-nous</h2>
-        <p class="text-adapt">Pour toute question ou suggestion, n'hésitez pas à nous contacter à l'adresse suivante :</p>
-        <p><a href="mailto:contact@sportlink.com" class="contact-email text-adapt">contact@sportlink.com</a></p>
+        <p class="text-adapt">
+            Pour toute question ou suggestion, n'hésitez pas à nous écrire : 
+            <a href="mailto:contact@sportlink.com" class="contact-email text-adapt">contact@sportlink.com</a>
+        </p>
     </section>
 </div>
-
-<!-- Lien vers le fichier JavaScript -->
-<script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 {% endblock %}

@@ -1,0 +1,43 @@
+{# app/templates/_layout/logged_in_top.html #}
+{% set cover_img = current_user.cover_image %}
+{% if cover_img %}
+    {% set cover_url = url_for('main.uploaded_file', filename=cover_img) %}
+{% else %}
+    {% set cover_url = url_for('main.uploaded_file', filename='covers/default_cover.jpg') %}
+{% endif %}
+
+{% set profile_img = current_user.profile_image %}
+{% if profile_img %}
+    {% set profile_url = url_for('main.uploaded_file', filename=profile_img) %}
+{% else %}
+    {% set profile_url = url_for('main.uploaded_file', filename='profiles/default_profile.jpg') %}
+{% endif %}
+
+<!-- Photo de couverture en haut -->
+<div class="cover-photo" style="background-image: url('{{ cover_url }}');">
+  {% if current_user == user %}
+    <a href="{{ url_for('profile.change_photo', type='cover') }}" class="change-photo-btn cover">Changer</a>
+  {% endif %}
+</div>
+
+<!-- Barre de navigation, scindée en 2 <ul> (gauche/droite) -->
+<nav class="profile-nav-bar">
+    <ul class="nav-left">
+      <li><a href="{{ url_for('news_feed.news_feed') }}">Fil d'actualité</a></li>
+      <li><a href="{{ url_for('profile.profile') }}">Mon Profil</a></li>
+      <li><a href="{{ url_for('messages.inbox') }}">Messages</a></li>
+    </ul>
+
+    <!-- Photo de profil qui chevauche la nav -->
+    <div class="profile-photo-bubble" style="background-image: url('{{ profile_url }}');">
+      {% if current_user == user %}
+        <a href="{{ url_for('profile.change_photo', type='profile') }}" class="change-photo-btn">Changer</a>
+      {% endif %}
+    </div>
+
+    <ul class="nav-right">
+      <li><a href="{{ url_for('events.organize') }}">Activités</a></li>
+      <li><a href="{{ url_for('profile.list_contacts') }}">Contacts</a></li>
+      <li><a href="{{ url_for('auth.logout') }}">Déconnexion</a></li>
+    </ul>
+</nav>

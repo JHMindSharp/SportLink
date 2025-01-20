@@ -2,65 +2,39 @@
 
 {% block title %}Partenaires Potentiels - SportLink{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile/partners_list.css') }}">
+{% endblock %}
+
 {% block content %}
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
 <h2>Partenaires Potentiels</h2>
+
 {% if partners %}
     <div class="partners-grid">
         {% for partner in partners %}
-            <div class="partner-card">
-                <div class="partner-photo" style="background-image: url('{{ url_for('main.uploaded_file', filename='profiles/' ~ partner.profile_image) if partner.profile_image else url_for('static', filename='images/default_profile.jpg') }}');"></div>
-                <div class="partner-info">
-                    <h3>{{ partner.username }}</h3>
-                    <p>{{ partner.city }}, {{ partner.country }}</p>
-                    <a href="{{ url_for('profile.profile', user_id=partner.id) }}" class="btn">Voir le profil</a>
-                </div>
+        <div class="partner-card">
+            <div class="partner-photo"
+                 style="background-image: url('{{
+                    url_for('main.uploaded_file', filename=partner.profile_image or 'profiles/default_profile.jpg')
+                 }}');">
             </div>
+            <div class="partner-info">
+                <!-- Le user n’a peut-être pas "username". On affiche first_name / last_name. -->
+                <h3>{{ partner.first_name }} {{ partner.last_name }}</h3>
+                <p>{{ partner.city }}, {{ partner.country }}</p>
+                <a href="{{ url_for('profile.profile', user_id=partner.id) }}" class="btn">
+                    Voir le profil
+                </a>
+            </div>
+        </div>
         {% endfor %}
     </div>
 {% else %}
     <p>Aucun partenaire trouvé correspondant à vos critères.</p>
 {% endif %}
-
-<style>
-    .partners-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-    }
-
-    .partner-card {
-        width: 200px;
-        border: 1px solid #ccc;
-        border-radius: 10px;
-        overflow: hidden;
-        text-align: center;
-    }
-
-    .partner-photo {
-        width: 100%;
-        height: 150px;
-        background-size: cover;
-        background-position: center;
-    }
-
-    .partner-info {
-        padding: 10px;
-    }
-
-    .btn {
-        display: inline-block;
-        margin-top: 10px;
-        padding: 8px 15px;
-        background-color: #1877f2;
-        color: #fff;
-        border-radius: 5px;
-        text-decoration: none;
-        font-weight: bold;
-        transition: background 0.3s;
-    }
-
-    .btn:hover {
-        background-color: #165bbf;
-    }
-</style>
 {% endblock %}

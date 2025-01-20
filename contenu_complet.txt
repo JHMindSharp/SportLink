@@ -1,0 +1,2879 @@
+------------------
+File: ./new_env/lib/python3.10/site-packages/setuptools/tests/indexes/test_links_priority/simple/foobar/index.html
+<html><body>
+<a href="/foobar-0.1.tar.gz#md5=0_correct_md5">foobar-0.1.tar.gz</a><br/>
+<a href="../../external.html" rel="homepage">external homepage</a><br/>
+</body></html>
+------------------
+File: ./new_env/lib/python3.10/site-packages/setuptools/tests/indexes/test_links_priority/external.html
+<html><body>
+<a href="/foobar-0.1.tar.gz#md5=1__bad_md5___">bad old link</a>
+</body></html>
+------------------
+File: ./app/templates/404.html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Page non trouvée</title>
+</head>
+<body>
+    <h1>Erreur 404</h1>
+    <p>La page demandée est introuvable.</p>
+    <a href="{{ url_for('main.index') }}">Retour à l'accueil</a>
+</body>
+</html>
+------------------
+File: ./app/templates/500.html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Erreur 500 - Erreur interne du serveur</title>
+</head>
+<body>
+    <h1>Erreur 500</h1>
+    <p>Une erreur interne est survenue. Veuillez réessayer plus tard.</p>
+</body>
+</html>
+------------------
+File: ./app/templates/notifications/list.html
+{% extends 'base.html' %}
+
+{% block title %}Notifications - SportLink{% endblock %}
+
+{% block content %}
+<h2>Vos Notifications</h2>
+{% if notifications %}
+    <ul>
+        {% for notification in notifications %}
+            <li>{{ notification.message }} - {{ notification.timestamp.strftime('%d/%m/%Y %H:%M') }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Vous n'avez pas de notifications pour le moment.</p>
+{% endif %}
+{% endblock %}
+------------------
+File: ./app/templates/news_feed/news_feed.html
+{% extends "base.html" %}
+
+{% block title %}Fil d'actualité - SportLink{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
+
+{% block content %}
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
+<div class="profile-main">
+    <h2>Fil d'actualité</h2>
+    <div class="news-feed-posts">
+        {% for post in posts %}
+        <div class="news-post-card">
+            <div class="post-header">
+                <img src="{{
+                    url_for('main.uploaded_file', filename=post.author.profile_image or 'profiles/default_profile.jpg')
+                }}" alt="Photo profil" />
+                <div class="post-author-info">
+                    <strong>{{ post.author.first_name }} {{ post.author.last_name }}</strong>
+                    <span class="timestamp">{{ post.created_at.strftime('%d %B %Y à %H:%M') }}</span>
+                </div>
+            </div>
+            <div class="post-content">
+                {% if post.title %}
+                <h3>{{ post.title }}</h3>
+                {% endif %}
+                <p>{{ post.content }}</p>
+                
+                {% if post.image %}
+                <img src="{{ url_for('main.uploaded_file', filename=post.image) }}" alt="image publication" />
+                {% endif %}
+                
+                {% if post.video %}
+                <video controls>
+                    <source src="{{ url_for('main.uploaded_file', filename=post.video) }}">
+                </video>
+                {% endif %}
+                
+                {% if post.music %}
+                <audio controls>
+                    <source src="{{ url_for('main.uploaded_file', filename=post.music) }}">
+                </audio>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+------------------
+File: ./app/templates/friends/friends.html
+{% extends 'base.html' %}
+
+{% block content %}
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
+<h2>Mes Amis</h2>
+<form method="GET" action="{{ url_for('profile.search_users') }}">
+    <input type="text" name="query" placeholder="Rechercher par nom ou prénom">
+    <button type="submit">Rechercher</button>
+</form>
+
+{% if friends %}
+    <div class="user-list">
+    {% for friend in friends %}
+        <div class="user-card">
+            <img src="{{ url_for('static', filename='uploads/profiles/' ~ friend.profile_image) }}" alt="{{ friend.first_name }}">
+            <h3>{{ friend.first_name }} {{ friend.last_name }}</h3>
+            <a href="{{ url_for('profile.view_profile', user_id=friend.id) }}">Voir le profil</a>
+        </div>
+    {% endfor %}
+    </div>
+{% else %}
+    <p>Vous n'avez pas encore d'amis. Voici des suggestions :</p>
+    <div class="suggestions">
+    {% for user, sports in suggestions %}
+        <div class="user-card">
+            <img src="{{ url_for('static', filename='uploads/profiles/' ~ user.profile_image) }}" alt="{{ user.first_name }}">
+            <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+            <p>Sports en commun: {{ sports | join(', ') }}</p>
+            <a href="{{ url_for('profile.view_profile', user_id=user.id) }}">Voir le profil</a>
+        </div>
+    {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}
+------------------
+File: ./app/templates/posts/create_post.html
+{% extends 'base.html' %}
+
+{% block title %}Créer une publication - SportLink{% endblock %}
+
+{% block content %}
+<h2>Créer une Nouvelle Publication</h2>
+<form method="POST" action="{{ url_for('posts.create_post') }}" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+
+    <div class="form-group">
+        {{ form.content_type.label }} {{ form.content_type }}
+    </div>
+
+    <div id="sport_fields" style="display: none;">
+        <div class="form-group">
+            {{ form.title.label }} {{ form.title }}
+        </div>
+        <div class="form-group">
+            {{ form.subtitle.label }} {{ form.subtitle }}
+        </div>
+    </div>
+
+    <div class="form-group">
+        {{ form.content.label }} {{ form.content }}
+    </div>
+
+    <div class="form-group">
+        {{ form.image.label }} {{ form.image }}
+    </div>
+
+    <div class="form-group">
+        {{ form.video.label }} {{ form.video }}
+    </div>
+
+    <div class="form-group">
+        {{ form.music.label }} {{ form.music }}
+    </div>
+
+    <div class="form-group">
+        {{ form.visibility.label }} {{ form.visibility }}
+    </div>
+
+    {{ form.submit }}
+
+</form>
+
+<script>
+    function togglePostType() {
+        const contentType = document.getElementById('content_type').value;
+        document.getElementById('sport_fields').style.display = contentType === 'sport' ? 'block' : 'none';
+    }
+
+    // Ajouter un écouteur d'événement pour détecter le changement de type de contenu
+    document.getElementById('content_type').addEventListener('change', togglePostType);
+
+    // Appeler la fonction au chargement de la page pour définir l'état initial
+    window.onload = function() {
+        togglePostType();
+    };
+</script>
+{% endblock %}
+------------------
+File: ./app/templates/main/privacy_policy.html
+{% extends 'base.html' %}
+
+{% block title %}Politique de Confidentialité - SportLink{% endblock %}
+
+{% block content %}
+<h1>Politique de Confidentialité</h1>
+
+<p>Chez SportLink, nous nous engageons à protéger la confidentialité de nos utilisateurs. Cette politique de confidentialité explique quelles informations nous collectons, comment nous les utilisons et les options dont vous disposez concernant vos données personnelles.</p>
+
+<h2>1. Informations que nous collectons</h2>
+<ul>
+    <li>Données d'inscription: Nom, adresse email, date de naissance, genre, etc.</li>
+    <li>Données de profil: Photos de profil, sports pratiqués, niveaux, etc.</li>
+    <li>Données de localisation: Votre position géographique pour vous connecter avec des partenaires proches.</li>
+    <li>Données d'utilisation: Informations sur la façon dont vous utilisez notre application.</li>
+</ul>
+
+<h2>2. Comment nous utilisons vos informations</h2>
+<ul>
+    <li>Pour fournir et améliorer nos services.</li>
+    <li>Pour vous connecter avec des partenaires sportifs compatibles.</li>
+    <li>Pour communiquer avec vous concernant votre compte.</li>
+    <li>Pour assurer la sécurité et l'intégrité de notre plateforme.</li>
+</ul>
+
+<h2>3. Partage de vos informations</h2>
+<p>Nous ne vendons ni ne louons vos informations personnelles à des tiers. Nous pouvons partager vos données avec des partenaires de confiance pour fournir certains services, sous réserve qu'ils respectent des obligations strictes de confidentialité.</p>
+
+<h2>4. Vos droits</h2>
+<ul>
+    <li>Accéder à vos données personnelles et les corriger.</li>
+    <li>Supprimer votre compte et vos informations.</li>
+    <li>Retirer votre consentement à tout moment.</li>
+</ul>
+
+<h2>5. Sécurité</h2>
+<p>Nous mettons en œuvre des mesures de sécurité pour protéger vos données contre tout accès non autorisé, altération ou destruction.</p>
+
+<h2>6. Modifications de cette politique</h2>
+<p>Nous pouvons mettre à jour cette politique de confidentialité de temps en temps. Nous vous informerons de tout changement significatif.</p>
+
+<h2>7. Contact</h2>
+<p>Pour toute question concernant cette politique, veuillez nous contacter à <a href="mailto:contact@sportlink.com">contact@sportlink.com</a>.</p>
+
+{% endblock %}
+------------------
+File: ./app/templates/base.html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}SportLink{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% if not current_user.is_authenticated %}
+    <!-- VISITEUR NON CONNECTÉ : Affiche la navbar minimaliste -->
+    <header class="header">
+        <div class="header-container not-logged-in">
+            <div class="nav-title nav-title-big">Bienvenue sur SportLink</div>
+            <nav class="nav">
+                <ul class="menu">
+                    <li><a href="{{ url_for('auth.login') }}">Se connecter</a></li>
+                    <li><a href="{{ url_for('auth.register') }}">Commencer l'aventure</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+{% endif %}
+
+<main class="main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    <p>&copy; 2025 SportLink. Tous droits réservés.</p>
+</footer>
+
+<div class="social-links">
+    <a href="https://www.garmin.com" target="_blank">
+        <img src="{{ url_for('static', filename='images/garmin.png') }}" alt="Garmin" class="social-icon">
+    </a>
+    <a href="https://www.facebook.com" target="_blank">
+        <img src="{{ url_for('static', filename='images/facebook.png') }}" alt="Facebook" class="social-icon">
+    </a>
+    <a href="https://www.strava.com" target="_blank">
+        <img src="{{ url_for('static', filename='images/strava.png') }}" alt="Strava" class="social-icon">
+    </a>
+    <a href="https://www.zwift.com" target="_blank">
+        <img src="{{ url_for('static', filename='images/zwift.png') }}" alt="Zwift" class="social-icon">
+    </a>
+</div>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>
+------------------
+File: ./app/templates/profile/partners_list.html
+{% extends 'base.html' %}
+
+{% block title %}Partenaires Potentiels - SportLink{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile/partners_list.css') }}">
+{% endblock %}
+
+{% block content %}
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
+<h2>Partenaires Potentiels</h2>
+
+{% if partners %}
+    <div class="partners-grid">
+        {% for partner in partners %}
+        <div class="partner-card">
+            <div class="partner-photo"
+                 style="background-image: url('{{
+                    url_for('main.uploaded_file', filename=partner.profile_image or 'profiles/default_profile.jpg')
+                 }}');">
+            </div>
+            <div class="partner-info">
+                <!-- Le user n’a peut-être pas "username". On affiche first_name / last_name. -->
+                <h3>{{ partner.first_name }} {{ partner.last_name }}</h3>
+                <p>{{ partner.city }}, {{ partner.country }}</p>
+                <a href="{{ url_for('profile.profile', user_id=partner.id) }}" class="btn">
+                    Voir le profil
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>Aucun partenaire trouvé correspondant à vos critères.</p>
+{% endif %}
+{% endblock %}
+------------------
+File: ./app/templates/profile/profile.html
+{% extends "base.html" %}
+
+{% block title %}Profil de {{ user.first_name }} - SportLink{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/profile_view.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- Inclure la “structure du haut” si connecté -->
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
+<!-- Corps de la page profil -->
+<div class="profile-main">
+    
+    <!-- Colonne gauche : Quoi de neuf + publications -->
+    <div class="left-column">
+        <!-- Bulle “Quoi de neuf” -->
+        <div class="whats-new-container">
+            <div class="whats-new-bubble" id="whatsNewBubble">
+                <p id="placeholder-text">Quoi de neuf, {{ user.first_name }} ?</p>
+                <form id="createPostForm" class="create-post-form" style="display: none;"
+                      method="POST" action="{{ url_for('posts.create_post_inline') }}"
+                      enctype="multipart/form-data">
+                    <!-- champ caché CSRF -->
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <label for="post_type">Type de publication :</label>
+                    <select id="post_type" name="content_type">
+                        <option value="free">Libre</option>
+                        <option value="sport">Sportive</option>
+                    </select>
+                    
+                    <label for="post_title">Titre :</label>
+                    <input type="text" id="post_title" name="title" placeholder="Titre (optionnel)">
+
+                    <label for="post_content">Contenu :</label>
+                    <textarea id="post_content" name="content" rows="3" placeholder="Exprimez-vous..."></textarea>
+                    
+                    <div class="upload-icons">
+                        <label for="post_image"><i class="fas fa-image"></i></label>
+                        <input type="file" id="post_image" name="image" accept="image/*" style="display: none;">
+                        
+                        <label for="post_video"><i class="fas fa-video"></i></label>
+                        <input type="file" id="post_video" name="video" accept="video/*" style="display: none;">
+                        
+                        <label for="post_music"><i class="fas fa-music"></i></label>
+                        <input type="file" id="post_music" name="music" accept="audio/*" style="display: none;">
+                    </div>
+
+                    <label for="visibility">Visibilité :</label>
+                    <select id="visibility" name="visibility">
+                        <option value="public">Public</option>
+                        <option value="friends">Amis</option>
+                        <option value="private">Privé</option>
+                    </select>
+
+                    <button type="submit" class="btn-publish">Publier</button>
+                    <button type="button" class="btn-cancel" id="cancelPostBtn">Annuler</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Liste des publications -->
+        <div class="posts-list">
+            {% for post in posts %}
+            <div class="post-card">
+                <div class="post-header">
+                    <img src="{{ 
+                        url_for('main.uploaded_file', filename=post.author.profile_image or 'profiles/default_profile.jpg')
+                    }}" alt="Profil">
+                    <div>
+                        <strong>{{ post.author.first_name }} {{ post.author.last_name }}</strong>
+                        <span class="timestamp">
+                            {{ post.created_at.strftime('%d %B %Y à %H:%M') }}
+                        </span>
+                    </div>
+                </div>
+                <div class="post-content">
+                    {% if post.title %}
+                    <h3>{{ post.title }}</h3>
+                    {% endif %}
+                    <p>{{ post.content }}</p>
+                    
+                    {% if post.image %}
+                    <img src="{{ url_for('main.uploaded_file', filename=post.image) }}" alt="image publication">
+                    {% endif %}
+                    
+                    {% if post.video %}
+                    <video controls>
+                        <source src="{{ url_for('main.uploaded_file', filename=post.video) }}">
+                    </video>
+                    {% endif %}
+                    
+                    {% if post.music %}
+                    <audio controls>
+                        <source src="{{ url_for('main.uploaded_file', filename=post.music) }}">
+                    </audio>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Colonne droite : user details + amis + recherche contact -->
+    <div class="right-column">
+        <div class="user-details-card">
+            <h3>Mes Informations</h3>
+            <ul>
+                <li><strong>Email :</strong> {{ user.email }}</li>
+                <li><strong>Ville :</strong> {{ user.city or 'Non renseigné' }}</li>
+                <li><strong>Pays :</strong> {{ user.country or 'Non renseigné' }}</li>
+                <li><strong>Téléphone :</strong> {{ user.phone if user.display_phone else 'Privé' }}</li>
+            </ul>
+            <a href="{{ url_for('profile.edit_profile') }}">Modifier</a>
+        </div>
+
+        <div class="friends-card">
+            <h3>Mes Amis</h3>
+            <div class="friends-thumbs">
+                {% for friend in user.friends.limit(4) %}
+                <a href="{{ url_for('profile.profile', user_id=friend.id) }}" class="friend-thumb">
+                    <img src="{{ 
+                        url_for('main.uploaded_file', filename=friend.profile_image or 'profiles/default_profile.jpg')
+                    }}" alt="{{ friend.first_name }}">
+                    <span>{{ friend.first_name }}</span>
+                </a>
+                {% endfor %}
+            </div>
+            <a href="{{ url_for('profile.list_contacts') }}">Tous mes contacts</a>
+        </div>
+
+        <div class="search-contact-card">
+            <h3>Rechercher un utilisateur</h3>
+            <form method="GET" action="{{ url_for('profile.search_users') }}">
+                <input type="text" name="query" placeholder="Nom ou prénom">
+                <button type="submit">Rechercher</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+------------------
+File: ./app/templates/profile/find_partner.html
+{% extends 'base.html' %}
+
+{% block title %}Trouver un Partenaire - SportLink{% endblock %}
+
+{% block content %}
+<h1>Trouver un Partenaire pour une Activité</h1>
+<form method="POST" action="{{ url_for('profile.find_partner') }}">
+    {{ form.hidden_tag() }}
+    <label for="sport">Sport :</label>
+    <select name="sport_id" required>
+        {% for sport in sports %}
+        <option value="{{ sport.id }}">{{ sport.name }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="level">Niveau (1 à 5) :</label>
+    <select name="level" required>
+        {% for i in range(1,6) %}
+        <option value="{{ i }}">{{ i }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="date">Date :</label>
+    <input type="date" name="date" required>
+
+    <label for="distance">Distance maximale (km) :</label>
+    <input type="number" name="distance" required>
+
+    <!-- Champs cachés pour la géolocalisation -->
+    <input type="hidden" id="latitude" name="latitude">
+    <input type="hidden" id="longitude" name="longitude">
+
+    <button type="submit">Rechercher</button>
+</form>
+
+<script>
+    // Récupérer la géolocalisation lors de la recherche
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(savePosition);
+        } else {
+            alert("La géolocalisation n'est pas supportée par ce navigateur.");
+        }
+    }
+
+    function savePosition(position) {
+        document.getElementById('latitude').value = position.coords.latitude;
+        document.getElementById('longitude').value = position.coords.longitude;
+    }
+
+    // Demander la géolocalisation au chargement de la page
+    window.onload = function() {
+        getLocation();
+    };
+</script>
+{% endblock %}
+------------------
+File: ./app/templates/profile/search_results.html
+{% extends 'base.html' %}
+{% block title %}Recherche d'Utilisateurs - SportLink{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
+
+{% block content %}
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
+<div class="profile-main">
+    <div class="search-results-container">
+        <h2>Résultats de recherche</h2>
+        {% if query %}
+            <p>Recherche pour "<strong>{{ query }}</strong>":</p>
+        {% endif %}
+
+        {% if results %}
+            <div class="user-list">
+                {% for user in results %}
+                <div class="user-card">
+                    <img src="{{ url_for('main.uploaded_file', filename=user.profile_image or 'profiles/default_profile.jpg') }}"
+                         alt="{{ user.first_name }}" width="60" height="60" style="border-radius: 50%;">
+                    <div class="user-info">
+                        <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+                        <p>{{ user.city or 'Ville inconnue' }}, {{ user.country or 'Pays inconnu' }}</p>
+                    </div>
+                    <form method="POST" action="{{ url_for('profile.add_contact', user_id=user.id) }}">
+                        {{ form.hidden_tag() }}
+                        <button type="submit" class="btn-add">Ajouter en contact</button>
+                    </form>                    
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Aucun utilisateur trouvé.</p>
+        {% endif %}
+
+        {% if not query %}
+            <!-- Suggestions (ex. 10 random users) -->
+            {% if suggestions %}
+                <h3>Suggestions</h3>
+                <div class="user-list">
+                    {% for user in suggestions %}
+                    <div class="user-card">
+                        <img src="{{ url_for('main.uploaded_file', filename=user.profile_image or 'profiles/default_profile.jpg') }}"
+                             alt="{{ user.first_name }}" width="60" height="60" style="border-radius: 50%;">
+                        <div class="user-info">
+                            <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+                            <p>{{ user.city or 'Ville inconnue' }}, {{ user.country or 'Pays inconnu' }}</p>
+                        </div>
+                        <form method="POST" action="{{ url_for('profile.add_contact', user_id=user.id) }}">
+                            <button type="submit" class="btn-primary">Ajouter en contact</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>Aucune suggestion d'utilisateur disponible.</p>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+------------------
+File: ./app/templates/profile/more.html
+{% extends 'base.html' %}
+
+{% block title %}Plus sur {{ user.username }}{% endblock %}
+
+{% block content %}
+<h2>Informations supplémentaires sur {{ user.username }}</h2>
+<!-- Ajoutez ici les informations supplémentaires que vous souhaitez afficher -->
+{% endblock %}
+------------------
+File: ./app/templates/profile/contacts.html
+{% extends "base.html" %}
+
+{% block title %}
+    {% if user %}
+        Profil de {{ user.first_name }} - SportLink
+    {% else %}
+        SportLink
+    {% endif %}
+{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="{{ url_for('static', filename='js/profile_view.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+    <!-- Section du haut pour les utilisateurs connectés -->
+    {% if current_user.is_authenticated %}
+        {% include '_layout/logged_in_top.html' %}
+    {% endif %}
+
+    <div class="contacts-container">
+        <h1>Mes Contacts</h1>
+        {% if contacts %}
+            <ul class="user-list">
+                {% for user in contacts %}
+                    <li>
+                        <img src="{{ url_for('main.uploaded_file', filename='profiles/' ~ user.profile_image) if user.profile_image else url_for('static', filename='images/default_profile.jpg') }}" alt="{{ user.first_name }} {{ user.last_name }}">
+                        <span>{{ user.first_name }} {{ user.last_name }}</span>
+                        <form method="POST" action="{{ url_for('profile.remove_contact', user_id=user.id) }}">
+                            <button type="submit" class="btn-remove">Retirer</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Vous n'avez pas encore ajouté de contacts.</p>
+        {% endif %}
+    </div>
+
+{% endblock %}
+------------------
+File: ./app/templates/profile/change_photo_modals.html
+<!-- Modal pour changer la photo de couverture -->
+<div id="cover-photo-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeCoverPhotoModal()">&times;</span>
+      <h2>Changer la photo de couverture</h2>
+      <form action="{{ url_for('profile.change_cover_photo') }}" method="post" enctype="multipart/form-data">
+        {{ change_cover_form.hidden_tag() }}
+        {{ change_cover_form.cover_image.label }} {{ change_cover_form.cover_image }}
+        {{ change_cover_form.submit }}
+      </form>
+    </div>
+  </div>
+  
+  <!-- Modal pour changer la photo de profil -->
+  <div id="profile-photo-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeProfilePhotoModal()">&times;</span>
+      <h2>Changer la photo de profil</h2>
+      <form action="{{ url_for('profile.change_profile_photo') }}" method="post" enctype="multipart/form-data">
+        {{ change_profile_form.hidden_tag() }}
+        {{ change_profile_form.profile_image.label }} {{ change_profile_form.profile_image }}
+        {{ change_profile_form.submit }}
+      </form>
+    </div>
+  </div>
+  
+  <script>
+  function closeCoverPhotoModal() {
+    document.getElementById('cover-photo-modal').style.display = 'none';
+  }
+  
+  function closeProfilePhotoModal() {
+    document.getElementById('profile-photo-modal').style.display = 'none';
+  }
+  </script>
+  ------------------
+File: ./app/templates/profile/friends_list.html
+{% extends 'base.html' %}
+{% block title %}Liste des Amis - SportLink{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
+
+{% block content %}
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
+<div class="profile-main">
+    <div class="friends-list">
+        <h2>Amis de {{ current_user.first_name }}</h2>
+        {% if friends %}
+            <p>Voici la liste des amis que vous avez ajoutés :</p>
+            <div class="friends-grid">
+                {% for friend in friends %}
+                <div class="friend-card">
+                    <div class="friend-photo"
+                         style="background-image: url('{{
+                            url_for('main.uploaded_file', filename=friend.profile_image or 'profiles/default_profile.jpg')
+                         }}');">
+                    </div>
+                    <div class="friend-info">
+                        <h3>{{ friend.first_name }} {{ friend.last_name }}</h3>
+                        <p>{{ friend.city or 'Ville inconnue' }}, {{ friend.country or 'Pays inconnu' }}</p>
+                        <a href="{{ url_for('profile.profile', user_id=friend.id) }}" class="btn">
+                            Voir le profil
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Vous n'avez pas encore d'amis ajoutés.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+------------------
+File: ./app/templates/profile/complete_profile.html
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Bienvenue sur SportLink, {{ current_user.first_name }} !</h2>
+<p>Veuillez compléter votre profil.</p>
+
+<form method="POST" action="{{ url_for('profile.complete_profile') }}" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.birth_date.label }} {{ form.birth_date(class="form-control") }}
+    </div>
+    <div class="form-group">
+        {{ form.sex.label }} {{ form.sex(class="form-control") }}
+    </div>
+
+    <div class="form-group">
+        <label for="profile_image">Photo de profil</label>
+        {{ form.profile_image(class="form-control-file", id="profile_image_input") }}
+        <div>
+            <img id="profile_image_preview" style="max-width: 100%;">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="cover_image">Photo de couverture</label>
+        {{ form.cover_image(class="form-control-file", id="cover_image_input") }}
+        <div>
+            <img id="cover_image_preview" style="max-width: 100%;">
+        </div>
+    </div>
+
+    <!-- Hidden fields to store position and zoom -->
+    <input type="hidden" name="profile_image_zoom" id="profile_image_zoom">
+    <input type="hidden" name="profile_image_pos_x" id="profile_image_pos_x">
+    <input type="hidden" name="profile_image_pos_y" id="profile_image_pos_y">
+    <input type="hidden" name="cover_image_zoom" id="cover_image_zoom">
+    <input type="hidden" name="cover_image_pos_x" id="cover_image_pos_x">
+    <input type="hidden" name="cover_image_pos_y" id="cover_image_pos_y">
+
+    <div class="form-group">
+        {{ form.sports.label }}
+        {% for sport in form.sports %}
+            <div>
+                {{ sport }}
+                {{ sport.label.text }}
+                <!-- Level selection for each sport -->
+                Niveau:
+                {{ form.levels[loop.index0](class="form-control") }}
+            </div>
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
+</form>
+
+<form action="{{ url_for('auth.upload_profile') }}" method="POST" enctype="multipart/form-data">
+    <label for="file">Upload Profile Picture:</label>
+    <input type="file" name="file" id="file">
+    <button type="submit">Upload</button>
+</form>
+
+<!-- Include Cropper.js CSS and JS -->
+<link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.css" />
+<script src="https://unpkg.com/cropperjs/dist/cropper.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var profileImageInput = document.getElementById('profile_image_input');
+    var profileImagePreview = document.getElementById('profile_image_preview');
+    var profileCropper;
+
+    profileImageInput.addEventListener('change', function(e) {
+        var files = e.target.files;
+        if (files && files.length > 0) {
+            var file = files[0];
+            var url = URL.createObjectURL(file);
+            profileImagePreview.src = url;
+
+            if (profileCropper) {
+                profileCropper.destroy();
+            }
+            profileCropper = new Cropper(profileImagePreview, {
+                aspectRatio: 1,
+                viewMode: 2,
+                crop(event) {
+                    document.getElementById('profile_image_zoom').value = event.detail.scaleX;
+                    document.getElementById('profile_image_pos_x').value = event.detail.x;
+                    document.getElementById('profile_image_pos_y').value = event.detail.y;
+                },
+            });
+        }
+    });
+
+    var coverImageInput = document.getElementById('cover_image_input');
+    var coverImagePreview = document.getElementById('cover_image_preview');
+    var coverCropper;
+
+    coverImageInput.addEventListener('change', function(e) {
+        var files = e.target.files;
+        if (files && files.length > 0) {
+            var file = files[0];
+            var url = URL.createObjectURL(file);
+            coverImagePreview.src = url;
+
+            if (coverCropper) {
+                coverCropper.destroy();
+            }
+            coverCropper = new Cropper(coverImagePreview, {
+                aspectRatio: 16 / 9,
+                viewMode: 2,
+                crop(event) {
+                    document.getElementById('cover_image_zoom').value = event.detail.scaleX;
+                    document.getElementById('cover_image_pos_x').value = event.detail.x;
+                    document.getElementById('cover_image_pos_y').value = event.detail.y;
+                },
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
+------------------
+File: ./app/templates/profile/settings.html
+{% extends 'base.html' %}
+
+{% block title %}Paramètres du Compte - SportLink{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
+
+{% block content %}
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
+<div class="profile-container">
+
+    <nav class="profile-nav-bar">
+        <div class="nav-inner">
+            <ul class="nav-left">
+                <li><a href="{{ url_for('news_feed.news_feed') }}">Fil d'actualité</a></li>
+                <li><a href="{{ url_for('profile.profile') }}">Mon Profil</a></li>
+                <li><a href="{{ url_for('messages.inbox') }}">Messages</a></li>
+            </ul>
+            <ul class="nav-right">
+                <li><a href="{{ url_for('events.organize') }}">Activités</a></li>
+                <li><a href="{{ url_for('profile.list_friends') }}">Amis</a></li>
+                <li><a href="{{ url_for('auth.logout') }}">Déconnexion</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="settings-container">
+        <h1>Paramètres du Compte</h1>
+
+        <div class="setting-section">
+            <h3>Changer d'adresse email</h3>
+            <form method="POST" action="{{ url_for('profile.change_email') }}">
+                {{ change_email_form.hidden_tag() }}
+                <div class="form-group">
+                    {{ change_email_form.email.label }}
+                    {{ change_email_form.email(class="form-control") }}
+                </div>
+                {{ change_email_form.submit(class="btn-publish") }}
+            </form>
+        </div>
+
+        <div class="setting-section">
+            <h3>Changer de mot de passe</h3>
+            <form method="POST" action="{{ url_for('profile.change_password') }}">
+                {{ change_password_form.hidden_tag() }}
+                <div class="form-group">
+                    {{ change_password_form.current_password.label }}
+                    {{ change_password_form.current_password(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ change_password_form.new_password.label }}
+                    {{ change_password_form.new_password(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ change_password_form.confirm_new_password.label }}
+                    {{ change_password_form.confirm_new_password(class="form-control") }}
+                </div>
+                {{ change_password_form.submit(class="btn-publish") }}
+            </form>
+        </div>
+
+        <div class="setting-section">
+            <h3>Supprimer mon compte</h3>
+            <form method="POST" action="{{ url_for('profile.delete_account') }}">
+                {{ delete_account_form.hidden_tag() }}
+                <div class="form-check">
+                    {{ delete_account_form.confirm }} 
+                    {{ delete_account_form.confirm.label|safe }}
+                </div>
+                {{ delete_account_form.submit(class="btn-cancel") }}
+            </form>
+        </div>
+
+        <!-- Autres options paramétrables si besoin -->
+    </div>
+</div>
+{% endblock %}
+------------------
+File: ./app/templates/profile/photos.html
+{% extends 'base.html' %}
+
+{% block title %}Photos de {{ user.first_name }} - SportLink{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
+
+{% block content %}
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
+<div class="photos-container">
+    <h1 class="main-title">Photos de {{ user.first_name }} {{ user.last_name }}</h1>
+
+    <div class="user-photos-section">
+        <h3 class="section-title">Galerie de Photos</h3>
+        <div class="photos-grid">
+            {% if images %}
+                {% for image in images %}
+                    <div class="photo-item">
+                        <!-- On suppose que 'image' = "uploads/...??" 
+                             ou qu'on doit passer par main.uploaded_file ? 
+                             Tout dépend de votre code existant.
+                             Ici, on suppose que 'image' est un chemin relatif
+                             type: "profiles/xxx.jpg" ou "myfolder/pic.png" 
+                        -->
+                        <a href="{{ url_for('main.uploaded_file', filename=image) }}" target="_blank">
+                            <img src="{{ url_for('main.uploaded_file', filename=image) }}" alt="Photo">
+                        </a>
+                        {% if current_user == user %}
+                        <button onclick="window.location.href='{{ url_for('profile.set_profile_photo', photo_id=image) }}'" class="btn-secondary">
+                            Utiliser comme photo de profil
+                        </button>
+                        <button onclick="window.location.href='{{ url_for('profile.set_cover_photo', photo_id=image) }}'" class="btn-secondary">
+                            Utiliser comme photo de couverture
+                        </button>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>Aucune photo à afficher.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if current_user == user %}
+    <div class="add-photo-section">
+        <h3 class="section-title">Ajouter des Photos</h3>
+        <div class="upload-container">
+            <button class="btn-primary" onclick="document.getElementById('photoUploadForm').style.display='block'">
+                Ajouter des photos
+            </button>
+            <form id="photoUploadForm" action="{{ url_for('profile.add_photo') }}" method="POST" enctype="multipart/form-data" style="display: none;">
+                {{ form.hidden_tag() }}
+                <input type="file" name="photoUpload" multiple class="file-input">
+                <button type="submit" class="btn-primary">Télécharger</button>
+            </form>
+        </div>
+
+        <div class="create-album-section">
+            <button class="btn-primary" onclick="document.getElementById('albumForm').style.display='block'">
+                Créer un nouvel album
+            </button>
+            <form id="albumForm" action="{{ url_for('profile.create_album') }}" method="POST" style="display: none;" enctype="multipart/form-data">
+                <input type="text" name="albumName" placeholder="Nom de l'album" class="form-control" required>
+                <input type="file" name="albumPhotos" multiple class="file-input" accept="image/*">
+                <button type="submit" class="btn-primary">Télécharger</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+------------------
+File: ./app/templates/profile/edit_profile.html
+{% extends 'base.html' %}
+
+{% block title %}Modifier Mon Profil - SportLink{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
+
+{% block content %}
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
+<div class="profile-container">
+
+    <nav class="profile-nav-bar">
+        <div class="nav-inner">
+            <ul class="nav-left">
+                <li><a href="{{ url_for('news_feed.news_feed') }}">Fil d'actualité</a></li>
+                <li><a href="{{ url_for('profile.profile') }}">Mon Profil</a></li>
+                <li><a href="{{ url_for('messages.inbox') }}">Messages</a></li>
+            </ul>
+            <ul class="nav-right">
+                <li><a href="{{ url_for('events.organize') }}">Activités</a></li>
+                <li><a href="{{ url_for('profile.list_friends') }}">Amis</a></li>
+                <li><a href="{{ url_for('auth.logout') }}">Déconnexion</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="edit-profile-container">
+        <h1>Modifier Mon Profil</h1>
+
+        <form method="POST" action="{{ url_for('profile.edit_profile') }}" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.first_name.label }}
+                {{ form.first_name(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.last_name.label }}
+                {{ form.last_name(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.city.label }}
+                {{ form.city(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.country.label }}
+                {{ form.country(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.phone.label }}
+                {{ form.phone(class="form-control") }}
+            </div>
+            <div class="form-check">
+                {{ form.display_phone }} {{ form.display_phone.label|safe }}
+            </div>
+            <div class="form-check">
+                {{ form.display_email }} {{ form.display_email.label|safe }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.profile_image.label }}
+                {{ form.profile_image(class="form-control-file") }}
+            </div>
+            <div class="form-group">
+                {{ form.cover_image.label }}
+                {{ form.cover_image(class="form-control-file") }}
+            </div>
+
+            <button type="submit" class="btn-publish">Enregistrer</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+------------------
+File: ./app/templates/_layout/photo_modal.html
+<!-- Modal overlay -->
+<div id="photoModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span id="closePhotoModal" class="close">&times;</span>
+      <img id="photoModalImg" src="" alt="Photo" style="max-width: 100%;">
+      
+      <div class="update-photo-options">
+        <button id="btnChangeProfilePhoto">Mettre à jour la photo de profil</button>
+        <button id="btnChangeCoverPhoto">Mettre à jour la photo de couverture</button>
+      </div>
+    </div>
+  </div>
+  ------------------
+File: ./app/templates/_layout/logged_in_top.html
+{# app/templates/_layout/logged_in_top.html #}
+{% set cover_img = current_user.cover_image %}
+{% if cover_img %}
+    {% set cover_url = url_for('main.uploaded_file', filename=cover_img) %}
+{% else %}
+    {% set cover_url = url_for('main.uploaded_file', filename='covers/default_cover.jpg') %}
+{% endif %}
+
+{% set profile_img = current_user.profile_image %}
+{% if profile_img %}
+    {% set profile_url = url_for('main.uploaded_file', filename=profile_img) %}
+{% else %}
+    {% set profile_url = url_for('main.uploaded_file', filename='profiles/default_profile.jpg') %}
+{% endif %}
+
+<!-- Photo de couverture en haut -->
+<div class="cover-photo" style="background-image: url('{{ cover_url }}');">
+</div>
+
+<!-- Barre de navigation, scindée en 2 <ul> (gauche/droite) -->
+<nav class="profile-nav-bar">
+    <ul class="nav-left">
+      <li><a href="{{ url_for('news_feed.news_feed') }}">Fil d'actualité</a></li>
+      <li><a href="{{ url_for('profile.profile') }}">Mon Profil</a></li>
+      <li><a href="{{ url_for('messages.inbox') }}">Messages</a></li>
+    </ul>
+
+    <!-- Photo de profil qui chevauche la nav -->
+    <div class="profile-photo-bubble" style="background-image: url('{{ profile_url }}');">
+    </div>
+
+    <ul class="nav-right">
+      <li><a href="{{ url_for('events.organize') }}">Activités</a></li>
+      <li><a href="{{ url_for('profile.list_contacts') }}">Contacts</a></li>
+      <li><a href="{{ url_for('auth.logout') }}">Déconnexion</a></li>
+    </ul>
+</nav>
+------------------
+File: ./app/templates/auth/account_deleted.html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <title>Compte Supprimé</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="notification success">
+        <p style="color: #00ff00;">Votre compte a été supprimé avec succès.</p>
+    </div>
+</body>
+</html>
+------------------
+File: ./app/templates/auth/login.html
+{% extends "base.html" %}
+
+{% block title %}Connexion - SportLink{% endblock %}
+
+{% block content %}
+<section class="login-container" aria-labelledby="login-title">
+  <h2 id="login-title">Connexion</h2>
+  <form action="{{ url_for('auth.login') }}" method="POST" aria-describedby="login-description">
+    <p id="login-description" class="sr-only">
+      Formulaire de connexion à SportLink.
+    </p>
+    {{ form.hidden_tag() }}
+
+    <div class="form-group">
+      <label for="email">Adresse Email</label>
+      {{ form.email(class="form-control", id="email", placeholder="Votre email", aria_required="true") }}
+    </div>
+
+    <div class="form-group">
+      <label for="password">Mot de passe</label>
+      {{ form.password(class="form-control", id="password", placeholder="Votre mot de passe", aria_required="true") }}
+    </div>
+
+    <button type="submit" class="btn-primary">
+      {{ form.submit.label }}
+    </button>
+  </form>
+  <p>Vous n'avez pas de compte ?
+    <a href="{{ url_for('auth.register') }}">Inscrivez-vous ici</a>
+  </p>
+  <a href="{{ url_for('auth.reset_password_request') }}" class="forgot-password">
+    Mot de passe perdu ?
+  </a>
+</section>
+{% endblock %}
+------------------
+File: ./app/templates/auth/reset_password.html
+{% extends 'base.html' %}
+
+{% block title %}Réinitialiser le mot de passe{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Réinitialiser le mot de passe</h2>
+    <form method="POST" action="{{ url_for('auth.reset_password', token=token) }}" class="needs-validation" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="form-group mb-3">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control", placeholder="Nouveau mot de passe") }}
+            {% if form.password.errors %}
+                <div class="text-danger">
+                    {% for error in form.password.errors %}
+                        <small>{{ error }}</small><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="form-group mb-3">
+            {{ form.confirm_password.label(class="form-label") }}
+            {{ form.confirm_password(class="form-control", placeholder="Confirmez le nouveau mot de passe") }}
+            {% if form.confirm_password.errors %}
+                <div class="text-danger">
+                    {% for error in form.confirm_password.errors %}
+                        <small>{{ error }}</small><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+{% endblock %}
+------------------
+File: ./app/templates/auth/reset_password_request.html
+{% extends 'base.html' %}
+
+{% block title %}Réinitialiser le mot de passe{% endblock %}
+
+{% block content %}
+<div class="reset-request-container">
+    <h2 class="reset-title">Réinitialiser le mot de passe</h2>
+    <form method="POST" action="{{ url_for('auth.reset_password_request') }}" class="form-container">
+        {{ form.hidden_tag() }}
+        <div class="form-group mb-3">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control", placeholder="Votre adresse e-mail") }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn-primary") }}
+        </div>
+    </form>
+</div>
+{% endblock %}
+------------------
+File: ./app/templates/auth/register.html
+{% extends "base.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth/register.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <div class="register-form">
+        <h2>Inscription</h2>
+        <form action="{{ url_for('auth.register') }}" method="POST">
+            {{ form.hidden_tag() }}
+
+            <!-- Email -->
+            <div class="form-group">
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control") }}
+            </div>
+            <!-- Phone -->
+            <div class="form-group">
+                {{ form.phone.label(class="form-label") }}
+                {{ form.phone(class="form-control") }}
+                {% if form.phone.errors %}
+                    <span class="text-danger">{{ form.phone.errors[0] }}</span>
+                {% endif %}
+            </div>
+            
+            <!-- Prénom -->
+            <div class="form-group">
+                {{ form.first_name.label(class="form-label") }}
+                {{ form.first_name(class="form-control") }}
+            </div>
+
+            <!-- Nom de famille -->
+            <div class="form-group">
+                {{ form.last_name.label(class="form-label") }}
+                {{ form.last_name(class="form-control") }}
+            </div>
+
+            <!-- Date de naissance -->
+            <div class="form-group">
+                {{ form.birth_date.label(class="form-label") }}
+                {{ form.birth_date(class="form-control") }}
+            </div>
+
+            <!-- Genre -->
+            <div class="form-group">
+                {{ form.gender.label(class="form-label") }}
+                {{ form.gender(class="form-control") }}
+            </div>
+
+            <!-- Mot de passe -->
+            <div class="form-group">
+                {{ form.password.label(class="form-label") }}
+                {{ form.password(class="form-control") }}
+            </div>
+
+            <!-- Confirmation du mot de passe -->
+            <div class="form-group">
+                {{ form.confirm_password.label(class="form-label") }}
+                {{ form.confirm_password(class="form-control") }}
+            </div>
+
+            <!-- Conditions d'utilisation -->
+            <div class="form-group form-accept-terms">
+                {{ form.accept_terms() }}
+                {{ form.accept_terms.label|safe }}
+            </div>
+
+            <!-- Bouton d'inscription -->
+            <button type="submit" class="btn-primary">{{ form.submit.label }}</button>
+        </form>
+
+        <!-- Inscription via OAuth -->
+        <p>Ou inscrivez-vous avec :</p>
+        <div class="social-login">
+            <a href="{{ url_for('facebook.login') }}" class="btn-social facebook">
+                <i class="fab fa-facebook-f"></i> Facebook
+            </a>
+            <a href="{{ url_for('strava.login') }}" class="btn-social strava">
+                <i class="fas fa-bicycle"></i> Strava
+            </a>
+        </div>
+
+        <!-- Redirection vers la connexion -->
+        <p>Vous avez déjà un compte ? <a href="{{ url_for('auth.login') }}">Connectez-vous ici</a></p>
+    </div>
+
+    <!-- Affichage des messages flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+</div>
+{% endblock %}
+------------------
+File: ./app/templates/auth/reset_password_email.html
+<p>Pour réinitialiser votre mot de passe, cliquez sur le lien suivant :</p>
+<p><a href="{{ reset_url }}">{{ reset_url }}</a></p>
+<p>Si vous n'avez pas demandé de réinitialisation de mot de passe, veuillez ignorer cet email.</p>
+------------------
+File: ./app/templates/auth/confirm_email.html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <title>Confirmez votre Email</title>
+</head>
+<body>
+    <p>Merci pour votre inscription ! Cliquez sur le lien ci-dessous pour confirmer votre adresse email :</p>
+    <p><a href="{{ confirm_url }}">Confirmer l'Email</a></p>
+</body>
+</html>
+------------------
+File: ./app/templates/home.html
+{% extends "base.html" %}
+
+{% block title %}Accueil - SportLink{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Si connecté, on inclut le layout du haut : couverture, navbar, photo de profil -->
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
+<div class="home-welcome-container">
+    <section class="home-banner">
+        <div class="banner-content">
+            <h1 class="main-title">Bienvenue sur SportLink</h1>
+            <p class="subtitle">
+                SportLink est votre plateforme ultime pour suivre vos performances sportives, 
+                trouver des partenaires, réserver du matériel ou des terrains, et partager vos exploits 
+                avec vos proches. 
+            </p>
+            <h2 class="why-join-title">Pourquoi nous rejoindre ?</h2>
+            <ul class="features-list">
+                <li>★ <strong>Suivi des activités</strong> : Gardez une trace de vos performances sportives.</li>
+                <li>★ <strong>Réseau social</strong> : Trouvez et ajoutez des amis, communiquez librement.</li>
+                <li>★ <strong>Organisateur d’événements</strong> : Créez ou rejoignez des activités près de chez vous.</li>
+                <li>★ <strong>Réservations en ligne</strong> : Réservez du matériel ou des terrains en quelques clics.</li>
+                <li>★ <strong>Mode famille</strong> : Un espace adapté pour partager en toute sécurité avec vos enfants.</li>
+            </ul>
+            <!-- Boutons d’appel à l’action -->
+            <div class="cta-buttons">
+                <a href="{{ url_for('auth.register') }}" class="btn-primary" id="get-started-btn">Commencer</a>
+                <a href="{{ url_for('auth.login') }}" class="btn-primary" style="background: linear-gradient(90deg, #000, #00FF00);">
+                    Se connecter
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section supplémentaire "fonctionnalités" -->
+    <section class="section features-section">
+        <h2 class="text-adapt">Nos Points Forts</h2>
+        <p class="text-adapt">
+            Découvrez nos fonctionnalités clés : un suivi sportif précis, 
+            un réseau social complet, un organisateur d’événements, 
+            un système de réservation et un mode spécial famille.
+        </p>
+
+        <!-- Par exemple, vous pouvez afficher des "cartes flip" -->
+        <div class="feature-cards">
+            <!-- Carte #1 -->
+            <div class="card3D">
+                <div class="card3D-inner">
+                    <div class="card3D-front">
+                        <h3>Réseau Social</h3>
+                    </div>
+                    <div class="card3D-back">
+                        <p>
+                            Publiez, commentez, échangez avec vos amis ou votre famille. 
+                            Tout un écosystème social pour partager vos exploits sportifs et plus encore.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- Carte #2 -->
+            <div class="card3D">
+                <div class="card3D-inner">
+                    <div class="card3D-front">
+                        <h3>Suivi Sportif</h3>
+                    </div>
+                    <div class="card3D-back">
+                        <p>
+                            Connectez vos appareils, importez vos séances automatiquement, 
+                            visualisez des statistiques précises et atteignez vos objectifs.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- Carte #3 -->
+            <div class="card3D">
+                <div class="card3D-inner">
+                    <div class="card3D-front">
+                        <h3>Organisation</h3>
+                    </div>
+                    <div class="card3D-back">
+                        <p>
+                            Planifiez ou rejoignez des activités sportives. 
+                            Notre algorithme trouve des partenaires ayant un niveau et une localisation compatibles.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- Carte #4 -->
+            <div class="card3D">
+                <div class="card3D-inner">
+                    <div class="card3D-front">
+                        <h3>Réservations</h3>
+                    </div>
+                    <div class="card3D-back">
+                        <p>
+                            Louez du matériel, réservez un terrain ou un coach, 
+                            et payez directement via SportLink. 
+                            Simplifiez votre logistique.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- Carte #5 -->
+            <div class="card3D">
+                <div class="card3D-inner">
+                    <div class="card3D-front">
+                        <h3>Mode Famille</h3>
+                    </div>
+                    <div class="card3D-back">
+                        <p>
+                            Les enfants profitent d’un réseau social adapté et sécurisé, 
+                            sous la supervision de leurs parents, pour partager l’amour du sport en famille.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Contact -->
+    <section id="contact" class="section contact-section">
+        <h2 class="text-adapt">Contactez-nous</h2>
+        <p class="text-adapt">
+            Pour toute question ou suggestion, n'hésitez pas à nous écrire : 
+            <a href="mailto:contact@sportlink.com" class="contact-email text-adapt">contact@sportlink.com</a>
+        </p>
+    </section>
+</div>
+{% endblock %}
+------------------
+File: ./app/templates/change_photo.html
+{% extends 'base.html' %}
+{% block title %}Changer la photo{% endblock %}
+
+{% block content %}
+{% include '_layout/logged_in_top.html' %}
+<div class="page-container">
+    <h2>Changer la photo {{ 'de couverture' if photo_type == 'cover' else 'de profil' }}</h2>
+    <form method="POST" enctype="multipart/form-data" action="{{ url_for('profile.change_photo', type=photo_type) }}">
+        <label for="new_photo">Nouvelle photo :</label>
+        <input type="file" name="new_photo" accept="image/*" required>
+        <button type="submit">Enregistrer</button>
+    </form>
+</div>
+{% endblock %}
+------------------
+File: ./app/templates/messages/inbox.html
+{% extends 'base.html' %}
+{% block title %}Boîte de réception - SportLink{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
+
+{% block content %}
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
+<div class="profile-main">
+    <div class="inbox-container">
+        <h2>Boîte de réception</h2>
+        {% if messages %}
+            <ul class="messages-list">
+            {% for message in messages %}
+                <li class="message-item">
+                    <div>
+                        <strong>De :</strong> {{ message.sender.first_name }} {{ message.sender.last_name }}
+                        <span class="timestamp">
+                            {{ message.timestamp.strftime('%d/%m/%Y %H:%M') }}
+                        </span>
+                    </div>
+                    <p>{{ message.body }}</p>
+                    <a href="{{ url_for('messages.send_message', user_id=message.sender.id) }}" class="btn">
+                        Répondre
+                    </a>
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Vous n'avez aucun message.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+------------------
+File: ./app/templates/messages/send_messages.html
+{% extends 'base.html' %}
+{% block title %}Envoyer un message{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
+
+{% block content %}
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
+{% endif %}
+
+<div class="profile-main">
+    <div class="send-message-container">
+        <h2>Envoyer un message à {{ recipient.first_name }} {{ recipient.last_name }}</h2>
+        <form method="POST" action="{{ url_for('messages.send_message', user_id=recipient.id) }}">
+            <label for="body">Message :</label>
+            <textarea name="body" rows="5" required 
+                      style="width: 100%; max-width: 600px;"></textarea>
+            <button type="submit" class="btn-publish">Envoyer</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+------------------
+File: ./app/templates/view_profile.html
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="cover-photo" style="
+            background-image: url('{{ url_for('static', filename='uploads/covers/' ~ user.cover_image) }}');
+            background-size: {{ user.cover_image_zoom }};
+            background-position: {{ user.cover_image_pos_x }}% {{ user.cover_image_pos_y }}%;
+        "></div>
+        <div class="profile-photo" style="
+            background-image: url('{{ url_for('static', filename='uploads/profiles/' ~ user.profile_image) }}');
+            background-size: {{ user.profile_image_zoom }};
+            background-position: {{ user.profile_image_pos_x }}% {{ user.profile_image_pos_y }}%;
+        "></div>
+        <div class="user-info">
+            <h1>{{ user.first_name }} {{ user.last_name }}</h1>
+            <!-- Other user info -->
+        </div>
+    </div>
+    <!-- Display user's sports and levels -->
+    <div class="user-sports">
+        <h3>Sports pratiqués</h3>
+        <ul>
+        {% for us in user.sports %}
+            <li>{{ us.sport.name }} - Niveau: {{ us.level }} étoiles</li>
+        {% endfor %}
+        </ul>
+    </div>
+    <!-- Other public profile information -->
+</div>
+{% endblock %}
+------------------
+File: ./app/templates/events/organize.html
+{% extends "base.html" %}
+
+{% block title %}
+    {% if user %}
+        Profil de {{ user.first_name }} - SportLink
+    {% else %}
+        SportLink
+    {% endif %}
+{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="{{ url_for('static', filename='js/profile_view.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+    <!-- Section du haut pour les utilisateurs connectés -->
+    {% if current_user.is_authenticated %}
+        {% include '_layout/logged_in_top.html' %}
+    {% endif %}
+
+    <div class="profile-container">
+        <h2>Organiser une Activité Sportive</h2>
+
+        <form method="POST" action="{{ url_for('events.organize') }}" class="organize-form">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label for="sport">Sport :</label>
+                {{ form.sport(class_='form-control') }}
+            </div>
+
+            <div class="form-group">
+                <label for="level">Niveau :</label>
+                {{ form.level(class_='form-control') }}
+            </div>
+
+            <div class="form-group">
+                <label for="distance">Distance maximale (km) :</label>
+                {{ form.distance(class_='form-control') }}
+            </div>
+
+            <div class="form-group">
+                <label for="date">Date :</label>
+                {{ form.date(class_='form-control') }}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Rechercher des Partenaires</button>
+        </form>
+
+        <!-- Affichage des partenaires potentiels -->
+        {% if partners %}
+            <h3>Partenaires Potentiels</h3>
+            <div class="partners-list">
+                {% for partner in partners %}
+                    <div class="partner-card">
+                        <h4>{{ partner.username }}</h4>
+                        <p>{{ partner.city }}, {{ partner.country }}</p>
+                        <a href="{{ url_for('profile.profile', user_id=partner.id) }}" class="btn btn-secondary">Voir le profil</a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Aucun partenaire trouvé pour ces critères.</p>
+        {% endif %}
+    </div>
+
+{% endblock %}
+------------------
+File: ./app/static/css/home.css
+/* app/static/css/home.css */
+
+/* Container global de la home */
+.home-welcome-container {
+    margin-top: 80px; /* Laisse un espace si la navbar non-co n'est pas absolue */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    color: #ccffcc;
+}
+
+/* Bannière d'accueil */
+.home-banner {
+    background: rgba(0,0,0,0.7);
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 900px;
+    width: 100%;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.main-title {
+    font-size: 2.2rem;
+    margin-bottom: 20px;
+    color: #0f0;
+    text-shadow: 0 0 4px #0f0;
+}
+
+.subtitle {
+    color: #fff;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.why-join-title {
+    font-size: 1.5rem;
+    color: #00ff00;
+    margin-top: 30px;
+}
+
+.features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+
+.features-list li {
+    margin: 10px 0;
+    color: #ccffcc;
+    font-size: 1rem;
+}
+
+/* Boutons CTA */
+.cta-buttons {
+    margin-top: 30px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+/* Section features 3D cards */
+.section.features-section {
+    margin-top: 40px;
+    max-width: 1000px;
+    width: 100%;
+    text-align: center;
+}
+
+.section.features-section .text-adapt {
+    color: #fff;
+    margin-bottom: 15px;
+}
+
+.feature-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    justify-items: center;
+    margin-top: 20px;
+}
+
+.card3D {
+    perspective: 1000px;
+    width: 180px;
+    height: 180px;
+    position: relative;
+    border-radius: 8px;
+    overflow: visible;
+}
+
+.card3D-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform-style: preserve-3d;
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.6);
+    box-shadow: 0 0 8px rgba(0,255,0,0.3);
+}
+
+.card3D:hover .card3D-inner {
+    transform: rotateY(180deg);
+}
+
+.card3D-front, .card3D-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    text-align: center;
+    padding: 10px;
+}
+
+.card3D-front {
+    color: #fff;
+    font-size: 1.3rem;
+    font-weight: bold;
+    text-shadow: 0 0 4px #0f0;
+}
+
+.card3D-back {
+    transform: rotateY(180deg);
+    color: #e0ffe0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Section contact */
+.section.contact-section {
+    margin-top: 40px;
+    max-width: 800px;
+    text-align: center;
+}
+
+.contact-email {
+    color: #00ff00;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Responsiveness */
+@media (max-width: 600px) {
+    .home-banner {
+        margin-bottom: 20px;
+    }
+    .features-list li {
+        font-size: 0.9rem;
+    }
+    .card3D {
+        width: 150px;
+        height: 150px;
+    }
+}
+------------------
+File: ./app/static/css/global.css
+/* app/static/css/global.css */
+
+/* Styles généraux */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-image: url('/static/images/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: #00FF00; /* Texte vert par défaut */
+}
+
+html, body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex-grow: 1;
+    min-height: calc(100vh - 80px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 20px;
+}
+
+/* Header non-connecté */
+.header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 80px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-bottom: 1px solid #e4e6eb;
+    z-index: 1000;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+}
+
+.header-container.not-logged-in .nav-title-big {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+.nav .menu {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    margin: 0;
+    padding: 0;
+}
+
+.nav .menu li a {
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav .menu li a:hover {
+    color: #00FF00;
+}
+
+/* Boutons */
+.btn-primary {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 255, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.3s, background-color 0.3s;
+    background: linear-gradient(90deg, #00FF00, #000000);
+}
+
+.btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(0, 255, 0, 0.4);
+    background: #000000;
+    color: #00FF00;
+}
+
+/* Champs de formulaire globaux */
+input, textarea, select {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #00FF00;
+    color: white;
+    border-radius: 5px;
+    padding: 10px;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s;
+}
+
+input:focus, textarea:focus, select:focus {
+    box-shadow: 0 0 10px #00FF00;
+    transform: scale(1.02);
+    outline: none;
+}
+
+input::placeholder, textarea::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Flash messages */
+.flash-messages {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 300px;
+}
+
+.flash-messages .alert {
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    animation: fadeInOut 5s ease-in-out;
+    transition: opacity 0.5s ease, transform 0.3s ease;
+}
+
+.alert-success {
+    background-color: #28a745;
+    color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.alert-warning {
+    background-color: #ffc107;
+    color: black;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.alert-danger {
+    background-color: #dc3545;
+    color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Animation pour flash */
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    90% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+/* Fermer le message lorsqu'on clique dessus */
+.flash-messages .alert:hover {
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+/* Footer + social links */
+footer {
+    text-align: center;
+    padding: 10px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.social-links {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    padding: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.social-icon {
+    width: 32px;
+    height: 32px;
+    transition: transform 0.2s;
+}
+
+.social-icon:hover {
+    transform: scale(1.1);
+}
+------------------
+File: ./app/static/css/profile/freinds_list.css
+/* app/static/css/profile/friends_list.css */
+
+/* Conteneur principal des amis */
+.friends-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Grille d’affichage */
+.friends-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+/* Carte d’ami */
+.friend-card {
+    background-color: #fff;
+    border: 1px solid #ccd0d5;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.3s;
+}
+
+/* Effet survol de la carte */
+.friend-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Photo de l’ami */
+.friend-photo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    margin: 0 auto 15px;
+}
+
+/* Informations sur l’ami */
+.friend-info h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+/* Bouton d’action */
+.friend-card .btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 15px;
+    background-color: #1877f2;
+    color: #fff;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+/* Effet survol du bouton */
+.friend-card .btn:hover {
+    background-color: #165bbf;
+}
+------------------
+File: ./app/static/css/profile/partners_list.css
+/* app/static/css/profile/partners_list.css */
+
+/* Conteneur principal */
+.partners-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    max-width: 1000px;
+    margin: 100px auto 50px auto;
+    padding: 20px;
+}
+
+/* Carte de partenaire */
+.partner-card {
+    background: rgba(255,255,255,0.9);
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: transform 0.3s;
+}
+
+.partner-card:hover {
+    transform: translateY(-5px);
+}
+
+.partner-photo {
+    width: 100%;
+    height: 150px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.partner-info h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.partner-info p {
+    margin: 0 0 10px 0;
+    color: #555;
+}
+
+.partner-info .btn {
+    display: inline-block;
+    padding: 8px 12px;
+    background: #1877f2;
+    color: #fff;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.partner-info .btn:hover {
+    background: #165bbf;
+}
+------------------
+File: ./app/static/css/auth/register.css
+/* app/static/css/auth/register.css */
+
+/* Container spécifique à la page d'inscription */
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 80px);
+    padding: 20px;
+    background: none;
+    margin-top: 80px; /* Laisser la place si la navbar non co est visible */
+}
+
+.register-form {
+    max-width: 500px;
+    width: 100%;
+    padding: 30px;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 4px 15px rgba(0, 255, 0, 0.3);
+    text-align: center;
+}
+
+.register-form h2 {
+    text-align: center;
+    color: #00FF00;
+    margin-bottom: 20px;
+}
+
+/* Champs de formulaire */
+.register-form .form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.register-form .form-group label {
+    color: #00FF00;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: inline-block;
+}
+
+.register-form .form-group input {
+    width: 100%;
+}
+
+.register-form .btn-primary {
+    width: 100%;
+    font-size: 1.2rem;
+}
+
+/* Lien pour la connexion */
+.register-form a {
+    color: #00FF00;
+    text-decoration: none;
+}
+
+.register-form a:hover {
+    color: #000000;
+    background-color: #00FF00;
+    padding: 3px;
+    border-radius: 5px;
+}
+
+/* Social login */
+.social-login {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.btn-social {
+    display: inline-block;
+    padding: 8px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #fff;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.facebook {
+    background: #3b5998;
+}
+
+.facebook:hover {
+    background: #2d4373;
+}
+
+.strava {
+    background: #fc4c02;
+}
+
+.strava:hover {
+    background: #d84402;
+}
+
+/* Responsiveness */
+@media (max-width: 600px) {
+    .register-form {
+        padding: 20px;
+    }
+    .register-form h2 {
+        font-size: 1.5rem;
+    }
+}
+------------------
+File: ./app/static/css/profile_view.css
+/* app/static/css/profile_view.css */
+
+/* Couverture en haut */
+.cover-photo {
+    width: 100%;
+    height: 300px; /* ajustez la hauteur */
+    background-size: cover;
+    background-position: center;
+  }
+  
+  /* Navbar */
+  .profile-nav-bar {
+    position: relative;  /* on va positionner la photo de profil bubble en absolu */
+    height: 60px;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    /* On peut mettre un margin-top: -60px; si on veut coller sous la cover, 
+       ou un transform: translateY(-60px); selon l'effet voulu */
+  }
+  
+  .profile-nav-bar .nav-left,
+  .profile-nav-bar .nav-right {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    margin: 0 20px; 
+    padding: 0;
+  }
+  
+  .profile-nav-bar .nav-left li a,
+  .profile-nav-bar .nav-right li a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+    padding: 8px;
+  }
+  
+  /* Bulle de la photo de profil */
+  .profile-photo-bubble {
+    position: absolute; 
+    left: 50%;
+    transform: translateX(-50%) translateY(-30%);
+    width: 80px;
+    height: 80px;
+    background-size: cover;
+    background-position: center;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    z-index: 10;
+  }
+  
+.profile-nav-bar .nav-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    padding: 0 20px;
+}
+
+.nav-inner .nav-left, .nav-inner .nav-right {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-inner ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-inner li a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.profile-photo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    background-size: cover;
+    background-position: center;
+    position: absolute;
+    top: 220px; /* 300 - 80 approx */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Structure principale (profil, news_feed) */
+.profile-main, .page-container {
+    max-width: 1200px;
+    width: 100%;
+    margin: 80px auto 50px auto; 
+    /* 80px for some top spacing if needed */
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    min-height: 400px;
+}
+
+.left-column {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.right-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Bulle “Quoi de neuf” */
+.whats-new-container {
+    background: none;
+}
+
+.whats-new-bubble {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid #0f0;
+    border-radius: 10px;
+    padding: 15px;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.whats-new-bubble:hover {
+    transform: scale(1.02);
+}
+
+#placeholder-text {
+    margin: 0;
+    color: #fff;
+}
+
+.create-post-form {
+    margin-top: 10px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 8px;
+    padding: 15px;
+    display: block;
+    color: #fff;
+}
+
+/* Upload icons */
+.upload-icons {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.upload-icons label i {
+    font-size: 1.4rem;
+    color: #fff;
+    cursor: pointer;
+}
+
+/* Boutons publier / annuler */
+.btn-publish, .btn-cancel {
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+    margin-right: 10px;
+}
+.btn-publish {
+    background: #0f0;
+    color: #000;
+}
+.btn-cancel {
+    background: #aaa;
+    color: #222;
+}
+
+/* Liste des posts */
+.posts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Post card */
+.post-card, .news-post-card {
+    background: rgba(255,255,255,0.9);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.post-header img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+
+.post-header strong {
+    font-size: 1rem;
+    color: #333;
+}
+
+.timestamp {
+    font-size: 0.8rem;
+    color: #666;
+    display: block;
+}
+
+.post-content h3 {
+    margin: 5px 0;
+    color: #111;
+}
+
+.post-content p {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.post-content img, .post-content video, .post-content audio {
+    max-width: 100%;
+    margin-top: 10px;
+    display: block;
+}
+
+/* user-details-card, friends-card, search-contact-card */
+.user-details-card, .friends-card, .search-contact-card {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    padding: 15px;
+    color: #fff;
+}
+
+.user-details-card h3, .friends-card h3, .search-contact-card h3 {
+    margin-top: 0;
+    color: #0f0;
+}
+
+.user-details-card ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.user-details-card li {
+    margin: 5px 0;
+}
+
+.user-details-card a {
+    display: inline-block;
+    margin-top: 10px;
+    background: #0f0;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: #000;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Bloc amis */
+.friends-card .friends-thumbs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+.friend-thumb {
+    width: 60px;
+    text-align: center;
+    color: #fff;
+    text-decoration: none;
+}
+.friend-thumb img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: block;
+    margin: 0 auto;
+}
+.friend-thumb span {
+    font-size: 0.8rem;
+    display: block;
+}
+
+/* Bloc search contact */
+.search-contact-card form {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+.search-contact-card input {
+    flex: 1;
+}
+
+/* news-feed-posts, etc. */
+.news-feed-posts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.news-post-card {
+    max-width: 360px;
+    width: 100%;
+}
+
+/* Divers */
+.photos-container, .edit-profile-container, .settings-container {
+    max-width: 1200px;
+    margin: 100px auto 50px auto;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #0f0;
+    border-radius: 8px;
+    padding: 20px;
+    color: #fff;
+}
+
+/* Responsiveness */
+@media (max-width: 800px) {
+    .profile-main,
+    .page-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .left-column, .right-column {
+        width: 100%;
+        max-width: 600px;
+    }
+}
+------------------
+File: ./app/static/js/home.js
+document.addEventListener("DOMContentLoaded", function() {
+    const cards = document.querySelectorAll('.card3D');
+    if (cards.length > 0) {
+        cards.forEach(card => {
+            const cardInner = card.querySelector('.card3D-inner');
+            if (cardInner) {
+                card.addEventListener('click', () => {
+                    cardInner.classList.toggle('flipped');
+                });
+            }
+        });
+    }
+});
+------------------
+File: ./app/static/js/profile_view.js
+document.addEventListener('DOMContentLoaded', () => {
+  const whatsNewBubble = document.getElementById('whatsNewBubble');
+  const placeholderText = document.getElementById('placeholder-text');
+  const createPostForm = document.getElementById('createPostForm');
+  const cancelPostBtn = document.getElementById('cancelPostBtn');
+
+  if (whatsNewBubble && placeholderText && createPostForm) {
+      whatsNewBubble.addEventListener('click', () => {
+          if (!createPostForm.style.display || createPostForm.style.display === 'none') {
+              createPostForm.style.display = 'block';
+              placeholderText.style.display = 'none';
+          }
+      });
+  }
+
+  if (cancelPostBtn) {
+      cancelPostBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (createPostForm && placeholderText) {
+              createPostForm.style.display = 'none';
+              placeholderText.style.display = 'block';
+          }
+      });
+  }
+});
+------------------
+File: ./app/static/js/scripts.js
+
+async function createPost() {
+    const postContent = document.getElementById("post-content");
+    if (postContent && postContent.value) {
+        try {
+            const response = await fetch("/posts", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ content: postContent.value })
+            });
+            if (response.ok) {
+                alert("Publication créée avec succès !");
+                postContent.value = "";
+                loadPosts();
+            } else {
+                alert("Erreur lors de la création de la publication.");
+            }
+        } catch (error) {
+            console.error("Erreur de connexion :", error);
+            alert("Erreur de connexion. Veuillez réessayer plus tard.");
+        }
+    } else {
+        alert("Le contenu de la publication ne peut pas être vide.");
+    }
+}
+
+async function loadPosts() {
+    const postsDiv = document.getElementById("posts");
+    if (postsDiv) {
+        postsDiv.innerHTML = '<div class="loading-spinner"></div>';
+
+        try {
+            const response = await fetch("/posts");
+            if (response.ok) {
+                const posts = await response.json();
+                if (posts.length > 0) {
+                    postsDiv.innerHTML = posts.map(post => `
+                        <div class="post">
+                            <p>${post.content} <em>${new Date(post.created_at).toLocaleString()}</em></p>
+                        </div>
+                    `).join("");
+                } else {
+                    postsDiv.innerHTML = "<p>Aucune publication à afficher.</p>";
+                }
+            } else {
+                postsDiv.innerHTML = "<p>Erreur lors du chargement des publications.</p>";
+            }
+        } catch (error) {
+            console.error("Erreur de chargement des publications :", error);
+            postsDiv.innerHTML = "<p>Erreur de connexion. Veuillez réessayer plus tard.</p>";
+        }
+    }
+}
+
+function getCsrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
+}
+
+async function likePost(postId) {
+    if (postId) {
+        try {
+            const response = await fetch(`/posts/${postId}/like`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: JSON.stringify({})
+            });
+            if (response.ok) {
+                const result = await response.json();
+                const likeCountElement = document.querySelector(`#post-${postId} .like-count`);
+                if (likeCountElement) {
+                    likeCountElement.textContent = result.likes;
+                }
+            } else {
+                console.error('Erreur lors du like de la publication');
+            }
+        } catch (error) {
+            console.error('Erreur réseau :', error);
+        }
+    }
+}
+
+function toggleVisibility(id) {
+    const form = document.getElementById(id);
+    if (form) {
+        form.style.display = (form.style.display === "none" || !form.style.display) ? "block" : "none";
+    }
+}
+
+// Ajustement dynamique des couleurs de texte
+function adjustTextColors() {
+    const textElements = document.querySelectorAll('.text-adapt');
+    textElements.forEach(element => {
+        const bgColor = window.getComputedStyle(element.parentElement).backgroundColor || window.getComputedStyle(element).backgroundColor;
+        if (bgColor) {
+            const rgb = bgColor.match(/\d+/g);
+            if (rgb) {
+                const brightness = Math.round(((parseInt(rgb[0]) * 299) +
+                                               (parseInt(rgb[1]) * 587) +
+                                               (parseInt(rgb[2]) * 114)) / 1000);
+                element.style.color = (brightness > 125) ? '#1dff00' : '#e6e600';
+                element.style.textShadow = (brightness > 125) ? '1px 1px 2px rgba(0, 0, 0, 0.5)' : '1px 1px 2px rgba(255, 255, 255, 0.5)';
+            }
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    adjustTextColors();
+});

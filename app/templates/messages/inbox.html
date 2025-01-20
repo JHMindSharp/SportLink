@@ -1,19 +1,38 @@
 {% extends 'base.html' %}
-{% block title %}Boîte de réception{% endblock %}
+{% block title %}Boîte de réception - SportLink{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
+
 {% block content %}
-<h2>Boîte de réception</h2>
-{% if messages %}
-    <ul>
-    {% for message in messages %}
-        <li>
-            <strong>De :</strong> {{ message.sender.username }}
-            <p>{{ message.body }}</p>
-            <em>{{ message.timestamp.strftime('%d/%m/%Y %H:%M') }}</em>
-            <a href="{{ url_for('messages.send_message', user_id=message.sender.id) }}">Répondre</a>
-        </li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>Vous n'avez aucun message.</p>
+{% if current_user.is_authenticated %}
+  {% include '_layout/logged_in_top.html' %}
 {% endif %}
+
+<div class="profile-main">
+    <div class="inbox-container">
+        <h2>Boîte de réception</h2>
+        {% if messages %}
+            <ul class="messages-list">
+            {% for message in messages %}
+                <li class="message-item">
+                    <div>
+                        <strong>De :</strong> {{ message.sender.first_name }} {{ message.sender.last_name }}
+                        <span class="timestamp">
+                            {{ message.timestamp.strftime('%d/%m/%Y %H:%M') }}
+                        </span>
+                    </div>
+                    <p>{{ message.body }}</p>
+                    <a href="{{ url_for('messages.send_message', user_id=message.sender.id) }}" class="btn">
+                        Répondre
+                    </a>
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Vous n'avez aucun message.</p>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

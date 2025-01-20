@@ -15,43 +15,41 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateField, SelectField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
 from app.models import User
+from markupsafe import Markup
+from wtforms import StringField, PasswordField, SubmitField, DateField, SelectField, BooleanField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, Regexp, ValidationError
 
-# Form for user registration
 class RegistrationForm(FlaskForm):
-    """
-    This form collects user details for registration, including:
-    - Username
-    - Email
-    - First and last names
-    - Birth date
-    - Gender
-    - Password and confirmation
-    """
-    username = StringField('Nom d\'utilisateur', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
-    first_name = StringField('Prénom', validators=[DataRequired()])
-    last_name = StringField('Nom de famille', validators=[DataRequired()])
+    first_name = StringField('Prénom', validators=[DataRequired(), Length(min=2, max=64)])
+    last_name = StringField('Nom de famille', validators=[DataRequired(), Length(min=2, max=64)])
     birth_date = DateField('Date de naissance', format='%Y-%m-%d', validators=[DataRequired()])
     gender = SelectField('Genre', choices=[('male', 'Homme'), ('female', 'Femme'), ('other', 'Autre')], validators=[DataRequired()])
-    password = PasswordField('Mot de passe', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirmez le mot de passe', validators=[DataRequired(), EqualTo('password')])
-    accept_terms = BooleanField(
-        'J\'accepte les <a href="{{ url_for(\'main.privacy_policy\') }}">conditions d\'utilisation</a>', 
-        validators=[DataRequired()]
+    phone = StringField(
+        'Numéro de téléphone',
+        validators=[
+            DataRequired(),
+            Regexp(r'^\+?\d{10,15}$', message="Entrez un numéro de téléphone valide.")
+        ]
     )
+    password = PasswordField('Mot de passe', validators=[DataRequired()])
+    confirm_password = PasswordField(
+        'Confirmez le mot de passe',
+        validators=[DataRequired(), EqualTo('password')]
+    )
+    accept_terms = BooleanField(
+        label=Markup(
+        'J\'accepte les <a href="/privacy_policy" target="_blank">conditions d\'utilisation</a>'
+    ),
+    validators=[DataRequired(message="Vous devez accepter les conditions d'utilisation pour continuer.")]
+)
     submit = SubmitField('Inscription')
 
-    # Custom validation to ensure email is unique
+    # Validation personnalisée pour vérifier si l'email est unique
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
         if user:
             raise ValidationError('Cet email est déjà utilisé.')
-
-    # Custom validation to ensure username is unique
-    def validate_username(self, username):
-        user = User.query.filter_by(username=username.data).first()
-        if user:
-            raise ValidationError('Ce nom d\'utilisateur est déjà utilisé.')
 
 # Form for user login
 class LoginForm(FlaskForm):

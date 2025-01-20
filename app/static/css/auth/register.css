@@ -1,0 +1,107 @@
+/* app/static/css/auth/register.css */
+
+/* Container spécifique à la page d'inscription */
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 80px);
+    padding: 20px;
+    background: none;
+    margin-top: 80px; /* Laisser la place si la navbar non co est visible */
+}
+
+.register-form {
+    max-width: 500px;
+    width: 100%;
+    padding: 30px;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 4px 15px rgba(0, 255, 0, 0.3);
+    text-align: center;
+}
+
+.register-form h2 {
+    text-align: center;
+    color: #00FF00;
+    margin-bottom: 20px;
+}
+
+/* Champs de formulaire */
+.register-form .form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.register-form .form-group label {
+    color: #00FF00;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: inline-block;
+}
+
+.register-form .form-group input {
+    width: 100%;
+}
+
+.register-form .btn-primary {
+    width: 100%;
+    font-size: 1.2rem;
+}
+
+/* Lien pour la connexion */
+.register-form a {
+    color: #00FF00;
+    text-decoration: none;
+}
+
+.register-form a:hover {
+    color: #000000;
+    background-color: #00FF00;
+    padding: 3px;
+    border-radius: 5px;
+}
+
+/* Social login */
+.social-login {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.btn-social {
+    display: inline-block;
+    padding: 8px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #fff;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.facebook {
+    background: #3b5998;
+}
+
+.facebook:hover {
+    background: #2d4373;
+}
+
+.strava {
+    background: #fc4c02;
+}
+
+.strava:hover {
+    background: #d84402;
+}
+
+/* Responsiveness */
+@media (max-width: 600px) {
+    .register-form {
+        padding: 20px;
+    }
+    .register-form h2 {
+        font-size: 1.5rem;
+    }
+}

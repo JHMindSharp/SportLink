@@ -1,45 +1,72 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Organiser une Activité - SportLink{% endblock %}
+{% block title %}
+    {% if user %}
+        Profil de {{ user.first_name }} - SportLink
+    {% else %}
+        SportLink
+    {% endif %}
+{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile_view.css') }}">
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="{{ url_for('static', filename='js/profile_view.js') }}"></script>
+{% endblock %}
 
 {% block content %}
-<h2>Organiser une Activité Sportive</h2>
-<form method="POST" action="{{ url_for('events.organize') }}">
-    {{ form.hidden_tag() }}
 
-    <div class="form-group">
-        <label for="sport">Sport :</label>
-        {{ form.sport }}
-    </div>
-    <div class="form-group">
-        <label for="level">Niveau :</label>
-        {{ form.level }}
-    </div>
-    <div class="form-group">
-        <label for="distance">Distance maximale (km) :</label>
-        {{ form.distance }}
-    </div>
-    <div class="form-group">
-        <label for="date">Date :</label>
-        {{ form.date }}
-    </div>
+    <!-- Section du haut pour les utilisateurs connectés -->
+    {% if current_user.is_authenticated %}
+        {% include '_layout/logged_in_top.html' %}
+    {% endif %}
 
-    <button type="submit" class="btn-primary">Rechercher des Partenaires</button>
-</form>
+    <div class="profile-container">
+        <h2>Organiser une Activité Sportive</h2>
 
-<!-- Affichage des partenaires potentiels -->
-{% if partners %}
-    <h3>Partenaires Potentiels</h3>
-    <div class="partners-list">
-        {% for partner in partners %}
-            <div class="partner-card">
-                <h4>{{ partner.username }}</h4>
-                <p>{{ partner.city }}, {{ partner.country }}</p>
-                <a href="{{ url_for('profile.profile', user_id=partner.id) }}" class="btn">Voir le profil</a>
+        <form method="POST" action="{{ url_for('events.organize') }}" class="organize-form">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label for="sport">Sport :</label>
+                {{ form.sport(class_='form-control') }}
             </div>
-        {% endfor %}
+
+            <div class="form-group">
+                <label for="level">Niveau :</label>
+                {{ form.level(class_='form-control') }}
+            </div>
+
+            <div class="form-group">
+                <label for="distance">Distance maximale (km) :</label>
+                {{ form.distance(class_='form-control') }}
+            </div>
+
+            <div class="form-group">
+                <label for="date">Date :</label>
+                {{ form.date(class_='form-control') }}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Rechercher des Partenaires</button>
+        </form>
+
+        <!-- Affichage des partenaires potentiels -->
+        {% if partners %}
+            <h3>Partenaires Potentiels</h3>
+            <div class="partners-list">
+                {% for partner in partners %}
+                    <div class="partner-card">
+                        <h4>{{ partner.username }}</h4>
+                        <p>{{ partner.city }}, {{ partner.country }}</p>
+                        <a href="{{ url_for('profile.profile', user_id=partner.id) }}" class="btn btn-secondary">Voir le profil</a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Aucun partenaire trouvé pour ces critères.</p>
+        {% endif %}
     </div>
-{% else %}
-    <p>Aucun partenaire trouvé pour ces critères.</p>
-{% endif %}
+
 {% endblock %}

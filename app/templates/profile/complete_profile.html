@@ -52,6 +52,12 @@
     <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
 </form>
 
+<form action="{{ url_for('auth.upload_profile') }}" method="POST" enctype="multipart/form-data">
+    <label for="file">Upload Profile Picture:</label>
+    <input type="file" name="file" id="file">
+    <button type="submit">Upload</button>
+</form>
+
 <!-- Include Cropper.js CSS and JS -->
 <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.css" />
 <script src="https://unpkg.com/cropperjs/dist/cropper.js"></script>
