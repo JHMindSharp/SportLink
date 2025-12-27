@@ -1,0 +1,42 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+
+# ===== Virtualenv =====
+.venv/
+venv/
+ENV/
+env/
+
+# ===== Flask / Instance =====
+instance/
+*.sqlite
+*.db
+
+# ===== Secrets =====
+.env
+.flaskenv
+*.env
+.env.*
+
+# ===== Logs =====
+*.log
+
+# ===== VS Code =====
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# ===== macOS =====
+.DS_Store
+
+# ===== Uploads / Media =====
+uploads/
+app/static/uploads/
